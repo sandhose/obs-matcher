@@ -1,11 +1,10 @@
-from .utils import Base
 from .platform import Platform, PlatformGroup, Scrap
 from .value import Value, ValueID, ValueSource
 from .object import ObjectLink, ObjectLinkWorkMeta, ExternalObject
+from .work import AvWork, AvWorkType, Episode, Season, Serie
 from .person import Person
-from .work import AVWork, AVWorkType, Episode, Season, Serie
 
 
-__all__ = ['Base', 'Platform', 'PlatformGroup', 'Scrap', 'Value', 'ValueID',
+__all__ = ['Platform', 'PlatformGroup', 'Scrap', 'Value', 'ValueID',
            'ValueSource', 'ObjectLink', 'ObjectLinkWorkMeta', 'ExternalObject',
-           'Person', 'AVWork', 'AVWorkType', 'Episode', 'Season', 'Serie']
+           'Person', 'AvWork', 'AvWorkType', 'Episode', 'Season', 'Serie']

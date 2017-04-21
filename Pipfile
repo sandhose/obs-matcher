@@ -5,3 +5,7 @@ verify_ssl = true
 [packages]
 psycopg2 = "*"
 SQLAlchemy = ">=1.1"
+Flask = "*"
+Flask-SQLAlchemy = "*"
+Flask-Migrate = "*"
+Flask-Script = "*"

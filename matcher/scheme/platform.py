@@ -1,42 +1,42 @@
-from sqlalchemy import Column, String, Sequence, Integer, ForeignKey, DateTime
-from sqlalchemy.orm import relationship
-
-from .utils import Base
+from matcher import db
 
 
-class PlatformGroup(Base):
+class PlatformGroup(db.Model):
     __tablename__ = 'platform_group'
 
-    id = Column(Integer, Sequence('platform_group_id_seq'), primary_key=True)
-    name = Column(String, nullable=False)
+    id = db.Column(db.Integer, db.Sequence('platform_group_id_seq'),
+                   primary_key=True)
+    name = db.Column(db.String, nullable=False)
 
-    platforms = relationship('Platform', back_populates='group')
+    platforms = db.relationship('Platform', back_populates='group')
 
 
-class Platform(Base):
+class Platform(db.Model):
     __tablename__ = 'platform'
 
-    id = Column(Integer, Sequence('platform_id_seq'), primary_key=True)
-    name = Column(String, nullable=False)
-    group_id = Column(Integer, ForeignKey('platform_group.id'))
-    url = Column(String)
-    country = Column(String(2))
-    max_rating = Column(Integer)
-    base_score = Column(Integer, nullable=False)
+    id = db.Column(db.Integer, db.Sequence('platform_id_seq'),
+                   primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    group_id = db.Column(db.Integer, db.ForeignKey('platform_group.id'))
+    url = db.Column(db.String)
+    country = db.Column(db.String(2))
+    max_rating = db.Column(db.Integer)
+    base_score = db.Column(db.Integer, nullable=False)
 
-    group = relationship('PlatformGroup', back_populates='platforms')
-    scraps = relationship('Scrap', back_populates='platform')
-    values = relationship('Value', secondary='value_source',
-                          back_populates='sources')
+    group = db.relationship('PlatformGroup', back_populates='platforms')
+    scraps = db.relationship('Scrap', back_populates='platform')
+    values = db.relationship('Value', secondary='value_source',
+                             back_populates='sources')
 
 
-class Scrap(Base):
+class Scrap(db.Model):
     __tablename__ = 'scrap'
 
-    id = Column(Integer, Sequence('scrap_id_seq'), primary_key=True)
-    platform_id = Column(Integer, ForeignKey('platform.id'), nullable=False)
-    date = Column(DateTime)
+    id = db.Column(db.Integer, db.Sequence('scrap_id_seq'), primary_key=True)
+    platform_id = db.Column(db.Integer, db.ForeignKey('platform.id'),
+                            nullable=False)
+    date = db.Column(db.DateTime)
 
-    platform = relationship('Platform', back_populates='scraps')
-    links = relationship('ObjectLink', secondary='scrap_link',
-                         back_populates='scraps')
+    platform = db.relationship('Platform', back_populates='scraps')
+    links = db.relationship('ObjectLink', secondary='scrap_link',
+                            back_populates='scraps')

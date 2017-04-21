@@ -1,9 +1,6 @@
 import enum
 
-from sqlalchemy import Column, Sequence, Integer, ForeignKey, Enum, Table
-from sqlalchemy.orm import relationship
-
-from .utils import Base
+from matcher import db
 
 
 class Gender(enum.Enum):
@@ -13,31 +10,41 @@ class Gender(enum.Enum):
     not_applicable = 9
 
 
-class Role(enum.Enum):
+class RoleType(enum.Enum):
     director = 0
     actor = 1
     writer = 2
 
 
-role = Table(
-    'role', Base.metadata,
-    Column('person_id', ForeignKey('Person'), primary_key=True),
-    Column('av_work_id', ForeignKey('AVWork'), primary_key=True),
-    Column('role', Enum(Role, name='role'))
-)
+class Role(db.Model):
+    __tablename__ = 'role'
+    __table_args__ = (
+        db.PrimaryKeyConstraint('person_id', 'av_work_id'),
+    )
+
+    person_id = db.Column(db.Integer, db.ForeignKey('person.id'))
+    av_work_id = db.Column(db.Integer, db.ForeignKey('av_work.id'))
+
+    person = db.relationship('Person', foreign_keys=[person_id],
+                             back_populates='roles')
+    av_work = db.relationship('AVWork', foreign_keys=[av_work_id],
+                              back_populates='roles')
+    role = db.Column(db.Enum(RoleType, name='role'))
 
 
-class Person(Base):
+class Person(db.Model):
     __tablename__ = 'person'
 
-    id = Column(Integer, Sequence('person_id_seq'), primary_key=True)
+    id = db.Column(db.Integer, db.Sequence('person_id_seq'), primary_key=True)
 
-    external_object_id = Column(Integer, ForeignKey('external_object.id'),
-                                nullable=False)
-    name_value_id = Column(Integer, ForeignKey('value_id.id'), nullable=False)
+    external_object_id = db.Column(db.Integer,
+                                   db.ForeignKey('external_object.id'),
+                                   nullable=False)
+    name_value_id = db.Column(db.Integer, db.ForeignKey('value_id.id'),
+                              nullable=False)
 
-    external_object = relationship('ExternalObject',
-                                   foreign_keys=[external_object_id])
-    name = relationship('ValueID', foreign_keys=[name_value_id])
-    gender = Column(Enum(Gender, name='gender'))
-    roles = relationship('AVWork', back_populates='staffs', secondary='role')
+    external_object = db.relationship('ExternalObject',
+                                      foreign_keys=[external_object_id])
+    name = db.relationship('ValueID', foreign_keys=[name_value_id])
+    gender = db.Column(db.Enum(Gender, name='gender'))
+    roles = db.relationship('Role', back_populates='person')

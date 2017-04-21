@@ -1,99 +1,102 @@
 import enum
 
-from sqlalchemy import Column, Sequence, Integer, ForeignKey, Enum
-from sqlalchemy.orm import relationship
-
-from .utils import Base
+from matcher import db
 
 
-class AVWorkType(enum.Enum):
+class AvWorkType(enum.Enum):
     movie = 1
     serie = 2
 
 
-class AVWork(Base):
+class AvWork(db.Model):
     __tablename__ = 'av_work'
 
-    id = Column(Integer, Sequence('av_work_id_seq'), primary_key=True)
+    id = db.Column(db.Integer, db.Sequence('av_work_id_seq'), primary_key=True)
 
-    external_object_id = Column(Integer, ForeignKey('external_object.id'),
-                                nullable=False)
-    title_value_id = Column(Integer, ForeignKey('value_id.id'),
-                            nullable=False)
-    date_value_id = Column(Integer, ForeignKey('value_id.id'),
-                           nullable=False)
-    duration_value_id = Column(Integer, ForeignKey('value_id.id'),
+    external_object_id = db.Column(db.Integer,
+                                   db.ForeignKey('external_object.id'),
+                                   nullable=False)
+    title_value_id = db.Column(db.Integer, db.ForeignKey('value_id.id'),
                                nullable=False)
+    date_value_id = db.Column(db.Integer, db.ForeignKey('value_id.id'),
+                              nullable=False)
+    duration_value_id = db.Column(db.Integer, db.ForeignKey('value_id.id'),
+                                  nullable=False)
 
-    external_object = relationship('ExternalObject',
-                                   foreign_keys=[external_object_id])
-    title = relationship('ValueID', foreign_keys=[title_value_id])
-    date = relationship('ValueID', foreign_keys=[date_value_id])
-    type = Column(Enum(AVWorkType, name='avwork_type'))
-    duration = relationship('ValueID', foreign_keys=[duration_value_id])
-    staffs = relationship('Person', back_populates='roles', secondary='role')
+    external_object = db.relationship('ExternalObject',
+                                      foreign_keys=[external_object_id])
+    title = db.relationship('ValueID', foreign_keys=[title_value_id])
+    date = db.relationship('ValueID', foreign_keys=[date_value_id])
+    type = db.Column(db.Enum(AvWorkType, name='avwork_type'))
+    duration = db.relationship('ValueID', foreign_keys=[duration_value_id])
+    roles = db.relationship('Role', back_populates='av_work')
 
 
-class Movie(Base):
+class Movie(db.Model):
     __tablename__ = 'movie'
 
-    id = Column(Integer, Sequence('movie_id_seq'), primary_key=True)
-    av_work_id = Column(Integer, ForeignKey('av_work.id'), nullable=False)
-    country_value_id = Column(Integer, ForeignKey('value_id.id'),
-                              nullable=False)
-    genres_value_id = Column(Integer, ForeignKey('value_id.id'),
-                             nullable=False)
+    id = db.Column(db.Integer, db.Sequence('movie_id_seq'), primary_key=True)
+    av_work_id = db.Column(db.Integer, db.ForeignKey(
+        'av_work.id'), nullable=False)
+    country_value_id = db.Column(db.Integer, db.ForeignKey('value_id.id'),
+                                 nullable=False)
+    genres_value_id = db.Column(db.Integer, db.ForeignKey('value_id.id'),
+                                nullable=False)
 
-    av_work = relationship('AVWork', foreign_keys=[av_work_id])
-    country = relationship('ValueID', foreign_keys=[country_value_id])
-    genres = relationship('ValueID', foreign_keys=[genres_value_id])
+    av_work = db.relationship('AvWork', foreign_keys=[av_work_id])
+    country = db.relationship('ValueID', foreign_keys=[country_value_id])
+    genres = db.relationship('ValueID', foreign_keys=[genres_value_id])
 
 
-class Episode(Base):
+class Episode(db.Model):
     __tablename__ = 'episode'
 
-    id = Column(Integer, Sequence('episode_id_seq'), primary_key=True)
+    id = db.Column(db.Integer, db.Sequence('episode_id_seq'), primary_key=True)
 
-    external_object_id = Column(Integer, ForeignKey('external_object.id'),
-                                nullable=False)
-    season_id = Column(Integer, ForeignKey('season.id'), nullable=False)
+    external_object_id = db.Column(db.Integer,
+                                   db.ForeignKey('external_object.id'),
+                                   nullable=False)
+    season_id = db.Column(db.Integer, db.ForeignKey(
+        'season.id'), nullable=False)
 
-    external_object = relationship('ExternalObject',
-                                   foreign_keys=[external_object_id])
-    season = relationship('Season', foreign_keys=[season_id])
-    number = Column(Integer, nullable=False)
+    external_object = db.relationship('ExternalObject',
+                                      foreign_keys=[external_object_id])
+    season = db.relationship('Season', foreign_keys=[season_id])
+    number = db.Column(db.Integer, nullable=False)
 
 
-class Season(Base):
+class Season(db.Model):
     __tablename__ = 'season'
 
-    id = Column(Integer, Sequence('season_id_seq'), primary_key=True)
+    id = db.Column(db.Integer, db.Sequence('season_id_seq'), primary_key=True)
 
-    external_object_id = Column(Integer, ForeignKey('external_object.id'),
-                                nullable=False)
-    serie_id = Column(Integer, ForeignKey('serie.id'), nullable=False)
+    external_object_id = db.Column(db.Integer,
+                                   db.ForeignKey('external_object.id'),
+                                   nullable=False)
+    serie_id = db.Column(db.Integer, db.ForeignKey('serie.id'), nullable=False)
 
-    external_object = relationship('ExternalObject',
-                                   foreign_keys=[external_object_id])
-    serie = relationship('serie', foreign_keys=[serie_id])
-    number = Column(Integer, nullable=False)
+    external_object = db.relationship('ExternalObject',
+                                      foreign_keys=[external_object_id])
+    serie = db.relationship('serie', foreign_keys=[serie_id])
+    number = db.Column(db.Integer, nullable=False)
 
 
-class Serie(Base):
+class Serie(db.Model):
     __tablename__ = 'serie'
-    id = Column(Integer, Sequence('serie_id_seq'), primary_key=True)
+    id = db.Column(db.Integer, db.Sequence('serie_id_seq'), primary_key=True)
 
-    external_object_id = Column(Integer, ForeignKey('external_object.id'),
+    external_object_id = db.Column(db.Integer,
+                                   db.ForeignKey('external_object.id'),
+                                   nullable=False)
+    title_value_id = db.Column(db.Integer, db.ForeignKey('value_id.id'),
+                               nullable=False)
+    country_value_id = db.Column(db.Integer, db.ForeignKey('value_id.id'),
+                                 nullable=False)
+    genres_value_id = db.Column(db.Integer, db.ForeignKey('value_id.id'),
                                 nullable=False)
-    title_value_id = Column(Integer, ForeignKey('value_id.id'),
-                            nullable=False)
-    country_value_id = Column(Integer, ForeignKey('value_id.id'),
-                              nullable=False)
-    genres_value_id = Column(Integer, ForeignKey('value_id.id'),
-                             nullable=False)
 
-    external_object = relationship('ExternalObject',
-                                   foreign_keys=[external_object_id])
-    title = relationship('ValueID', foreign_keys=[title_value_id])
-    country = relationship('ValueID', foreign_keys=[country_value_id])
-    genres = relationship('ValueID', foreign_keys=[genres_value_id])
+    external_object = db.relationship('ExternalObject',
+                                      foreign_keys=[external_object_id])
+    title = db.relationship('ValueID', foreign_keys=[title_value_id])
+    country = db.relationship('ValueID', foreign_keys=[country_value_id])
+    genres = db.relationship('ValueID', foreign_keys=[genres_value_id])
