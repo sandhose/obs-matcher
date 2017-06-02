@@ -13,6 +13,9 @@ class PlatformGroup(db.Model):
     platforms = db.relationship('Platform',
                                 back_populates='group')
 
+    def __repr__(self):
+        return '<PlatformGroup "{}">'.format(self.name)
+
 
 class Platform(db.Model):
     __tablename__ = 'platform'
@@ -37,6 +40,11 @@ class Platform(db.Model):
     values = db.relationship('Value',
                              secondary='value_source',
                              back_populates='sources')
+    links = db.relationship('ObjectLink',
+                            back_populates='platform')
+
+    def __repr__(self):
+        return '<Platform {!r}>'.format(self.name)
 
 
 class Scrap(db.Model):
@@ -55,3 +63,6 @@ class Scrap(db.Model):
     links = db.relationship('ObjectLink',
                             secondary='scrap_link',
                             back_populates='scraps')
+
+    def __repr__(self):
+        return '<Scrap ({}, {})>'.format(self.platform, self.date)

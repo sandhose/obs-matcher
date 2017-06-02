@@ -1,4 +1,29 @@
+import enum
+from sqlalchemy.orm import object_session
+from sqlalchemy.ext.hybrid import hybrid_property
 from matcher import db
+
+
+class ExternalObjectType(enum.Enum):
+    AV_WORK = 1
+    MOVIE = 2
+    EPISODE = 3
+    SEASON = 4
+    SERIE = 5
+
+    def model(self):
+        from matcher.scheme.work import AVWork, Movie, Episode, Season, Serie
+
+        if (self == ExternalObjectType.AV_WORK):
+            return AVWork
+        elif (self == ExternalObjectType.MOVIE):
+            return Movie
+        elif (self == ExternalObjectType.EPISODE):
+            return Episode
+        elif (self == ExternalObjectType.SEASON):
+            return Season
+        elif (self == ExternalObjectType.SERIE):
+            return Serie
 
 
 scrap_link = db.Table(
@@ -18,8 +43,21 @@ class ExternalObject(db.Model):
     id = db.Column(db.Integer,
                    db.Sequence('external_object_id_seq'),
                    primary_key=True)
-    # @TODO
-    # type = …
+
+    type = db.Column(db.Enum(ExternalObjectType, name='type'))
+
+    links = db.relationship('ObjectLink',
+                            back_populates='object')
+
+    @property
+    def linked_object(self):
+        return object_session(self).\
+               query(self.type.model()).\
+               filter(self.type.model().external_object_id == self.id).\
+               first()
+
+    def __repr__(self):
+        return '<ExternalObject {} {}>'.format(self.id, self.linked_object)
 
 
 class ObjectLink(db.Model):
@@ -46,6 +84,9 @@ class ObjectLink(db.Model):
                              back_populates='links')
     work_meta = db.relationship('ObjectLinkWorkMeta')
 
+    def __repr__(self):
+        return '<ObjectLink ({}, {})>'.format(self.object, self.platform)
+
 
 class ObjectLinkWorkMeta(db.Model):
     __tablename__ = 'object_link_work_meta'
@@ -55,6 +96,12 @@ class ObjectLinkWorkMeta(db.Model):
                    nullable=False,
                    primary_key=True)
 
+    original_content = db.Column(db.Boolean)
+    rating = db.Column(db.Integer)
+
     link = db.relationship('ObjectLink',
                            back_populates='work_meta',
                            uselist=False)
+
+    def __repr__(self):
+        return '<ObjectLinkWorkMeta {}>'.format(self.link)
