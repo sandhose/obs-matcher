@@ -3,8 +3,6 @@ from matcher import db
 
 
 def ExternalObjectMixin(type):
-    print("creating mixin for %s" % type)
-
     class mxn(object):
         @declared_attr
         def external_object_id(cls):

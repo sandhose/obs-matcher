@@ -1,3 +1,5 @@
+import enum
+from sqlalchemy.orm import object_session
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import select, func
 
@@ -5,18 +7,48 @@ from matcher import db
 from .platform import Platform
 
 
+class ValueType(enum.Enum):
+    TITLE = 1
+    DATE = 2
+    GENRES = 3
+    DURATION = 4
+    NAME = 5
+    COUNTRY = 6
+
+
 class ValueID(db.Model):
     __tablename__ = 'value_id'
 
     id = db.Column(db.Integer, db.Sequence('value_id_id_seq'),
                    primary_key=True)
+    type = db.Column(db.Enum(ValueType))
+    object_id = db.Column(db.Integer,
+                          db.ForeignKey('external_object.id'),
+                          nullable=False)
 
     values = db.relationship('Value',
                              order_by='Value.score',
                              back_populates='value_id')
+    object = db.relationship('ExternalObject',
+                             back_populates='attributes')
+
+    def add_value(self, value, platform):
+        existing = object_session(self).\
+            query(Value).\
+            filter(Value.value_id == self, Value.text == value).\
+            first()
+
+        if (not existing):
+            existing = Value(value_id=self, text=value)
+            object_session(self).add(existing)
+
+        existing.add_source(platform)
 
     def __repr__(self):
         return '<ValueID {} {!r}>'.format(self.id, str(self.values[0]))
+
+    def __str__(self):
+        return str(self.values[0]) if self.value.length > 0 else "null"
 
 
 class Value(db.Model):
@@ -35,6 +67,17 @@ class Value(db.Model):
     sources = db.relationship('Platform',
                               secondary='value_source',
                               back_populates='values')
+
+    def add_source(self, platform):
+        existing = object_session(self).\
+            query(ValueSource).\
+            filter(ValueSource.value == self,
+                   ValueSource.platform == platform).\
+            first()
+
+        if (not existing):
+            object_session(self).add(ValueSource(value=self,
+                                                 platform=platform))
 
     @hybrid_property
     def score(self):

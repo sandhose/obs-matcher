@@ -44,10 +44,12 @@ class ExternalObject(db.Model):
                    db.Sequence('external_object_id_seq'),
                    primary_key=True)
 
-    type = db.Column(db.Enum(ExternalObjectType, name='type'))
+    type = db.Column(db.Enum(ExternalObjectType))
 
     links = db.relationship('ObjectLink',
                             back_populates='object')
+    attributes = db.relationship('ValueID',
+                                 back_populates='object')
 
     @property
     def linked_object(self):
