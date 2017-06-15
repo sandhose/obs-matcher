@@ -5,6 +5,7 @@ from sqlalchemy import select, func
 
 from matcher import db
 from .platform import Platform
+from .mixins import ResourceMixin
 
 
 class ValueType(enum.Enum):
@@ -16,7 +17,7 @@ class ValueType(enum.Enum):
     COUNTRY = 6
 
 
-class ValueID(db.Model):
+class ValueID(db.Model, ResourceMixin):
     __tablename__ = 'value_id'
 
     id = db.Column(db.Integer, db.Sequence('value_id_id_seq'),
@@ -51,7 +52,7 @@ class ValueID(db.Model):
         return str(self.values[0]) if self.value.length > 0 else "null"
 
 
-class Value(db.Model):
+class Value(db.Model, ResourceMixin):
     __tablename__ = 'value'
 
     id = db.Column(db.Integer,

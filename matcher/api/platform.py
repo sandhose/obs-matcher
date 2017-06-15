@@ -36,9 +36,12 @@ class PlatformGroupResource(FlaskResource):
         group = PlatformGroup(self.data['name'])
         if 'platforms' in self.data:
             for platform in self.data['platforms']:
+                pid = platform['id'] if isinstance(platform, dict) \
+                    else platform
+
                 try:
                     group.platforms.append(Platform.query.filter(
-                        Platform.id == platform['id']).one())
+                        Platform.id == pid).one())
                 except:
                     raise restless.exceptions.BadRequest()
 
@@ -157,8 +160,19 @@ class ScrapResource(FlaskResource):
         })),
     })
 
+    def is_authenticated(self):
+        return True
+
     def list(self):
         return Scrap.query.all()
 
     def detail(self, pk):
         return Scrap.query.filter(Scrap.id == pk).one()
+
+    def create(self):
+        platform = Platform.query.filter(
+                Platform.id == self.data['platform']).one()
+        scrap = Scrap(platform)
+        db.session.add(scrap)
+        db.session.commit()
+        return scrap

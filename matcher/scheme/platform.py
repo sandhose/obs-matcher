@@ -1,3 +1,4 @@
+from datetime import datetime
 from matcher import db
 from .mixins import ResourceMixin
 
@@ -76,6 +77,10 @@ class Scrap(db.Model, ResourceMixin):
     links = db.relationship('ObjectLink',
                             secondary='scrap_link',
                             back_populates='scraps')
+
+    def __init__(self, platform):
+        self.platform = platform
+        self.date = datetime.now()
 
     def __repr__(self):
         return '<Scrap ({}, {})>'.format(self.platform, self.date)
