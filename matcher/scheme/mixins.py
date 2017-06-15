@@ -16,3 +16,18 @@ def ExternalObjectMixin(type):
                                    foreign_keys=[cls.external_object_id])
 
     return mxn
+
+
+class ResourceMixin(object):
+    @classmethod
+    def register_api(cls, app, prefix, resource):
+        cls.api_prefix = prefix
+        resource.add_url_rules(app, rule_prefix=cls.prefix())
+
+    @classmethod
+    def prefix(cls):
+        return '/api/{}'.format(cls.api_prefix)
+
+    @property
+    def self_link(self):
+        return '{}{}/'.format(self.__class__.prefix(), self.id)

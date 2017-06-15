@@ -1,7 +1,8 @@
 from matcher import db
+from .mixins import ResourceMixin
 
 
-class PlatformGroup(db.Model):
+class PlatformGroup(db.Model, ResourceMixin):
     __tablename__ = 'platform_group'
 
     id = db.Column(db.Integer,
@@ -13,11 +14,14 @@ class PlatformGroup(db.Model):
     platforms = db.relationship('Platform',
                                 back_populates='group')
 
+    def __init__(self, name):
+        self.name = name
+
     def __repr__(self):
         return '<PlatformGroup "{}">'.format(self.name)
 
 
-class Platform(db.Model):
+class Platform(db.Model, ResourceMixin):
     __tablename__ = 'platform'
 
     id = db.Column(db.Integer,
@@ -43,11 +47,20 @@ class Platform(db.Model):
     links = db.relationship('ObjectLink',
                             back_populates='platform')
 
+    def __init__(self, name, url, country, max_rating=10, base_score=100,
+                 group=None):
+        self.name = name
+        self.url = url
+        self.country = country
+        self.max_rating = max_rating
+        self.base_score = base_score
+        self.group = group
+
     def __repr__(self):
         return '<Platform {!r}>'.format(self.name)
 
 
-class Scrap(db.Model):
+class Scrap(db.Model, ResourceMixin):
     __tablename__ = 'scrap'
 
     id = db.Column(db.Integer,
