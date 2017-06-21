@@ -46,9 +46,9 @@ class ExternalObject(db.Model):
     type = db.Column(db.Enum(ExternalObjectType))
 
     links = db.relationship('ObjectLink',
-                            back_populates='object')
-    attributes = db.relationship('ValueID',
-                                 back_populates='object')
+                            back_populates='external_object')
+    attributes = db.relationship('Value',
+                                 back_populates='external_object')
 
     # @property
     # def linked_object(self):
@@ -68,16 +68,16 @@ class ObjectLink(db.Model):
                    db.Sequence('object_link_id_seq'),
                    primary_key=True)
 
-    object_id = db.Column(db.Integer,
-                          db.ForeignKey('external_object.id'),
-                          nullable=False)
+    external_object_id = db.Column(db.Integer,
+                                   db.ForeignKey('external_object.id'),
+                                   nullable=False)
     platform_id = db.Column(db.Integer,
                             db.ForeignKey('platform.id'),
                             nullable=False)
     external_id = db.Column(db.String)
 
-    object = db.relationship('ExternalObject',
-                             back_populates='links')
+    external_object = db.relationship('ExternalObject',
+                                      back_populates='links')
     platform = db.relationship('Platform',
                                back_populates='links')
     scraps = db.relationship('Scrap',
@@ -86,7 +86,8 @@ class ObjectLink(db.Model):
     work_meta = db.relationship('ObjectLinkWorkMeta')
 
     def __repr__(self):
-        return '<ObjectLink ({}, {})>'.format(self.object, self.platform)
+        return '<ObjectLink ({}, {})>'.format(self.external_object,
+                                              self.platform)
 
 
 class ObjectLinkWorkMeta(db.Model):

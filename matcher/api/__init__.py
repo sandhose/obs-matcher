@@ -1,8 +1,8 @@
 from flask import request
 
-from ..scheme import Platform, PlatformGroup, Scrap, ValueID, Value
+from ..scheme import Platform, PlatformGroup, Scrap, Value
 from .platform import PlatformGroupResource, PlatformResource, ScrapResource
-from .value import ValueIDResource, ValueResource
+from .value import ValueResource
 
 
 def setup_api(app):
@@ -10,7 +10,6 @@ def setup_api(app):
     PlatformGroup.register_api(app, 'groups/', PlatformGroupResource)
     Scrap.register_api(app, 'scraps/', ScrapResource)
 
-    ValueID.register_api(app, 'value_ids/', ValueIDResource)
     Value.register_api(app, 'values/', ValueResource)
 
     @app.route('/api/objects/', methods=['POST'])

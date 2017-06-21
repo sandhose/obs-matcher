@@ -17,54 +17,20 @@ class ValueType(enum.Enum):
     COUNTRY = 6
 
 
-class ValueID(db.Model, ResourceMixin):
-    __tablename__ = 'value_id'
-
-    id = db.Column(db.Integer, db.Sequence('value_id_id_seq'),
-                   primary_key=True)
-    type = db.Column(db.Enum(ValueType))
-    object_id = db.Column(db.Integer,
-                          db.ForeignKey('external_object.id'),
-                          nullable=False)
-
-    values = db.relationship('Value',
-                             order_by='Value.score',
-                             back_populates='value_id')
-    object = db.relationship('ExternalObject',
-                             back_populates='attributes')
-
-    def add_value(self, value, platform):
-        existing = object_session(self).\
-            query(Value).\
-            filter(Value.value_id == self, Value.text == value).\
-            first()
-
-        if (not existing):
-            existing = Value(value_id=self, text=value)
-            object_session(self).add(existing)
-
-        existing.add_source(platform)
-
-    def __repr__(self):
-        return '<ValueID {} {!r}>'.format(self.id, str(self.values[0]))
-
-    def __str__(self):
-        return str(self.values[0]) if self.value.length > 0 else "null"
-
-
 class Value(db.Model, ResourceMixin):
     __tablename__ = 'value'
 
     id = db.Column(db.Integer,
                    db.Sequence('value_id_seq'),
                    primary_key=True)
-    value_id_id = db.Column(db.Integer,
-                            db.ForeignKey('value_id.id'),
-                            nullable=False)
+    type = db.Column(db.Enum(ValueType))
+    external_object_id = db.Column(db.Integer,
+                                   db.ForeignKey('external_object.id'),
+                                   nullable=False)
     text = db.Column(db.String, nullable=False)
 
-    value_id = db.relationship('ValueID',
-                               back_populates='values')
+    external_object = db.relationship('ExternalObject',
+                                      back_populates='attributes')
     sources = db.relationship('Platform',
                               secondary='value_source',
                               back_populates='values')

@@ -22,9 +22,8 @@ admin = Admin(app)
 
 
 def setup():
-    from .scheme import Platform, PlatformGroup, Scrap, Value, \
-        ValueID, ValueSource, ObjectLink, ObjectLinkWorkMeta, ExternalObject, \
-        Person, Episode, Season
+    from .scheme import Platform, PlatformGroup, Scrap, Value, ValueSource, \
+        ObjectLink, ObjectLinkWorkMeta, ExternalObject, Person, Episode, Season
 
     from .api import setup_api
 
@@ -37,8 +36,6 @@ def setup():
     admin.add_view(ModelView(Scrap, db.session, name='Scrap',
                              category='Platforms'))
     admin.add_view(ModelView(Value, db.session, name='Value',
-                             category='Values'))
-    admin.add_view(ModelView(ValueID, db.session, name='ValueID',
                              category='Values'))
     admin.add_view(ModelView(ValueSource, db.session, name='Source',
                              category='Values'))

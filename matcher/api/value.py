@@ -1,28 +1,8 @@
-import restless.exceptions
 from restless.fl import FlaskResource
 from restless.preparers import FieldsPreparer, SubPreparer, \
         CollectionSubPreparer
 
-from ..scheme import ValueID, Value
-from .. import db
-
-
-class ValueIDResource(FlaskResource):
-    preparer = FieldsPreparer(fields={
-        'id': 'id',
-        'self': 'self_link',
-        'type': 'type',
-        'object': 'object_id',
-        'values': CollectionSubPreparer('values', FieldsPreparer(fields={
-            'id': 'id',
-            'self': 'self_link',
-            'text': 'text',
-            'score': 'score',
-        })),
-    })
-
-    def list(self):
-        return ValueID.query.all()
+from ..scheme import Value
 
 
 class ValueResource(FlaskResource):
