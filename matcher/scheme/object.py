@@ -1,11 +1,10 @@
 import enum
 from sqlalchemy.orm import object_session
-from sqlalchemy.ext.hybrid import hybrid_property
 from matcher import db
 
 
 class ExternalObjectType(enum.Enum):
-    AV_WORK = 1
+    PERSON = 1
     MOVIE = 2
     EPISODE = 3
     SEASON = 4
@@ -51,15 +50,15 @@ class ExternalObject(db.Model):
     attributes = db.relationship('ValueID',
                                  back_populates='object')
 
-    @property
-    def linked_object(self):
-        return object_session(self).\
-               query(self.type.model()).\
-               filter(self.type.model().external_object_id == self.id).\
-               first()
+    # @property
+    # def linked_object(self):
+    #     return object_session(self).\
+    #            query(self.type.model()).\
+    #            filter(self.type.model().external_object_id == self.id).\
+    #            first()
 
     def __repr__(self):
-        return '<ExternalObject {} {}>'.format(self.id, self.linked_object)
+        return '<ExternalObject {} {}>'.format(self.id, self.type)
 
 
 class ObjectLink(db.Model):
@@ -107,3 +106,88 @@ class ObjectLinkWorkMeta(db.Model):
 
     def __repr__(self):
         return '<ObjectLinkWorkMeta {}>'.format(self.link)
+
+
+class Episode(db.Model):
+    __tablename__ = 'episode'
+
+    external_object_id = db.Column(db.Integer,
+                                   db.ForeignKey('external_object.id'),
+                                   primary_key=True)
+    season_id = db.Column(db.Integer,
+                          db.ForeignKey('external_object.id'))
+
+    number = db.Column(db.Integer)
+
+    external_object = db.relationship('ExternalObject',
+                                      foreign_keys=[external_object_id])
+    season = db.relationship('ExternalObject',
+                             foreign_keys=[season_id])
+
+
+class Season(db.Model):
+    __tablename__ = 'season'
+
+    external_object_id = db.Column(db.Integer,
+                                   db.ForeignKey('external_object.id'),
+                                   primary_key=True)
+    serie_id = db.Column(db.Integer,
+                         db.ForeignKey('external_object.id'))
+
+    number = db.Column(db.Integer)
+
+    external_object = db.relationship('ExternalObject',
+                                      foreign_keys=[external_object_id])
+    serie = db.relationship('ExternalObject',
+                            foreign_keys=[serie_id])
+
+
+class Gender(enum.Enum):
+    NOT_KNOWN = 0
+    MALE = 1
+    FEMALE = 2
+    NOT_APPLICABLE = 9
+
+
+class RoleType(enum.Enum):
+    DIRECTOR = 0
+    ACTOR = 1
+    WRITER = 2
+
+
+class Role(db.Model):
+    __tablename__ = 'role'
+    __table_args__ = (
+        db.PrimaryKeyConstraint('person_id', 'external_object_id'),
+    )
+
+    person_id = db.Column(db.Integer,
+                          db.ForeignKey('person.id'))
+    external_object_id = db.Column(db.Integer,
+                                   db.ForeignKey('external_object.id'))
+
+    person = db.relationship('Person',
+                             foreign_keys=[person_id],
+                             back_populates='roles')
+    external_object = db.relationship('ExternalObject',
+                                      foreign_keys=[external_object_id])
+    role = db.Column(db.Enum(RoleType, name='role'))
+
+
+class Person(db.Model):
+    __tablename__ = 'person'
+
+    id = db.Column(db.Integer,
+                   db.Sequence('person_id_seq'),
+                   primary_key=True)
+
+    external_object_id = db.Column(db.Integer,
+                                   db.ForeignKey('external_object.id'),
+                                   nullable=False)
+    external_object = db.relationship('ExternalObject',
+                                      foreign_keys=[external_object_id])
+    gender = db.Column(db.Enum(Gender, name='gender'),
+                       nullable=False,
+                       default=Gender.NOT_KNOWN)
+    roles = db.relationship('Role',
+                            back_populates='person')

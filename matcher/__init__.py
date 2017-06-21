@@ -24,7 +24,7 @@ admin = Admin(app)
 def setup():
     from .scheme import Platform, PlatformGroup, Scrap, Value, \
         ValueID, ValueSource, ObjectLink, ObjectLinkWorkMeta, ExternalObject, \
-        Person, AVWork, Movie, Episode, Season, Serie
+        Person, Episode, Season
 
     from .api import setup_api
 
@@ -46,16 +46,9 @@ def setup():
     admin.add_view(ModelView(ObjectLinkWorkMeta, db.session))
     admin.add_view(ModelView(ExternalObject, db.session))
     admin.add_view(ModelView(Person, db.session))
-    admin.add_view(ModelView(AVWork, db.session, name='AVWork',
-                             category='Works'))
-    admin.add_view(ModelView(Movie, db.session, name='Movie',
-                             category='Works'))
     admin.add_view(ModelView(Episode, db.session, name='Episode',
                              category='Works'))
     admin.add_view(ModelView(Season, db.session, name='Season',
                              category='Works'))
-    admin.add_view(ModelView(Serie, db.session, name='Serie',
-                             category='Works'))
 
 setup()
-

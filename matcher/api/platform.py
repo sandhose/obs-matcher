@@ -16,6 +16,7 @@ class PlatformGroupResource(FlaskResource):
             'id': 'id',
             'self': 'self_link',
             'name': 'name',
+            'slug': 'slug',
             'country': 'country',
         })),
     })
@@ -76,6 +77,7 @@ class PlatformResource(FlaskResource):
         'id': 'id',
         'self': 'self_link',
         'name': 'name',
+        'slug': 'slug',
         'url': 'url',
         'country': 'country',
         'max_rating': 'max_rating',
@@ -135,6 +137,8 @@ class PlatformResource(FlaskResource):
 
         if 'name' in self.data:
             platform.name = self.data['name']
+        if 'slug' in self.data:
+            platform.name = self.data['slug']
         if 'url' in self.data:
             platform.url = self.data['url']
         if 'country' in self.data:
@@ -171,7 +175,8 @@ class ScrapResource(FlaskResource):
 
     def create(self):
         platform = Platform.query.filter(
-                Platform.id == self.data['platform']).one()
+                Platform.id == self.data['platform'] or
+                Platform.slug == self.data['platform']).one()
         scrap = Scrap(platform)
         db.session.add(scrap)
         db.session.commit()

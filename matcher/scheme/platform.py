@@ -30,6 +30,9 @@ class Platform(db.Model, ResourceMixin):
                    primary_key=True)
     name = db.Column(db.String,
                      nullable=False)
+    slug = db.Column(db.String,
+                     nullable=False,
+                     default='')
     group_id = db.Column(db.Integer,
                          db.ForeignKey('platform_group.id'))
     url = db.Column(db.String)
@@ -48,14 +51,18 @@ class Platform(db.Model, ResourceMixin):
     links = db.relationship('ObjectLink',
                             back_populates='platform')
 
-    def __init__(self, name, url, country, max_rating=10, base_score=100,
-                 group=None):
+    def __init__(self, name, url=None, country=None, slug=None, max_rating=10,
+                 base_score=100, group=None):
         self.name = name
         self.url = url
         self.country = country
         self.max_rating = max_rating
         self.base_score = base_score
         self.group = group
+
+        if slug is None:
+            slug = name.lower().replace(' ', '-')
+        self.slug = slug
 
     def __repr__(self):
         return '<Platform {!r}>'.format(self.name)
