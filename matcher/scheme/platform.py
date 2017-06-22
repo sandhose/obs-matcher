@@ -51,8 +51,8 @@ class Platform(db.Model, ResourceMixin):
     links = db.relationship('ObjectLink',
                             back_populates='platform')
 
-    def __init__(self, name, url=None, country=None, slug=None, max_rating=10,
-                 base_score=100, group=None):
+    def __init__(self, name='', url=None, country=None, slug=None,
+                 max_rating=10, base_score=100, group=None):
         self.name = name
         self.url = url
         self.country = country
@@ -66,6 +66,19 @@ class Platform(db.Model, ResourceMixin):
 
     def __repr__(self):
         return '<Platform {!r}>'.format(self.name)
+
+    @classmethod
+    def resolve(cls, platform):
+        """
+        Search for a platform using its ID or Slug
+        """
+        try:
+            if isinstance(platform, int):
+                return Platform.query.filter(Platform.id == platform).one()
+            else:
+                return Platform.query.filter(Platform.slug == platform).one()
+        except:
+            return None
 
 
 class Scrap(db.Model, ResourceMixin):

@@ -1,14 +1,15 @@
-import enum
 from sqlalchemy.orm import object_session
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import select, func
+import restless.exceptions
 
 from matcher import db
 from .platform import Platform
-from .mixins import ResourceMixin
+from .object import ExternalObject, ExternalObjectType
+from .mixins import ResourceMixin, CustomEnum
 
 
-class ValueType(enum.Enum):
+class ValueType(CustomEnum):
     TITLE = 1
     DATE = 2
     GENRES = 3
@@ -35,6 +36,49 @@ class Value(db.Model, ResourceMixin):
                               secondary='value_source',
                               back_populates='values')
 
+    def __init__(self, external_object, type, text, sources=[]):
+        if not isinstance(external_object, ExternalObject):
+            try:
+                external_object = ExternalObject.query.filter(
+                    ExternalObject.id == external_object).one()
+            except:
+                raise restless.exceptions.NotFound()
+
+        self.external_object = external_object
+
+        if not isinstance(type, ValueType):
+            type = ValueType.from_name(type)
+
+        if type is None or text is None or str(text) == '':
+            raise restless.exceptions.BadRequest()
+
+        self.type = type
+        self.text = text
+
+        object_session(self).add(self)
+
+        for source in sources:
+            try:
+                platform = source['platform']
+            except:
+                platform = source
+
+            platform = Platform.resolve(platform)
+
+            if platform is None:
+                raise restless.exceptions.NotFound()
+
+            if hasattr(source, 'score_factor'):
+                score_factor = source['score_factor']
+            else:
+                score_factor = 100
+
+            object_session(self).add(ValueSource(
+                value=self,
+                platform=platform,
+                score_factor=score_factor
+            ))
+
     def add_source(self, platform):
         existing = object_session(self).\
             query(ValueSource).\
@@ -53,14 +97,14 @@ class Value(db.Model, ResourceMixin):
     @score.expression
     def score(cls):
         return select([func.sum(ValueSource.score)]).\
-                where(ValueSource.id_value == cls.id).\
-                label('total_score')
+            where(ValueSource.id_value == cls.id).\
+            label('total_score')
 
     def __repr__(self):
         return '<Value "{}">'.format(self.text)
 
     def __str__(self):
-        return self.text
+        return '{}: {}'.format(self.type, self.text)
 
 
 class ValueSource(db.Model):
@@ -86,7 +130,7 @@ class ValueSource(db.Model):
     @score.expression
     def score(cls):
         return cls.score_factor * select([Platform.base_score]).\
-                where(Platform.id == cls.id_platform)
+            where(Platform.id == cls.id_platform)
 
     def __repr__(self):
         return '<ValueSource {!r} on {!r}>'.format(self.value.text,

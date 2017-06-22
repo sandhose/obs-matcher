@@ -1,3 +1,4 @@
+import enum
 from sqlalchemy.ext.declarative import declared_attr
 from matcher import db
 
@@ -31,3 +32,12 @@ class ResourceMixin(object):
     @property
     def self_link(self):
         return '{}{}/'.format(self.__class__.prefix(), self.id)
+
+
+class CustomEnum(enum.Enum):
+    def __str__(self):
+        return self.name.lower()
+
+    @classmethod
+    def from_name(cls, name):
+        return getattr(cls, name.upper(), None)

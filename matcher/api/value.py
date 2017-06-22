@@ -1,14 +1,24 @@
+import restless.exceptions
 from restless.fl import FlaskResource
 from restless.preparers import FieldsPreparer, SubPreparer, \
-        CollectionSubPreparer
+    CollectionSubPreparer
 
 from ..scheme import Value
+from .. import db
 
 
 class ValueResource(FlaskResource):
     preparer = FieldsPreparer(fields={
         'id': 'id',
         'self': 'self_link',
+        'type': 'type.__str__',
+        'external_object': SubPreparer('external_object', FieldsPreparer(
+            fields={
+                'id': 'id',
+                # 'self': 'self_link',
+                'type': 'type.__str__',
+            }
+        )),
         'text': 'text',
         'score': 'score',
         'sources': CollectionSubPreparer('sources', FieldsPreparer(fields={
@@ -20,13 +30,16 @@ class ValueResource(FlaskResource):
             'score': 'score',
             'score_factor': 'score_factor',
         })),
-        'value_id': SubPreparer('value_id', FieldsPreparer(fields={
-            'id': 'id',
-            'self': 'self_link',
-            'type': 'type',
-            'object': 'object_id',
-        })),
     })
+
+    def is_authenticated(self):
+        return True
 
     def list(self):
         return Value.query.all()
+
+    def create(self):
+        value = Value(**self.data)
+        db.session.add(value)
+        db.session.commit()
+        return value

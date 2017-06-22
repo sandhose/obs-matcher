@@ -1,28 +1,20 @@
-import enum
-from sqlalchemy.orm import object_session
+from .mixins import CustomEnum
 from matcher import db
 
 
-class ExternalObjectType(enum.Enum):
+class ExternalObjectType(CustomEnum):
     PERSON = 1
     MOVIE = 2
     EPISODE = 3
     SEASON = 4
     SERIE = 5
 
-    def model(self):
-        from matcher.scheme.work import AVWork, Movie, Episode, Season, Serie
+    def __str__(self):
+        return self.name.lower()
 
-        if (self == ExternalObjectType.AV_WORK):
-            return AVWork
-        elif (self == ExternalObjectType.MOVIE):
-            return Movie
-        elif (self == ExternalObjectType.EPISODE):
-            return Episode
-        elif (self == ExternalObjectType.SEASON):
-            return Season
-        elif (self == ExternalObjectType.SERIE):
-            return Serie
+    @classmethod
+    def from_name(cls, name):
+        return getattr(cls, name.upper(), None)
 
 
 scrap_link = db.Table(
@@ -49,13 +41,6 @@ class ExternalObject(db.Model):
                             back_populates='external_object')
     attributes = db.relationship('Value',
                                  back_populates='external_object')
-
-    # @property
-    # def linked_object(self):
-    #     return object_session(self).\
-    #            query(self.type.model()).\
-    #            filter(self.type.model().external_object_id == self.id).\
-    #            first()
 
     def __repr__(self):
         return '<ExternalObject {} {}>'.format(self.id, self.type)
@@ -143,14 +128,14 @@ class Season(db.Model):
                             foreign_keys=[serie_id])
 
 
-class Gender(enum.Enum):
+class Gender(CustomEnum):
     NOT_KNOWN = 0
     MALE = 1
     FEMALE = 2
     NOT_APPLICABLE = 9
 
 
-class RoleType(enum.Enum):
+class RoleType(CustomEnum):
     DIRECTOR = 0
     ACTOR = 1
     WRITER = 2
