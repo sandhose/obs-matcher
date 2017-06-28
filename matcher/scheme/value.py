@@ -1,11 +1,12 @@
-from sqlalchemy.orm import object_session
+from sqlalchemy.orm import object_session, backref
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy import select, func
 import restless.exceptions
 
 from matcher import db
 from .platform import Platform
-from .object import ExternalObject, ExternalObjectType
+# from .object import ExternalObject
 from .mixins import ResourceMixin, CustomEnum
 
 
@@ -24,7 +25,7 @@ class Value(db.Model, ResourceMixin):
     id = db.Column(db.Integer,
                    db.Sequence('value_id_seq'),
                    primary_key=True)
-    type = db.Column(db.Enum(ValueType))
+    type = db.Column(db.Enum(ValueType, name='value_type'), nullable=False)
     external_object_id = db.Column(db.Integer,
                                    db.ForeignKey('external_object.id'),
                                    nullable=False)
@@ -32,52 +33,50 @@ class Value(db.Model, ResourceMixin):
 
     external_object = db.relationship('ExternalObject',
                                       back_populates='attributes')
-    sources = db.relationship('Platform',
-                              secondary='value_source',
-                              back_populates='values')
+    sources = association_proxy('value_sources', 'platform')
 
-    def __init__(self, external_object, type, text, sources=[]):
-        if not isinstance(external_object, ExternalObject):
-            try:
-                external_object = ExternalObject.query.filter(
-                    ExternalObject.id == external_object).one()
-            except:
-                raise restless.exceptions.NotFound()
+    # def __init__(self, external_object, type, text, sources=[]):
+    #     if not isinstance(external_object, ExternalObject):
+    #         try:
+    #             external_object = ExternalObject.query.filter(
+    #                 ExternalObject.id == external_object).one()
+    #         except:
+    #             raise restless.exceptions.NotFound()
 
-        self.external_object = external_object
+    #     self.external_object = external_object
 
-        if not isinstance(type, ValueType):
-            type = ValueType.from_name(type)
+    #     if not isinstance(type, ValueType):
+    #         type = ValueType.from_name(type)
 
-        if type is None or text is None or str(text) == '':
-            raise restless.exceptions.BadRequest()
+    #     if type is None or text is None or str(text) == '':
+    #         raise restless.exceptions.BadRequest()
 
-        self.type = type
-        self.text = text
+    #     self.type = type
+    #     self.text = text
 
-        object_session(self).add(self)
+    #     object_session(self).add(self)
 
-        for source in sources:
-            try:
-                platform = source['platform']
-            except:
-                platform = source
+    #     for source in sources:
+    #         try:
+    #             platform = source['platform']
+    #         except:
+    #             platform = source
 
-            platform = Platform.resolve(platform)
+    #         platform = Platform.resolve(platform)
 
-            if platform is None:
-                raise restless.exceptions.NotFound()
+    #         if platform is None:
+    #             raise restless.exceptions.NotFound()
 
-            if hasattr(source, 'score_factor'):
-                score_factor = source['score_factor']
-            else:
-                score_factor = 100
+    #         if hasattr(source, 'score_factor'):
+    #             score_factor = source['score_factor']
+    #         else:
+    #             score_factor = 100
 
-            object_session(self).add(ValueSource(
-                value=self,
-                platform=platform,
-                score_factor=score_factor
-            ))
+    #         object_session(self).add(ValueSource(
+    #             value=self,
+    #             platform=platform,
+    #             score_factor=score_factor
+    #         ))
 
     def add_source(self, platform):
         existing = object_session(self).\
@@ -92,7 +91,7 @@ class Value(db.Model, ResourceMixin):
 
     @hybrid_property
     def score(self):
-        return sum(source.score for source in self.sources)
+        return sum(source.base_score for source in self.sources)
 
     @score.expression
     def score(cls):
@@ -104,7 +103,7 @@ class Value(db.Model, ResourceMixin):
         return '<Value "{}">'.format(self.text)
 
     def __str__(self):
-        return '{}: {}'.format(self.type, self.text)
+        return '{}({}): {}'.format(self.type, self.score, self.text)
 
 
 class ValueSource(db.Model):
@@ -120,7 +119,7 @@ class ValueSource(db.Model):
                              nullable=False,
                              default=100)
 
-    value = db.relationship('Value')
+    value = db.relationship('Value', backref=backref('value_sources'))
     platform = db.relationship('Platform')
 
     @hybrid_property

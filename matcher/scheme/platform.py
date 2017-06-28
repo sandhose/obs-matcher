@@ -45,9 +45,6 @@ class Platform(db.Model, ResourceMixin):
                             back_populates='platforms')
     scraps = db.relationship('Scrap',
                              back_populates='platform')
-    values = db.relationship('Value',
-                             secondary='value_source',
-                             back_populates='sources')
     links = db.relationship('ObjectLink',
                             back_populates='platform')
 

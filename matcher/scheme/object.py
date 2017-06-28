@@ -157,7 +157,7 @@ class Role(db.Model):
                              back_populates='roles')
     external_object = db.relationship('ExternalObject',
                                       foreign_keys=[external_object_id])
-    role = db.Column(db.Enum(RoleType, name='role'))
+    role = db.Column(db.Enum(RoleType))
 
 
 class Person(db.Model):
