@@ -10,3 +10,5 @@ DATABASE_CONNECT_OPTIONS = {}
 
 THREADS_PER_PAGE = 2
 SECRET_KEY = 'Something reeaaally secret (wow, spooky.)'
+
+ABSOLUTE_URL = 'http://localhost:5000'

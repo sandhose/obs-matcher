@@ -1,20 +1,17 @@
 import restless.exceptions
 from restless.fl import FlaskResource
 from restless.preparers import FieldsPreparer, SubPreparer, \
-        CollectionSubPreparer
+    CollectionSubPreparer
 
+from .utils import AutoPreparer
 from ..scheme import Platform, PlatformGroup, Scrap
 from .. import db
 
 
 class PlatformGroupResource(FlaskResource):
-    preparer = FieldsPreparer(fields={
-        'id': 'id',
-        'self': 'self_link',
+    preparer = AutoPreparer({
         'name': 'name',
-        'platforms': CollectionSubPreparer('platforms', FieldsPreparer(fields={
-            'id': 'id',
-            'self': 'self_link',
+        'platforms': CollectionSubPreparer('platforms', AutoPreparer({
             'name': 'name',
             'slug': 'slug',
             'country': 'country',
@@ -73,18 +70,14 @@ class PlatformGroupResource(FlaskResource):
 
 
 class PlatformResource(FlaskResource):
-    preparer = FieldsPreparer(fields={
-        'id': 'id',
-        'self': 'self_link',
+    preparer = AutoPreparer({
         'name': 'name',
         'slug': 'slug',
         'url': 'url',
         'country': 'country',
         'max_rating': 'max_rating',
         'base_score': 'base_score',
-        'group': SubPreparer('group', FieldsPreparer(fields={
-            'id': 'id',
-            'self': 'self_link',
+        'group': SubPreparer('group', AutoPreparer({
             'name': 'name',
         })),
     })
@@ -109,7 +102,7 @@ class PlatformResource(FlaskResource):
 
             try:
                 self.data['group'] = PlatformGroup.query.filter(
-                        PlatformGroup.id == gid)
+                    PlatformGroup.id == gid)
             except:
                 raise restless.exceptions.NotFound()
 
@@ -131,7 +124,7 @@ class PlatformResource(FlaskResource):
 
             try:
                 platform.group = PlatformGroup.query.filter(
-                        PlatformGroup.id == gid)
+                    PlatformGroup.id == gid)
             except:
                 raise restless.exceptions.NotFound()
 
@@ -153,13 +146,9 @@ class PlatformResource(FlaskResource):
 
 
 class ScrapResource(FlaskResource):
-    preparer = FieldsPreparer(fields={
-        'id': 'id',
-        'self': 'self_link',
+    preparer = AutoPreparer({
         'date': 'date',
-        'platform': SubPreparer('platform', FieldsPreparer(fields={
-            'id': 'id',
-            'self': 'self_link',
+        'platform': SubPreparer('platform', AutoPreparer({
             'name': 'name',
         })),
     })
@@ -175,8 +164,8 @@ class ScrapResource(FlaskResource):
 
     def create(self):
         platform = Platform.query.filter(
-                Platform.id == self.data['platform'] or
-                Platform.slug == self.data['platform']).one()
+            Platform.id == self.data['platform'] or
+            Platform.slug == self.data['platform']).one()
         scrap = Scrap(platform)
         db.session.add(scrap)
         db.session.commit()

@@ -70,10 +70,12 @@ class Platform(db.Model, ResourceMixin):
         Search for a platform using its ID or Slug
         """
         try:
-            if isinstance(platform, int):
-                return Platform.query.filter(Platform.id == platform).one()
-            else:
-                return Platform.query.filter(Platform.slug == platform).one()
+            q = Platform.query.filter(Platform.id == int(platform))
+        except:
+            q = Platform.query.filter(Platform.slug == platform)
+
+        try:
+            return q.one()
         except:
             return None
 

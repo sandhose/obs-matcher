@@ -1,30 +1,22 @@
-import restless.exceptions
 from restless.fl import FlaskResource
 from restless.preparers import FieldsPreparer, SubPreparer, \
     CollectionSubPreparer
 
+from .utils import AutoPreparer
 from ..scheme import Value
 from .. import db
 
 
 class ValueResource(FlaskResource):
-    preparer = FieldsPreparer(fields={
-        'id': 'id',
-        'self': 'self_link',
+    preparer = AutoPreparer({
         'type': 'type.__str__',
-        'external_object': SubPreparer('external_object', FieldsPreparer(
-            fields={
-                'id': 'id',
-                # 'self': 'self_link',
-                'type': 'type.__str__',
-            }
-        )),
+        'external_object': SubPreparer('external_object', AutoPreparer({
+            'type': 'type.__str__',
+        })),
         'text': 'text',
         'score': 'score',
         'sources': CollectionSubPreparer('sources', FieldsPreparer(fields={
-            'platform': SubPreparer('platform', FieldsPreparer(fields={
-                'id': 'id',
-                'self': 'self_link',
+            'platform': SubPreparer('platform', AutoPreparer({
                 'name': 'name',
             })),
             'score': 'score',
