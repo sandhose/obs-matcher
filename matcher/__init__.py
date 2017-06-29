@@ -1,6 +1,4 @@
 from flask import Flask
-from flask_admin import Admin
-from flask_admin.contrib.sqla import ModelView
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
 from flask_sqlalchemy import SQLAlchemy
@@ -18,41 +16,13 @@ migrate = Migrate(app, db)
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)
 
-admin = Admin(app)
-
 
 def setup():
-    from .scheme import Platform, PlatformGroup, Scrap, Value, ValueSource, \
-        ObjectLink, ObjectLinkWorkMeta, ExternalObject, Person, Episode, \
-        Season, Job
-
     from .api import setup_api
-
-    class ExternalObjectView(ModelView):
-        column_list = ('id', 'type', 'attributes')
-        inline_models = (Value, ObjectLink,)
+    from .admin import setup_admin
 
     setup_api(app)
-
-    admin.add_view(ModelView(Platform, db.session, name='Platform',
-                             category='Platforms'))
-    admin.add_view(ModelView(PlatformGroup, db.session, name='Group',
-                             category='Platforms'))
-    admin.add_view(ModelView(Scrap, db.session, name='Scrap',
-                             category='Platforms'))
-    admin.add_view(ModelView(Value, db.session, name='Value',
-                             category='Values'))
-    admin.add_view(ModelView(ValueSource, db.session, name='Source',
-                             category='Values'))
-    admin.add_view(ModelView(ObjectLink, db.session))
-    admin.add_view(ModelView(ObjectLinkWorkMeta, db.session))
-    admin.add_view(ExternalObjectView(ExternalObject, db.session))
-    admin.add_view(ModelView(Person, db.session))
-    admin.add_view(ModelView(Episode, db.session, name='Episode',
-                             category='Works'))
-    admin.add_view(ModelView(Season, db.session, name='Season',
-                             category='Works'))
-    admin.add_view(ModelView(Job, db.session, name='Job'))
+    setup_admin(app)
 
 
 setup()
