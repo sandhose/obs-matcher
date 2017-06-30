@@ -2,6 +2,7 @@ import enum
 from flask import url_for
 from sqlalchemy.ext.declarative import declared_attr
 from matcher import db
+from ..api.index import IndexView
 
 
 def ExternalObjectMixin(type):
@@ -33,11 +34,12 @@ class ResourceMixin(object):
                          endpoint='{}_list'.format(prefix),
                          view_func=resource.as_list(),
                          methods=['GET', 'POST', 'PUT', 'DELETE'])
+        IndexView.register_api(prefix, 'api.{}_list'.format(prefix))
 
     @property
     def self_link(self):
         return url_for('api.{}_detail'.format(self.__class__.api_prefix),
-                       pk=self.id)
+                       pk=self.id, _external=True)
 
 
 class CustomEnum(enum.Enum):

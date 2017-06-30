@@ -15,13 +15,16 @@ class ValueResource(FlaskResource):
         })),
         'text': 'text',
         'score': 'score',
-        'sources': CollectionSubPreparer('sources', FieldsPreparer(fields={
-            'platform': SubPreparer('platform', AutoPreparer({
-                'name': 'name',
-            })),
-            'score': 'score',
-            'score_factor': 'score_factor',
-        })),
+        'sources': CollectionSubPreparer(
+            'value_sources',
+            FieldsPreparer(fields={
+                'platform': SubPreparer('platform', AutoPreparer({
+                    'name': 'name',
+                })),
+                'score': 'score',
+                'score_factor': 'score_factor',
+            })
+        ),
     })
 
     def is_authenticated(self):
@@ -29,6 +32,9 @@ class ValueResource(FlaskResource):
 
     def list(self):
         return Value.query.all()
+
+    def detail(self, pk):
+        return Value.query.filter(Value.id == pk).one()
 
     def create(self):
         value = Value(**self.data)

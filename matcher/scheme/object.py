@@ -1,4 +1,4 @@
-from .mixins import CustomEnum
+from .mixins import CustomEnum, ResourceMixin
 from matcher import db
 
 
@@ -28,7 +28,7 @@ scrap_link = db.Table(
 )
 
 
-class ExternalObject(db.Model):
+class ExternalObject(db.Model, ResourceMixin):
     __tablename__ = 'external_object'
 
     id = db.Column(db.Integer,

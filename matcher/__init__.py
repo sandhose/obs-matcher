@@ -1,4 +1,4 @@
-from flask import Flask, url_for
+from flask import Flask, url_for, render_template
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
 from flask_sqlalchemy import SQLAlchemy
@@ -42,6 +42,13 @@ def setup():
 
     admin.init_app(app, endpoint='admin', url='/admin')
     app.register_blueprint(api, url_prefix='/api')
+
+    @app.route('/')
+    def index():
+        return render_template('index.html', navigation=[
+            {'url': url_for('admin.index'), 'caption': 'Admin'},
+            {'url': url_for('api.index'), 'caption': 'API'},
+        ])
 
 
 setup()
