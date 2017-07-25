@@ -91,7 +91,7 @@ class Value(db.Model, ResourceMixin):
 
     @hybrid_property
     def score(self):
-        return sum(source.base_score for source in self.sources)
+        return sum(source.score for source in self.value_sources)
 
     @score.expression
     def score(cls):

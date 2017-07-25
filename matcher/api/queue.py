@@ -1,3 +1,5 @@
+from flask import jsonify
+from flask.views import View
 from restless.fl import FlaskResource
 from restless.preparers import SubPreparer
 

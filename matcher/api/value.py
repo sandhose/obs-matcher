@@ -4,7 +4,6 @@ from restless.preparers import FieldsPreparer, SubPreparer, \
 
 from .utils import AutoPreparer
 from ..scheme import Value
-from .. import db
 
 
 class ValueResource(FlaskResource):
@@ -35,9 +34,3 @@ class ValueResource(FlaskResource):
 
     def detail(self, pk):
         return Value.query.filter(Value.id == pk).one()
-
-    def create(self):
-        value = Value(**self.data)
-        db.session.add(value)
-        db.session.commit()
-        return value

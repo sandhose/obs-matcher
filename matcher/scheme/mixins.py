@@ -1,27 +1,11 @@
 import enum
 from flask import url_for
-from sqlalchemy.ext.declarative import declared_attr
-from matcher import db
 from ..api.index import IndexView
 
 
-def ExternalObjectMixin(type):
-    class mxn(object):
-        @declared_attr
-        def external_object_id(cls):
-            return db.Column(db.Integer,
-                             db.ForeignKey('external_object.id'),
-                             nullable=False)
-
-        @declared_attr
-        def external_object(cls):
-            return db.relationship('ExternalObject',
-                                   foreign_keys=[cls.external_object_id])
-
-    return mxn
-
-
 class ResourceMixin(object):
+    """A mixin to automatically add the API endpoints, with self linking"""
+
     @classmethod
     def register_api(cls, app, prefix, resource):
         cls.api_prefix = prefix
@@ -43,6 +27,8 @@ class ResourceMixin(object):
 
 
 class CustomEnum(enum.Enum):
+    """A custom enum with serialization/deserialization methods"""
+
     def __str__(self):
         return self.name.lower()
 

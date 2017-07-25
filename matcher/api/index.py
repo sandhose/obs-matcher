@@ -3,11 +3,15 @@ from flask.views import View
 
 
 class IndexView(View):
+    """A GET view that lists other endpoints"""
+
     methods = ['GET']
     apis = {}
+    """dict containing a name => path mapping of the resources"""
 
     @classmethod
     def register_api(cls, name, path):
+        """Called by the ResourceMixin when registering"""
         cls.apis[name] = path
 
     def dispatch_request(self):

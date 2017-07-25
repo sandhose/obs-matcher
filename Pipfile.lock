@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "a96d0b05bab9059eac66eac29ab9ed5c37fb519a810cd71b3a2fb6bb1c6485b3"
+            "sha256": "2a6a6ce9a3c4b6c28d9d0e3e1f8f463dcf84410b522e555c057ebb56c09c9a67"
         },
         "requires": {},
         "sources": [
@@ -13,7 +13,7 @@
     },
     "default": {
         "alembic": {
-            "version": "==0.9.2"
+            "version": "==0.9.3"
         },
         "alembic-autogenerate-enums": {
             "version": "==0.0.2"
@@ -43,16 +43,16 @@
             "version": "==2.9.6"
         },
         "mako": {
-            "version": "==1.0.6"
+            "version": "==1.0.7"
         },
         "markupsafe": {
             "version": "==1.0"
         },
         "psycopg2": {
-            "version": "==2.7.1"
+            "version": "==2.7.3"
         },
         "python-dateutil": {
-            "version": "==2.6.0"
+            "version": "==2.6.1"
         },
         "python-editor": {
             "version": "==1.0.3"
@@ -63,8 +63,11 @@
         "six": {
             "version": "==1.10.0"
         },
+        "slugify": {
+            "version": "==0.0.1"
+        },
         "sqlalchemy": {
-            "version": "==1.1.11"
+            "version": "==1.1.12"
         },
         "werkzeug": {
             "version": "==0.12.2"
