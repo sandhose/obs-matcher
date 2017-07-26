@@ -5,7 +5,7 @@ from .views import DefaultView, ExternalObjectView, PlatformGroupView, \
     PersonView
 from ..scheme import Platform, PlatformGroup, Scrap, Value, ValueSource, \
     ObjectLink, ObjectLinkWorkMeta, ExternalObject, Person, Episode, \
-    Season, Job
+    Season
 
 
 admin = Admin()
@@ -22,5 +22,4 @@ admin.add_views(
     PersonView(Person, db.session),
     DefaultView(Episode, db.session, name='Episode', category='Works'),
     DefaultView(Season, db.session, name='Season', category='Works'),
-    DefaultView(Job, db.session, name='Job'),
 )

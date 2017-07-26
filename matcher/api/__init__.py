@@ -1,9 +1,8 @@
 from flask import request, Blueprint
 
-from ..scheme import Platform, PlatformGroup, Scrap, Value, Job, ExternalObject
+from ..scheme import Platform, PlatformGroup, Scrap, Value, ExternalObject
 from .platform import PlatformGroupResource, PlatformResource, ScrapResource
 from .value import ValueResource
-from .queue import JobResource
 from .object import ObjectResource, ObjectCreate
 from .index import IndexView
 
@@ -12,7 +11,6 @@ api = Blueprint('api', __name__)
 Platform.register_api(api, 'platforms', PlatformResource)
 PlatformGroup.register_api(api, 'groups', PlatformGroupResource)
 Scrap.register_api(api, 'scraps', ScrapResource)
-Job.register_api(api, 'jobs', JobResource)
 Value.register_api(api, 'values', ValueResource)
 
 api.add_url_rule('/', view_func=IndexView.as_view('index'))

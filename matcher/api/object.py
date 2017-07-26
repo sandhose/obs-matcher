@@ -1,13 +1,11 @@
 import json
-from flask import redirect, request
+from flask import request
 from flask.views import View
 from restless.fl import FlaskResource
 from restless.preparers import CollectionSubPreparer
 
-from .. import db
 from .utils import AutoPreparer
-from ..scheme import ExternalObject, Scrap, Job
-from ..scheme.queue import JobStatus
+from ..scheme import ExternalObject
 
 
 class ObjectResource(FlaskResource):
@@ -35,14 +33,4 @@ class ObjectCreate(View):
 
     def dispatch_request(self):
         data = request.get_json()
-        scrap = Scrap.query.filter(Scrap.id == data['scrap']).one()
-        job = Job()
-        job.scrap = scrap
-        job.status = JobStatus.SCHEDULED
-        job.platform = scrap.platform
-        job.data = dict(data)
-        db.session.add(job)
-        db.session.commit()
-        return json.dumps({
-            'job': job.self_link,
-        })
+        return json.dumps(data)
