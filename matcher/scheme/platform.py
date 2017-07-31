@@ -81,20 +81,28 @@ class Platform(db.Model, ResourceMixin):
         return '<Platform {!r}>'.format(self.name)
 
     @classmethod
-    def resolve(cls, platform):
+    def lookup(cls, platform):
         """Search for a platform using its ID or Slug
 
         :platform: Slug or ID of the platform
         :returns: The platform found (None if not found)
         """
+
+        # If platform is already a Platform, just return it
+        if isinstance(platform, cls):
+            return platform
+
         try:
+            # Try converting into an ID first
             q = Platform.query.filter(Platform.id == int(platform))
         except:
+            # then try to match the slug
             q = Platform.query.filter(Platform.slug == platform)
 
         try:
             return q.one()
         except:
+            # Return None if object wasn't found
             return None
 
 

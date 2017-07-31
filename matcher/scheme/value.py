@@ -62,7 +62,7 @@ class Value(db.Model, ResourceMixin):
     #         except:
     #             platform = source
 
-    #         platform = Platform.resolve(platform)
+    #         platform = Platform.lookup(platform)
 
     #         if platform is None:
     #             raise restless.exceptions.NotFound()
