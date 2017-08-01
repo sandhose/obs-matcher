@@ -1,5 +1,6 @@
 from .mixins import CustomEnum, ResourceMixin
 from .platform import Platform
+from .value import ValueType, Value, ValueSource
 from matcher import db
 from sqlalchemy import tuple_
 
@@ -65,15 +66,51 @@ class ExternalObject(db.Model, ResourceMixin):
                                  back_populates='external_object')
     """A list of arbitrary attributes associated with this object"""
 
-    def lookup_or_create(obj_type, links, session):
+    def add_attributes(self, attributes, platform):
+        """Add a list of attributes to the object"""
+        for attribute in attributes:
+            self.add_attribute(attribute, platform)
+
+    def add_attribute(self, attribute, platform):
+        """Add an attribute to the object"""
+
+        text = attribute['text']
+        type = attribute['type']
+        if not isinstance(type, ValueType):
+            type = ValueType.from_name(type)
+        if type is None:
+            print('type {} not defined'.format(attribute['type']))
+            return
+
+        if 'score_factor' in attribute:
+            score_factor = attribute['score_factor']
+        else:
+            score_factor = 100
+
+        # Looking for an existing attribute
+        # This loads *all* the attributes
+        value = None
+        for attr in self.attributes:
+            if (type, text) == (attr.type, attr.text):
+                value = attr
+                break
+
+        if value is None:
+            # Create attribute value if it wasn't found
+            value = Value(type=type, text=text)
+            self.attributes.append(value)
+
+        if not any(source.platform == platform for source in value.sources):
+            value.sources.append(ValueSource(
+                platform=platform, score_factor=score_factor))
+
+    def lookup_or_create(obj_type, links):
         """Lookup for an object from its links
 
         :obj_type: The type of object to search for.
                    Throws an exception if type mismatches.
         :links: List of links to use
                 Non-existent links will be created
-        :session: Current SQLAlchemy session
-                  Objects will be added (but not committed) in this session
         """
         def map_links(link):
             """Maps link to a (platform, external_id) tuple"""
@@ -102,7 +139,7 @@ class ExternalObject(db.Model, ResourceMixin):
         mapped_links = list(map(map_links, links))
 
         # Existing links from DB
-        object_links = session.query(ObjectLink)\
+        object_links = ObjectLink.query\
             .filter(tuple_(ObjectLink.platform_id,
                            ObjectLink.external_id).in_(mapped_links))\
             .all()
@@ -110,7 +147,6 @@ class ExternalObject(db.Model, ResourceMixin):
         if len(object_links) == 0:
             # There's no existing links, we shall create a new object
             external_object = ExternalObject(type=obj_type)
-            session.add(external_object)
         else:
             # Check if they all link to the same object.
             # We may want to merge afterwards if they don't match
@@ -132,21 +168,19 @@ class ExternalObject(db.Model, ResourceMixin):
             raise ObjectTypeMismatchError(
                 'is {}, should be {}'.format(external_object.type, obj_type))
 
-        # We can't reuse object_links, because it lacks some links, as we check
-        # for duplicate links on the same platform
-        existing_links = external_object.links
         # Let's create the missing links
         for (platform_id, external_id) in mapped_links:
-            existing_link = next((link for link in existing_links if
+            # Lookup for an existing link
+            existing_link = next((link for link in external_object.links if
                                   link.platform_id == platform_id), None)
-
             if existing_link is None:
-                existing_link = ObjectLink(external_object=external_object,
-                                           platform_id=platform_id,
-                                           external_id=external_id)
-                session.add(existing_link)
+                # and create a new link if none found
+                external_object.links.append(
+                    ObjectLink(external_object=external_object,
+                               platform_id=platform_id,
+                               external_id=external_id))
 
-            if existing_link.external_id != external_id:
+            elif existing_link.external_id != external_id:
                 # Duplicate link with different ID for object
                 raise ExternalIDMismatchError(
                     'link on {} has ID {}, should be {}'.format(

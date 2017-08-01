@@ -1,8 +1,5 @@
-from sqlalchemy.orm import object_session, backref
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy import select, func
-import restless.exceptions
 
 from matcher import db
 from .platform import Platform
@@ -33,65 +30,12 @@ class Value(db.Model, ResourceMixin):
 
     external_object = db.relationship('ExternalObject',
                                       back_populates='attributes')
-    sources = association_proxy('value_sources', 'platform')
-
-    # def __init__(self, external_object, type, text, sources=[]):
-    #     if not isinstance(external_object, ExternalObject):
-    #         try:
-    #             external_object = ExternalObject.query.filter(
-    #                 ExternalObject.id == external_object).one()
-    #         except:
-    #             raise restless.exceptions.NotFound()
-
-    #     self.external_object = external_object
-
-    #     if not isinstance(type, ValueType):
-    #         type = ValueType.from_name(type)
-
-    #     if type is None or text is None or str(text) == '':
-    #         raise restless.exceptions.BadRequest()
-
-    #     self.type = type
-    #     self.text = text
-
-    #     object_session(self).add(self)
-
-    #     for source in sources:
-    #         try:
-    #             platform = source['platform']
-    #         except:
-    #             platform = source
-
-    #         platform = Platform.lookup(platform)
-
-    #         if platform is None:
-    #             raise restless.exceptions.NotFound()
-
-    #         if hasattr(source, 'score_factor'):
-    #             score_factor = source['score_factor']
-    #         else:
-    #             score_factor = 100
-
-    #         object_session(self).add(ValueSource(
-    #             value=self,
-    #             platform=platform,
-    #             score_factor=score_factor
-    #         ))
-
-    def add_source(self, platform):
-        existing = object_session(self).\
-            query(ValueSource).\
-            filter(ValueSource.value == self,
-                   ValueSource.platform == platform).\
-            first()
-
-        if (not existing):
-            object_session(self).add(ValueSource(value=self,
-                                                 platform=platform))
+    sources = db.relationship('ValueSource',
+                              back_populates='value')
 
     @hybrid_property
     def score(self):
-        return sum(source.score for source in self.value_sources)
+        return sum(source.score for source in self.sources)
 
     @score.expression
     def score(cls):
@@ -119,7 +63,7 @@ class ValueSource(db.Model):
                              nullable=False,
                              default=100)
 
-    value = db.relationship('Value', backref=backref('value_sources'))
+    value = db.relationship('Value', back_populates='sources')
     platform = db.relationship('Platform')
 
     @hybrid_property
