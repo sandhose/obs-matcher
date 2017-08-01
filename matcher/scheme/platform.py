@@ -26,7 +26,10 @@ class PlatformGroup(db.Model, ResourceMixin):
 
 def slug_default(context):
     """Automatically slugify the platform's name"""
-    return slugify(context.current_parameters['name'])
+    if context and 'name' in context.current_parameters:
+        return slugify(context.current_parameters['name'])
+    else:
+        return None
 
 
 class Platform(db.Model, ResourceMixin):

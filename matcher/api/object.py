@@ -1,11 +1,9 @@
-import json
-from flask import request
-from flask.views import View
 from restless.fl import FlaskResource
-from restless.preparers import CollectionSubPreparer
+from restless.preparers import CollectionSubPreparer, SubPreparer
 
+from .. import db
 from .utils import AutoPreparer
-from ..scheme import ExternalObject
+from ..scheme.object import ExternalObject, ExternalObjectType
 
 
 class ObjectResource(FlaskResource):
@@ -16,6 +14,12 @@ class ObjectResource(FlaskResource):
             'text': 'text',
             'score': 'score',
         })),
+        'links': CollectionSubPreparer('links', AutoPreparer({
+            'platform': SubPreparer('platform', AutoPreparer({
+                'name': 'name',
+                'slug': 'slug'
+            }))
+        }))
     })
 
     def is_authenticated(self):
@@ -27,10 +31,14 @@ class ObjectResource(FlaskResource):
     def detail(self, pk):
         return ExternalObject.query.filter(ExternalObject.id == pk).one()
 
+    def create(self):
+        data = self.data
 
-class ObjectCreate(View):
-    methods = ['POST']
+        obj = ExternalObject.lookup_or_create(
+            obj_type=ExternalObjectType.from_name(data['type']),
+            links=data['links'],
+            session=db.session
+        )
+        db.session.commit()
 
-    def dispatch_request(self):
-        data = request.get_json()
-        return json.dumps(data)
+        return obj

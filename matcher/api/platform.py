@@ -163,10 +163,8 @@ class ScrapResource(FlaskResource):
         return Scrap.query.filter(Scrap.id == pk).one()
 
     def create(self):
-        platform = Platform.query.filter(
-            Platform.id == self.data['platform'] or
-            Platform.slug == self.data['platform']).one()
-        scrap = Scrap(platform)
+        # FIXME: Platform not found?
+        scrap = Scrap(platform=Platform.lookup(self.data['platform']))
         db.session.add(scrap)
         db.session.commit()
         return scrap

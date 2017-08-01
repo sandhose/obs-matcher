@@ -1,7 +1,6 @@
 from .mixins import CustomEnum, ResourceMixin
 from .platform import Platform
 from matcher import db
-from sqlalchemy.orm import subqueryload
 from sqlalchemy import tuple_
 
 
@@ -66,7 +65,7 @@ class ExternalObject(db.Model, ResourceMixin):
                                  back_populates='external_object')
     """A list of arbitrary attributes associated with this object"""
 
-    def lookup_or_create(cls, obj_type, links, session):
+    def lookup_or_create(obj_type, links, session):
         """Lookup for an object from its links
 
         :obj_type: The type of object to search for.
@@ -77,33 +76,35 @@ class ExternalObject(db.Model, ResourceMixin):
                   Objects will be added (but not committed) in this session
         """
         def map_links(link):
-            """Maps link to a(platform, external_id) tuple"""
+            """Maps link to a (platform, external_id) tuple"""
             if isinstance(link, tuple):
                 # arg can already be a tuple…
                 (platform, external_id) = link
             else:
                 # …or a dict
-                platform = getattr(link, 'platform', None)
-                external_id = getattr(link, 'external_id', None)
+                platform = link.get('platform', None)
+                external_id = link.get('external_id', None)
+                if external_id is None:
+                    external_id = link.get('id', None)
 
             # We check if the platform exists (if this doesn't crush
             # performance)
             platform = Platform.lookup(platform)
             if platform is None:
                 # TODO: custom exception
-                raise Exception()
+                raise Exception("platform not found")
             else:
                 platform_id = platform.id
 
             return (platform_id, external_id)
 
         # Mapping links to a (platform_id, external_id) tuple
-        mapped_links = map(map_links, links)
+        mapped_links = list(map(map_links, links))
 
         # Existing links from DB
         object_links = session.query(ObjectLink)\
             .filter(tuple_(ObjectLink.platform_id,
-                           ObjectLink.external_id)._in(mapped_links))\
+                           ObjectLink.external_id).in_(mapped_links))\
             .all()
 
         if len(object_links) == 0:
@@ -120,7 +121,8 @@ class ExternalObject(db.Model, ResourceMixin):
 
             if not equals:
                 # TODO: save the ids in the exception for merging
-                raise AmbiguousLinkError()
+                raise AmbiguousLinkError(
+                    "existing links do not link to the same object")
 
             # Fetch the linked object
             external_object = object_links[0].external_object
