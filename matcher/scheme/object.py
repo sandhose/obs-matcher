@@ -35,6 +35,7 @@ scrap_link = db.Table(
 )
 
 
+# TODO: move those exceptions somewhere else
 class AmbiguousLinkError(Exception):
     """Raise when the lookup ends up returning multiple object"""
 
@@ -74,11 +75,12 @@ class ExternalObject(db.Model, ResourceMixin):
     def add_attribute(self, attribute, platform):
         """Add an attribute to the object"""
 
-        text = attribute['text']
+        text = str(attribute['text'])
         type = attribute['type']
         if not isinstance(type, ValueType):
             type = ValueType.from_name(type)
         if type is None:
+            # FIXME: this should raise an exception
             print('type {} not defined'.format(attribute['type']))
             return
 
@@ -129,7 +131,7 @@ class ExternalObject(db.Model, ResourceMixin):
             platform = Platform.lookup(platform)
             if platform is None:
                 # TODO: custom exception
-                raise Exception("platform not found")
+                raise Exception('platform not found')
             else:
                 platform_id = platform.id
 
@@ -158,7 +160,7 @@ class ExternalObject(db.Model, ResourceMixin):
             if not equals:
                 # TODO: save the ids in the exception for merging
                 raise AmbiguousLinkError(
-                    "existing links do not link to the same object")
+                    'existing links do not link to the same object')
 
             # Fetch the linked object
             external_object = object_links[0].external_object
