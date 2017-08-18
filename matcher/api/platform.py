@@ -1,10 +1,9 @@
 import restless.exceptions
 from restless.fl import FlaskResource
-from restless.preparers import FieldsPreparer, SubPreparer, \
-    CollectionSubPreparer
+from restless.preparers import SubPreparer, CollectionSubPreparer
 
 from .utils import AutoPreparer
-from ..scheme import Platform, PlatformGroup, Scrap
+from ..scheme.platform import Platform, PlatformGroup, Scrap, ScrapStatus
 from .. import db
 
 
@@ -147,6 +146,8 @@ class PlatformResource(FlaskResource):
 
 class ScrapResource(FlaskResource):
     preparer = AutoPreparer({
+        # FIXME: make the enum json seializable
+        'status': 'status.__str__',
         'date': 'date',
         'platform': SubPreparer('platform', AutoPreparer({
             'name': 'name',
@@ -162,9 +163,33 @@ class ScrapResource(FlaskResource):
     def detail(self, pk):
         return Scrap.query.filter(Scrap.id == pk).one()
 
+    def update(self, pk):
+        scrap = Scrap.query.filter(Scrap.id == pk).one()
+
+        if 'status' in self.data:
+            status = ScrapStatus.from_name(self.data['status'])
+            scrap.to_status(status)
+
+        db.session.commit()
+
+        return scrap
+
     def create(self):
-        # FIXME: Platform not found?
-        scrap = Scrap(platform=Platform.lookup(self.data['platform']))
+        try:
+            platform = Platform.lookup(self.data['platform'])
+        except:
+            raise restless.exceptions.BadRequest('Missing key `platform`')
+
+        if platform is None:
+            raise restless.exceptions.NotFound('platform not found')
+
+        scrap = Scrap(platform=platform)
+        scrap.status = ScrapStatus.SCHEDULED
+
+        if 'status' in self.data:
+            status = ScrapStatus.from_name(self.data['status'])
+            scrap.to_status(status)
+
         db.session.add(scrap)
         db.session.commit()
         return scrap

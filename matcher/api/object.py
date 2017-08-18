@@ -1,5 +1,6 @@
 import itertools
 import restless.exceptions
+from flask import request
 from sqlalchemy.orm.exc import NoResultFound
 from restless.fl import FlaskResource
 from restless.preparers import CollectionSubPreparer, SubPreparer, \
@@ -41,10 +42,12 @@ class ObjectResource(FlaskResource):
     def create(self):
         data = self.data
 
+        scrap_id = request.headers.get('x-scrap-id', None)
+        if scrap_id is None:
+            raise restless.exceptions.BadRequest('Missing `x-scrap-id` header')
+
         try:
-            scrap = Scrap.query.filter(Scrap.id == data['scrap']).one()
-        except KeyError:
-            raise restless.exceptions.BadRequest('Missing key `scrap`')
+            scrap = Scrap.query.filter(Scrap.id == scrap_id).one()
         except NoResultFound:
             raise restless.exceptions.NotFound('Scrap not found')
 

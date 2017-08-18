@@ -170,6 +170,34 @@ class Scrap(db.Model, ResourceMixin):
                             back_populates='scraps')
     """Objects (to be) fetched by this job"""
 
+    def to_status(self, status):
+        """Try to change the status of the scrap
+
+        It might raise an exception if the transition is invalid
+
+        :status: the state it should transition to
+        """
+        if self.status is not status:
+            if status is ScrapStatus.RUNNING:
+                self.run()
+            elif status is ScrapStatus.SCHEDULED:
+                self.reschedule()
+            else:
+                self.finish(status)
+
+    def finish(self, status):
+        """Set the status to one of the finished status"""
+        if self.status is not ScrapStatus.RUNNING:
+            # FIXME: custom exception
+            raise Exception('scrap is "{}", should be "{}"'.format(
+                self.status, ScrapStatus.RUNNING))
+
+        if not any(s == status for s in [ScrapStatus.SUCCESS,
+                                         ScrapStatus.FAILED,
+                                         ScrapStatus.ABORTED]):
+            # FIXME: custom exception
+            raise Exception('"{}" is not a finished state'.format(status))
+
     def run(self):
         """Mark the job as running"""
         if self.status is not ScrapStatus.SCHEDULED:
@@ -183,7 +211,8 @@ class Scrap(db.Model, ResourceMixin):
         """Reschedule a job"""
 
         # FIXME: This maybe should duplicate itself when not RUNNING or ABORTED
-        if self.status is ScrapStatus.SUCCESS or ScrapStatus.SCHEDULED:
+        if self.status is ScrapStatus.SUCCESS or \
+           self.status is ScrapStatus.SCHEDULED:
             # FIXME: custom exception
             raise Exception()
 

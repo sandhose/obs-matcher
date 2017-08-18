@@ -28,6 +28,8 @@ class ResourceMixin(object):
 
 class CustomEnum(enum.Enum):
     """A custom enum with serialization/deserialization methods"""
+    # FIXME: make the CustomEnum json seializable
+    # FIXME: move this somewhere else
 
     def __str__(self):
         return self.name.lower()
