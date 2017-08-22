@@ -1,13 +1,12 @@
 import restless.exceptions
-from restless.fl import FlaskResource
 from restless.preparers import SubPreparer, CollectionSubPreparer
 
-from .utils import AutoPreparer
+from .utils import AutoPreparer, CustomFlaskResource
 from ..scheme.platform import Platform, PlatformGroup, Scrap, ScrapStatus
 from .. import db
 
 
-class PlatformGroupResource(FlaskResource):
+class PlatformGroupResource(CustomFlaskResource):
     preparer = AutoPreparer({
         'name': 'name',
         'platforms': CollectionSubPreparer('platforms', AutoPreparer({
@@ -68,7 +67,7 @@ class PlatformGroupResource(FlaskResource):
         return group
 
 
-class PlatformResource(FlaskResource):
+class PlatformResource(CustomFlaskResource):
     preparer = AutoPreparer({
         'name': 'name',
         'slug': 'slug',
@@ -144,10 +143,9 @@ class PlatformResource(FlaskResource):
         return platform
 
 
-class ScrapResource(FlaskResource):
+class ScrapResource(CustomFlaskResource):
     preparer = AutoPreparer({
-        # FIXME: make the enum json seializable
-        'status': 'status.__str__',
+        'status': 'status',
         'date': 'date',
         'platform': SubPreparer('platform', AutoPreparer({
             'name': 'name',

@@ -1,16 +1,15 @@
-from restless.fl import FlaskResource
 from restless.preparers import FieldsPreparer, SubPreparer, \
     CollectionSubPreparer
 
-from .utils import AutoPreparer
+from .utils import AutoPreparer, CustomFlaskResource
 from ..scheme import Value
 
 
-class ValueResource(FlaskResource):
+class ValueResource(CustomFlaskResource):
     preparer = AutoPreparer({
-        'type': 'type.__str__',
+        'type': 'type',
         'external_object': SubPreparer('external_object', AutoPreparer({
-            'type': 'type.__str__',
+            'type': 'type',
         })),
         'text': 'text',
         'score': 'score',

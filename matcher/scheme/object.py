@@ -1,4 +1,5 @@
-from .mixins import CustomEnum, ResourceMixin
+from .mixins import ResourceMixin
+from .utils import CustomEnum
 from .platform import Platform
 from .value import ValueType, Value, ValueSource
 from matcher import db

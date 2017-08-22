@@ -2,22 +2,21 @@ import itertools
 import restless.exceptions
 from flask import request
 from sqlalchemy.orm.exc import NoResultFound
-from restless.fl import FlaskResource
 from restless.preparers import CollectionSubPreparer, SubPreparer, \
     FieldsPreparer
 
 from .. import db
-from .utils import AutoPreparer
+from .utils import AutoPreparer, CustomFlaskResource
 from ..scheme.object import ExternalObject, ExternalObjectType, \
     AmbiguousLinkError, ObjectTypeMismatchError, ExternalIDMismatchError
 from ..scheme.platform import Scrap
 
 
-class ObjectResource(FlaskResource):
+class ObjectResource(CustomFlaskResource):
     preparer = AutoPreparer({
-        'type': 'type.__str__',
+        'type': 'type',
         'attributes': CollectionSubPreparer('attributes', AutoPreparer({
-            'type': 'type.__str__',
+            'type': 'type',
             'text': 'text',
             'score': 'score',
         })),

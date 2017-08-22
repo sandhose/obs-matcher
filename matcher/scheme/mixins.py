@@ -1,4 +1,3 @@
-import enum
 from flask import url_for
 from ..api.index import IndexView
 
@@ -24,16 +23,3 @@ class ResourceMixin(object):
     def self_link(self):
         return url_for('api.{}_detail'.format(self.__class__.api_prefix),
                        pk=self.id, _external=True)
-
-
-class CustomEnum(enum.Enum):
-    """A custom enum with serialization/deserialization methods"""
-    # FIXME: make the CustomEnum json seializable
-    # FIXME: move this somewhere else
-
-    def __str__(self):
-        return self.name.lower()
-
-    @classmethod
-    def from_name(cls, name):
-        return getattr(cls, name.upper(), None)

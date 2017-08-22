@@ -3,8 +3,8 @@ from sqlalchemy import select, func
 
 from matcher import db
 from .platform import Platform
-# from .object import ExternalObject
-from .mixins import ResourceMixin, CustomEnum
+from .mixins import ResourceMixin
+from .utils import CustomEnum
 
 
 class ValueType(CustomEnum):

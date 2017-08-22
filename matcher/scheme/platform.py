@@ -1,7 +1,8 @@
 from slugify import slugify
 from datetime import datetime
 from matcher import db
-from .mixins import ResourceMixin, CustomEnum
+from .mixins import ResourceMixin
+from .utils import CustomEnum
 
 
 class PlatformGroup(db.Model, ResourceMixin):

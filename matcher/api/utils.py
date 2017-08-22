@@ -1,4 +1,32 @@
+import json
 from restless.preparers import Preparer, FieldsPreparer
+from restless.fl import FlaskResource
+from restless.serializers import MoreTypesJSONEncoder, JSONSerializer
+
+from ..scheme.utils import CustomEnum
+
+
+class CustomJSONEncoder(MoreTypesJSONEncoder):
+    """A JSON encode that also encodes CustomEnum"""
+
+    def default(self, data):
+        if isinstance(data, CustomEnum):
+            return data.__str__()
+        else:
+            return super(CustomJSONEncoder, self).default(data)
+
+
+class CustomSerializer(JSONSerializer):
+    """A custom serializer that uses the CustomJSONEncoder"""
+
+    def serialize(self, data):
+        return json.dumps(data, cls=CustomJSONEncoder)
+
+
+class CustomFlaskResource(FlaskResource):
+    """A restless resource that uses CustomSerializer"""
+
+    serializer = CustomSerializer()
 
 
 class SubOrNullPreparer(Preparer):
