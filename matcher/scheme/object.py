@@ -1,3 +1,5 @@
+from ..exceptions import AmbiguousLinkError, ExternalIDMismatchError, \
+    ObjectTypeMismatchError, UnknownAttribute
 from .mixins import ResourceMixin
 from .utils import CustomEnum
 from .platform import Platform
@@ -36,19 +38,6 @@ scrap_link = db.Table(
 )
 
 
-# TODO: move those exceptions somewhere else
-class AmbiguousLinkError(Exception):
-    """Raise when the lookup ends up returning multiple object"""
-
-
-class ObjectTypeMismatchError(Exception):
-    """Raise when the object found isn't the same type as it should"""
-
-
-class ExternalIDMismatchError(Exception):
-    """Raise when two links IDs for the same object/platform mismatch"""
-
-
 class ExternalObject(db.Model, ResourceMixin):
     """An object imported from scraping"""
 
@@ -68,11 +57,6 @@ class ExternalObject(db.Model, ResourceMixin):
                                  back_populates='external_object')
     """A list of arbitrary attributes associated with this object"""
 
-    def add_attributes(self, attributes, platform):
-        """Add a list of attributes to the object"""
-        for attribute in attributes:
-            self.add_attribute(attribute, platform)
-
     def add_attribute(self, attribute, platform):
         """Add an attribute to the object"""
 
@@ -81,9 +65,7 @@ class ExternalObject(db.Model, ResourceMixin):
         if not isinstance(type, ValueType):
             type = ValueType.from_name(type)
         if type is None:
-            # FIXME: this should raise an exception
-            print('type {} not defined'.format(attribute['type']))
-            return
+            raise UnknownAttribute(attribute['type'])
 
         if 'score_factor' in attribute:
             score_factor = attribute['score_factor']
@@ -168,8 +150,7 @@ class ExternalObject(db.Model, ResourceMixin):
 
         # Check of obj_type matches
         if external_object.type is not obj_type:
-            raise ObjectTypeMismatchError(
-                'is {}, should be {}'.format(external_object.type, obj_type))
+            raise ObjectTypeMismatchError(external_object.type, obj_type)
 
         # Let's create the missing links
         for (platform_id, external_id) in mapped_links:
@@ -185,11 +166,7 @@ class ExternalObject(db.Model, ResourceMixin):
 
             elif existing_link.external_id != external_id:
                 # Duplicate link with different ID for object
-                raise ExternalIDMismatchError(
-                    'link on {} has ID {}, should be {}'.format(
-                        existing_link.platform.slug,
-                        existing_link.external_id,
-                        external_id))
+                raise ExternalIDMismatchError(existing_link, external_id)
 
         # We've added the links, we can safely return the external_object
         return external_object

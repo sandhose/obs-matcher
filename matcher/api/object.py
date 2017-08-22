@@ -7,8 +7,9 @@ from restless.preparers import CollectionSubPreparer, SubPreparer, \
 
 from .. import db
 from .utils import AutoPreparer, CustomFlaskResource
-from ..scheme.object import ExternalObject, ExternalObjectType, \
-    AmbiguousLinkError, ObjectTypeMismatchError, ExternalIDMismatchError
+from ..scheme.object import ExternalObject, ExternalObjectType
+from ..exceptions import AmbiguousLinkError, ObjectTypeMismatchError, \
+    ExternalIDMismatchError, UnknownAttribute
 from ..scheme.platform import Scrap
 
 
@@ -59,8 +60,7 @@ class ObjectResource(CustomFlaskResource):
             raise restless.exceptions.Unavailable(
                 'ambiguous link. Merging is not implemented yet')
         except ObjectTypeMismatchError as err:
-            raise restless.exceptions.Conflict(
-                'object type {}'.format(str(err)))
+            raise restless.exceptions.Conflict(str(err))
         except ExternalIDMismatchError as err:
             raise restless.exceptions.Conflict(str(err))
 
@@ -77,10 +77,14 @@ class ObjectResource(CustomFlaskResource):
         except KeyError:
             raise restless.exceptions.BadRequest('Missing key `attributes`')
 
-        try:
-            obj.add_attributes(attributes, scrap.platform)
-        except KeyError:
-            raise restless.exceptions.BadRequest('Malformed attribute')
+        for attribute in attributes:
+            try:
+                obj.add_attribute(attribute, scrap.platform)
+            except KeyError:
+                raise restless.exceptions.BadRequest('Malformed attribute')
+            except UnknownAttribute as e:
+                # FIXME: do something with this exception
+                print(e)
 
         # We need to save the object first to reload the links
         db.session.add(obj)
