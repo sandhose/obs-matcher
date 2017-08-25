@@ -1,11 +1,13 @@
+from operator import attrgetter
+from matcher import db
+from sqlalchemy import tuple_, func
+
 from ..exceptions import AmbiguousLinkError, ExternalIDMismatchError, \
     ObjectTypeMismatchError, UnknownAttribute
 from .mixins import ResourceMixin
 from .utils import CustomEnum
 from .platform import Platform
 from .value import ValueType, Value, ValueSource
-from matcher import db
-from sqlalchemy import tuple_
 
 
 class ExternalObjectType(CustomEnum):
@@ -54,7 +56,8 @@ class ExternalObject(db.Model, ResourceMixin):
     """Links to where the object has been/should be found"""
 
     attributes = db.relationship('Value',
-                                 back_populates='external_object')
+                                 back_populates='external_object',
+                                 cascade='delete')
     """A list of arbitrary attributes associated with this object"""
 
     def add_attribute(self, attribute, platform):
@@ -170,6 +173,65 @@ class ExternalObject(db.Model, ResourceMixin):
 
         # We've added the links, we can safely return the external_object
         return external_object
+
+    def merge(self, their):
+        """Try to merge two objects"""
+        # FIXME: A lot of other references needs merging (!)
+        # First check if the merge is possible
+
+        if self.type is not their.type:
+            raise ObjectTypeMismatchError(is_type=self.type,
+                                          should_be=their.type)
+
+        our_platforms = set(map(lambda l: l.platform, self.links))
+        their_platforms = set(map(lambda l: l.platform, their.links))
+
+        # The two objects should not have links to the same platform
+        if our_platforms & their_platforms:
+            # FIXME: custom exception
+            raise Exception("Cannot merge")
+
+        # First merge the links
+        for link in self.links:
+            link.external_object = their
+
+        # Then merge the attributes
+        for our_attr in self.attributes:
+            # Lookup for a matching attribute
+            their_attr = next((attr for attr in their.attributes
+                               if our_attr.text == attr.text
+                               and our_attr.type == attr.type), None)
+
+            if their_attr is None:
+                # Move attribute if it was not present on their side
+                our_attr.external_object = their
+                # their.attributes.append(our_attr)
+            else:
+                # Else move only the value sources.
+                # FIXME: *In theory*, we should not have any trouble merging by
+                # moving because the platforms on their side are *in theory*
+                # not the same as ours.
+                # We might wanna check for this.
+                for our_source in our_attr.sources:
+                    our_source.value = their_attr
+                    # their_attr.sources.append(our_source)
+
+    def similar(self):
+        """Find similar objects"""
+
+        titles = sorted(filter(lambda a: a.type == ValueType.TITLE,
+                               self.attributes),
+                        key=attrgetter('score'),
+                        reverse=True)
+
+        objects = []
+        for title in titles:
+            values = Value.query\
+                .filter(Value.type == ValueType.TITLE)\
+                .filter(func.lower(Value.text) == func.lower(title.text))\
+                .filter(Value.external_object != self)
+            objects += list(lambda v: (v.score * title.score,
+                                       v.external_object), values)
 
     def __repr__(self):
         return '<ExternalObject {} {}>'.format(self.id, self.type)
