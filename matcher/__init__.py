@@ -1,17 +1,21 @@
+import os
+import contextlib
 from flask import Flask, url_for, render_template
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
 from flask_sqlalchemy import SQLAlchemy
 
 
-app = Flask(__name__)
+app = Flask('matcher')
 
-app.config.from_object('matcher.config')
-# app.config.from_envvar('MATCHER_SETTINGS')
+env = os.environ.get('OBS_ENV', 'development')
+app.config.from_object('matcher.config.{}Config'.format(env.title()))
 
 db = SQLAlchemy(app)
 
-migrate = Migrate(app, db)
+migrate = Migrate(app=app, db=db,
+                  directory=os.path.join(os.path.dirname(__file__),
+                                         'migrations'))
 
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)
@@ -34,6 +38,16 @@ def list_routes():
 
     for line in sorted(output):
         print(line)
+
+
+@manager.command
+def nuke():
+    with contextlib.closing(db.engine.connect()) as con:
+        trans = con.begin()
+        for table in reversed(db.metadata.sorted_tables):
+            if table.name != 'platform':
+                con.execute(table.delete())
+        trans.commit()
 
 
 def setup():
