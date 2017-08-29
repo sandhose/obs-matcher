@@ -55,10 +55,10 @@ class ObjectResource(CustomFlaskResource):
             obj = ExternalObject.lookup_or_create(
                 obj_type=ExternalObjectType.from_name(data['type']),
                 links=data['links'],
+                session=db.session,
             )
-        except AmbiguousLinkError:
-            raise restless.exceptions.Unavailable(
-                'ambiguous link. Merging is not implemented yet')
+        except AmbiguousLinkError as err:
+            raise restless.exceptions.Unavailable(str(err))
         except ObjectTypeMismatchError as err:
             raise restless.exceptions.Conflict(str(err))
         except ExternalIDMismatchError as err:

@@ -133,15 +133,12 @@ class ExternalObject(db.Model, ResourceMixin):
         else:
             # Check if they all link to the same object.
             # We may want to merge afterwards if they don't match
-            ids = map(attrgetter('external_object_id'), db_links)
+            objects = set(map(attrgetter('external_object'), db_links))
+
             # A set of those IDs should have a length of one
             # because there is only one distinct value in the array
-            equals = len(set(ids)) == 1
-
-            if not equals:
-                # TODO: save the ids in the exception for merging
-                raise AmbiguousLinkError(
-                    'existing links do not link to the same object')
+            if len(objects) != 1:
+                raise AmbiguousLinkError(objects)
 
             # Fetch the linked object
             return db_links[0].external_object
@@ -163,7 +160,7 @@ class ExternalObject(db.Model, ResourceMixin):
                 # Duplicate link with different ID for object
                 raise ExternalIDMismatchError(existing_link, external_id)
 
-    def lookup_or_create(obj_type, links):
+    def lookup_or_create(obj_type, links, session=None):
         """Lookup for an object from its links
 
         :obj_type: The type of object to search for.
@@ -175,7 +172,18 @@ class ExternalObject(db.Model, ResourceMixin):
         # Mapping links to a (platform_id, external_id) tuple
         mapped_links = list(map(normalize_link, links))
 
-        external_object = ExternalObject.lookup_from_links(mapped_links)
+        try:
+            external_object = ExternalObject.lookup_from_links(mapped_links)
+        except AmbiguousLinkError as err:
+            if session is None:
+                # FIXME: custom exception
+                raise Exception('Can\'t merge without session')
+            else:
+                external_object = err.resolve(session)
+                # We need to commit before continuing
+                # FIXME: do we?
+                session.commit()
+
         if external_object is None:
             # There's no existing links, we shall create a new object
             external_object = ExternalObject(type=obj_type)
@@ -229,8 +237,16 @@ class ExternalObject(db.Model, ResourceMixin):
                 # not the same as ours.
                 # We might wanna check for this.
                 for our_source in our_attr.sources:
+                    print('moving {!r} to {!r}'.format(our_source.value,
+                                                       their_attr))
                     our_source.value = their_attr
                     # their_attr.sources.append(our_source)
+
+    def merge_and_delete(self, their, session):
+        """Merge into another ExternalObject, and delete the old one"""
+        self.merge(their)
+        session.delete(self)
+        return their
 
     def similar(self):
         """Find similar objects"""

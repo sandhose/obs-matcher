@@ -1,6 +1,23 @@
 class AmbiguousLinkError(Exception):
     """Raise when the lookup ends up returning multiple object"""
 
+    def resolve(self, session):
+        """Resolve the conflict by merging all objects
+
+        :session: The DB session
+        """
+        obj = self.objects.pop()
+        for their in self.objects:
+            obj = obj.merge_and_delete(their, session)
+        return obj
+
+    def __init__(self, objects):
+        self.objects = objects
+
+    def __str__(self):
+        return "Existing links resolve to different objects {!r}"\
+            .format(self.objects)
+
 
 class ObjectTypeMismatchError(Exception):
     """Raise when the object found isn't the same type as it should"""

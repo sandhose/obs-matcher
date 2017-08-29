@@ -31,7 +31,8 @@ class Value(db.Model, ResourceMixin):
     external_object = db.relationship('ExternalObject',
                                       back_populates='attributes')
     sources = db.relationship('ValueSource',
-                              back_populates='value')
+                              back_populates='value',
+                              cascade='all, delete-orphan')
 
     @hybrid_property
     def score(self):
