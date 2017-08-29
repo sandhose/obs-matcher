@@ -19,26 +19,14 @@ with open('requirements.txt') as f:
 
 setup(
     name='matcher',
-
-    # Versions should comply with PEP440.  For a discussion on single-sourcing
-    # the version across setup.py and the project code, see
-    # https://packaging.python.org/en/latest/single_source_version.html
     version='0.1.0',
-
     description='OBS Matcher',
     long_description=long_description,
-
-    # The project's main homepage.
     url='https://github.com/sandhose/obs-matcher',
-
-    # Author details
     author='Quentin Gliech',
     author_email='gliech@etu.unistra.fr',
-
-    # Choose your license
     license='MIT',
 
-    # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: MIT License',
