@@ -2,7 +2,7 @@ from restless.preparers import FieldsPreparer, SubPreparer, \
     CollectionSubPreparer
 
 from .utils import AutoPreparer, CustomFlaskResource
-from ..scheme import Value
+from ..scheme.value import Value
 
 
 class ValueResource(CustomFlaskResource):

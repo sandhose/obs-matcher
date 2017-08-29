@@ -3,9 +3,10 @@ from flask_admin import Admin
 from .. import db
 from .views import DefaultView, ExternalObjectView, PlatformGroupView, \
     PersonView
-from ..scheme import Platform, PlatformGroup, Scrap, Value, ValueSource, \
-    ObjectLink, ObjectLinkWorkMeta, ExternalObject, Person, Episode, \
-    Season
+from ..scheme.platform import Platform, PlatformGroup, Scrap
+from ..scheme.value import Value, ValueSource
+from ..scheme.object import ObjectLink, ObjectLinkWorkMeta, ExternalObject, \
+    Person, Episode, Season
 
 
 admin = Admin()

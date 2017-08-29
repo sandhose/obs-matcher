@@ -1,6 +1,8 @@
 from flask import Blueprint
 
-from ..scheme import Platform, PlatformGroup, Scrap, Value, ExternalObject
+from ..scheme.platform import Platform, PlatformGroup, Scrap
+from ..scheme.object import ExternalObject
+from ..scheme.value import Value
 from .platform import PlatformGroupResource, PlatformResource, ScrapResource
 from .value import ValueResource
 from .object import ObjectResource
