@@ -1,13 +1,14 @@
 import os
-import contextlib
 from flask import Flask, url_for, render_template
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
 from flask_sqlalchemy import SQLAlchemy
 
+from .commands import RoutesCommand, NukeCommand
 
 app = Flask('matcher')
 
+# Load config using environment variable
 env = os.environ.get('OBS_ENV', 'development')
 app.config.from_object('matcher.config.{}Config'.format(env.title()))
 
@@ -19,35 +20,8 @@ migrate = Migrate(app=app, db=db,
 
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)
-
-
-@manager.command
-def list_routes():
-    from urllib.parse import unquote
-    output = []
-    for rule in app.url_map.iter_rules():
-
-        options = {}
-        for arg in rule.arguments:
-            options[arg] = "[{0}]".format(arg)
-
-        methods = ','.join(rule.methods)
-        url = url_for(rule.endpoint, **options)
-        line = unquote("{:35s} {:35s} {}".format(rule.endpoint, methods, url))
-        output.append(line)
-
-    for line in sorted(output):
-        print(line)
-
-
-@manager.command
-def nuke():
-    with contextlib.closing(db.engine.connect()) as con:
-        trans = con.begin()
-        for table in reversed(db.metadata.sorted_tables):
-            if table.name != 'platform':
-                con.execute(table.delete())
-        trans.commit()
+manager.add_command('routes', RoutesCommand(app))
+manager.add_command('nuke', NukeCommand(db))
 
 
 def setup():
