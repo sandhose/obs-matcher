@@ -5,7 +5,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from restless.preparers import CollectionSubPreparer, SubPreparer, \
     FieldsPreparer
 
-from .. import db
+from ..app import db
 from .utils import AutoPreparer, CustomFlaskResource
 from ..scheme.object import ExternalObject, ExternalObjectType
 from ..exceptions import AmbiguousLinkError, ObjectTypeMismatchError, \

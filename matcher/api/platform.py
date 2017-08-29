@@ -3,7 +3,7 @@ from restless.preparers import SubPreparer, CollectionSubPreparer
 
 from .utils import AutoPreparer, CustomFlaskResource
 from ..scheme.platform import Platform, PlatformGroup, Scrap, ScrapStatus
-from .. import db
+from ..app import db
 
 
 class PlatformGroupResource(CustomFlaskResource):

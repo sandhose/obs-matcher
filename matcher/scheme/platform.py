@@ -1,6 +1,7 @@
 from slugify import slugify
 from datetime import datetime
-from matcher import db
+
+from ..app import db
 from .mixins import ResourceMixin
 from .utils import CustomEnum
 

@@ -1,7 +1,7 @@
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import select, func
 
-from matcher import db
+from ..app import db
 from .platform import Platform
 from .mixins import ResourceMixin
 from .utils import CustomEnum

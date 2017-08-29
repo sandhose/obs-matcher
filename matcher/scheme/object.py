@@ -1,7 +1,7 @@
 from operator import attrgetter
-from matcher import db
 from sqlalchemy import tuple_, func
 
+from ..app import db
 from ..exceptions import AmbiguousLinkError, ExternalIDMismatchError, \
     ObjectTypeMismatchError, UnknownAttribute
 from .mixins import ResourceMixin

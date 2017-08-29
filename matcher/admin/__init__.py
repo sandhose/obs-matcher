@@ -1,6 +1,6 @@
 from flask_admin import Admin
 
-from .. import db
+from ..app import db
 from .views import DefaultView, ExternalObjectView, PlatformGroupView, \
     PersonView
 from ..scheme.platform import Platform, PlatformGroup, Scrap
