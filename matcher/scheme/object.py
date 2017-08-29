@@ -1,4 +1,4 @@
-from operator import attrgetter
+from operator import attrgetter, itemgetter
 from sqlalchemy import tuple_, func
 
 from ..app import db
@@ -40,6 +40,30 @@ scrap_link = db.Table(
 )
 
 
+def normalize_link(link):
+    """Map a link to a (platform, external_id) tuple"""
+    if isinstance(link, tuple):
+        # arg can already be a tuple…
+        (platform, external_id) = link
+    else:
+        # …or a dict
+        platform = link.get('platform', None)
+        external_id = link.get('external_id', None)
+        if external_id is None:
+            external_id = link.get('id', None)
+
+    # We check if the platform exists (if this doesn't crush
+    # performance)
+    platform = Platform.lookup(platform)
+    if platform is None:
+        # TODO: custom exception
+        raise Exception('platform not found')
+    else:
+        platform_id = platform.id
+
+    return (int(platform_id), str(external_id))
+
+
 class ExternalObject(db.Model, ResourceMixin):
     """An object imported from scraping"""
 
@@ -57,7 +81,7 @@ class ExternalObject(db.Model, ResourceMixin):
 
     attributes = db.relationship('Value',
                                  back_populates='external_object',
-                                 cascade='delete')
+                                 cascade='all, delete-orphan')
     """A list of arbitrary attributes associated with this object"""
 
     def add_attribute(self, attribute, platform):
@@ -92,53 +116,24 @@ class ExternalObject(db.Model, ResourceMixin):
             value.sources.append(ValueSource(
                 platform=platform, score_factor=score_factor))
 
-    def lookup_or_create(obj_type, links):
+    def lookup_from_links(links):
         """Lookup for an object from its links
 
-        :obj_type: The type of object to search for.
-                   Throws an exception if type mismatches.
-        :links: List of links to use
-                Non-existent links will be created
+        :links: List of links (platform, external_id) to use.
         """
-        def map_links(link):
-            """Maps link to a (platform, external_id) tuple"""
-            if isinstance(link, tuple):
-                # arg can already be a tuple…
-                (platform, external_id) = link
-            else:
-                # …or a dict
-                platform = link.get('platform', None)
-                external_id = link.get('external_id', None)
-                if external_id is None:
-                    external_id = link.get('id', None)
-
-            # We check if the platform exists (if this doesn't crush
-            # performance)
-            platform = Platform.lookup(platform)
-            if platform is None:
-                # TODO: custom exception
-                raise Exception('platform not found')
-            else:
-                platform_id = platform.id
-
-            return (platform_id, external_id)
-
-        # Mapping links to a (platform_id, external_id) tuple
-        mapped_links = list(map(map_links, links))
 
         # Existing links from DB
-        object_links = ObjectLink.query\
+        db_links = ObjectLink.query\
             .filter(tuple_(ObjectLink.platform_id,
-                           ObjectLink.external_id).in_(mapped_links))\
+                           ObjectLink.external_id).in_(links))\
             .all()
 
-        if len(object_links) == 0:
-            # There's no existing links, we shall create a new object
-            external_object = ExternalObject(type=obj_type)
+        if len(db_links) == 0:
+            return None
         else:
             # Check if they all link to the same object.
             # We may want to merge afterwards if they don't match
-            ids = map(lambda link: link.external_object_id, object_links)
+            ids = map(attrgetter('external_object_id'), db_links)
             # A set of those IDs should have a length of one
             # because there is only one distinct value in the array
             equals = len(set(ids)) == 1
@@ -149,27 +144,48 @@ class ExternalObject(db.Model, ResourceMixin):
                     'existing links do not link to the same object')
 
             # Fetch the linked object
-            external_object = object_links[0].external_object
+            return db_links[0].external_object
+
+    def add_missing_links(self, links):
+        """Add missing links to an external object"""
+
+        for (platform_id, external_id) in links:
+            # Lookup for an existing link
+            existing_link = next((link for link in self.links if
+                                  link.platform_id == platform_id), None)
+            if existing_link is None:
+                # and create a new link if none found
+                self.links.append(ObjectLink(external_object=self,
+                                             platform_id=platform_id,
+                                             external_id=external_id))
+
+            elif existing_link.external_id != external_id:
+                # Duplicate link with different ID for object
+                raise ExternalIDMismatchError(existing_link, external_id)
+
+    def lookup_or_create(obj_type, links):
+        """Lookup for an object from its links
+
+        :obj_type: The type of object to search for.
+                   Throws an exception if type mismatches.
+        :links: List of links to use
+                Non-existent links will be created
+        """
+
+        # Mapping links to a (platform_id, external_id) tuple
+        mapped_links = list(map(normalize_link, links))
+
+        external_object = ExternalObject.lookup_from_links(mapped_links)
+        if external_object is None:
+            # There's no existing links, we shall create a new object
+            external_object = ExternalObject(type=obj_type)
 
         # Check of obj_type matches
         if external_object.type is not obj_type:
             raise ObjectTypeMismatchError(external_object.type, obj_type)
 
         # Let's create the missing links
-        for (platform_id, external_id) in mapped_links:
-            # Lookup for an existing link
-            existing_link = next((link for link in external_object.links if
-                                  link.platform_id == platform_id), None)
-            if existing_link is None:
-                # and create a new link if none found
-                external_object.links.append(
-                    ObjectLink(external_object=external_object,
-                               platform_id=platform_id,
-                               external_id=external_id))
-
-            elif existing_link.external_id != external_id:
-                # Duplicate link with different ID for object
-                raise ExternalIDMismatchError(existing_link, external_id)
+        external_object.add_missing_links(mapped_links)
 
         # We've added the links, we can safely return the external_object
         return external_object
@@ -183,8 +199,8 @@ class ExternalObject(db.Model, ResourceMixin):
             raise ObjectTypeMismatchError(is_type=self.type,
                                           should_be=their.type)
 
-        our_platforms = set(map(lambda l: l.platform, self.links))
-        their_platforms = set(map(lambda l: l.platform, their.links))
+        our_platforms = set(map(attrgetter('platform'), self.links))
+        their_platforms = set(map(attrgetter('platform'), their.links))
 
         # The two objects should not have links to the same platform
         if our_platforms & their_platforms:
@@ -230,8 +246,10 @@ class ExternalObject(db.Model, ResourceMixin):
                 .filter(Value.type == ValueType.TITLE)\
                 .filter(func.lower(Value.text) == func.lower(title.text))\
                 .filter(Value.external_object != self)
-            objects += list(lambda v: (v.score * title.score,
-                                       v.external_object), values)
+            objects += list(map(lambda v: (v.score * title.score,
+                                           v.external_object), values))
+
+        return map(itemgetter(1), sorted(objects, key=itemgetter(0)))
 
     def __repr__(self):
         return '<ExternalObject {} {}>'.format(self.id, self.type)
