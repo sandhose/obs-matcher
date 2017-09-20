@@ -216,7 +216,7 @@ class ExternalObject(db.Model, ResourceMixin):
             raise Exception("Cannot merge")
 
         # First merge the links
-        for link in self.links:
+        for link in list(self.links):
             link.external_object = their
 
         # Then merge the attributes

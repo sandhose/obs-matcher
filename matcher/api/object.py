@@ -97,7 +97,7 @@ class ObjectResource(CustomFlaskResource):
             link.scraps.append(scrap)
         else:
             # FIXME: proper error handling
-            print('could not find link in {}'.format(obj.links))
+            raise Exception('could not find link in {!r}'.format(obj.links))
 
         db.session.commit()
 
