@@ -1,3 +1,4 @@
+import itertools
 from operator import attrgetter, itemgetter
 from sqlalchemy import tuple_, func
 
@@ -38,30 +39,6 @@ scrap_link = db.Table(
               db.ForeignKey('object_link.id'),
               primary_key=True),
 )
-
-
-def normalize_link(link):
-    """Map a link to a (platform, external_id) tuple"""
-    if isinstance(link, tuple):
-        # arg can already be a tuple…
-        (platform, external_id) = link
-    else:
-        # …or a dict
-        platform = link.get('platform', None)
-        external_id = link.get('external_id', None)
-        if external_id is None:
-            external_id = link.get('id', None)
-
-    # We check if the platform exists (if this doesn't crush
-    # performance)
-    platform = Platform.lookup(platform)
-    if platform is None:
-        # TODO: custom exception
-        raise Exception('platform not found')
-    else:
-        platform_id = platform.id
-
-    return (int(platform_id), str(external_id))
 
 
 class ExternalObject(db.Model, ResourceMixin):
@@ -169,11 +146,8 @@ class ExternalObject(db.Model, ResourceMixin):
                 Non-existent links will be created
         """
 
-        # Mapping links to a (platform_id, external_id) tuple
-        mapped_links = list(map(normalize_link, links))
-
         try:
-            external_object = ExternalObject.lookup_from_links(mapped_links)
+            external_object = ExternalObject.lookup_from_links(links)
         except AmbiguousLinkError as err:
             if session is None:
                 # FIXME: custom exception
@@ -193,7 +167,7 @@ class ExternalObject(db.Model, ResourceMixin):
             raise ObjectTypeMismatchError(external_object.type, obj_type)
 
         # Let's create the missing links
-        external_object.add_missing_links(mapped_links)
+        external_object.add_missing_links(links)
 
         # We've added the links, we can safely return the external_object
         return external_object
@@ -237,8 +211,6 @@ class ExternalObject(db.Model, ResourceMixin):
                 # not the same as ours.
                 # We might wanna check for this.
                 for our_source in our_attr.sources:
-                    print('moving {!r} to {!r}'.format(our_source.value,
-                                                       their_attr))
                     our_source.value = their_attr
                     # their_attr.sources.append(our_source)
 
@@ -266,6 +238,85 @@ class ExternalObject(db.Model, ResourceMixin):
                                            v.external_object), values))
 
         return map(itemgetter(1), sorted(objects, key=itemgetter(0)))
+
+    def insert_dict(data):
+        pass
+
+    def normalize_dict(raw):
+        """Normalize a dict from a request payload"""
+
+        # FIXME: move those utils
+        def normalize_attribute(type, values):
+            if not isinstance(values, list):
+                values = [values]
+            return [{'type': type, **attr} for attr in values]
+
+        def normalize_relation(relation):
+            if 'type' not in relation:
+                relation = {'type': relation}
+            return relation
+
+        def normalize_link(link):
+            """Map a link to a (platform, external_id) tuple"""
+            if isinstance(link, tuple):
+                # arg can already be a tuple…
+                (platform, external_id) = link
+            else:
+                # …or a dict
+                platform = link.get('platform', None)
+                external_id = link.get('external_id', None)
+                if external_id is None:
+                    external_id = link.get('id', None)
+
+            # We check if the platform exists (if this doesn't crush
+            # performance)
+            platform = Platform.lookup(platform)
+            if platform is None:
+                # TODO: custom exception
+                raise Exception('platform not found')
+            else:
+                platform_id = platform.id
+
+            return (int(platform_id), str(external_id))
+
+        # TODO: move to a real python object?
+        # FIXME: how do i comment this?
+        data = {
+            # ExternalObjectType
+            'type': None,
+
+            # Array<{'type': string, 'text': str, 'score_factor': float}>
+            'attributes': None,
+
+            # Array<(int, str)>
+            'links': None,
+
+            # Array<self>
+            'related': None,
+
+            # str
+            'relation': None
+        }
+
+        if 'type' in raw and raw['type'] is not None:
+            data['type'] = ExternalObjectType.from_name(raw['type'])
+
+        if 'attributes' in raw and raw['attributes'] is not None:
+            data['attributes'] = list(itertools.chain.from_iterable(
+                [normalize_attribute(t, a)
+                 for t, a in raw['attributes'].items()]))
+
+        if 'links' in raw and raw['links'] is not None:
+            data['links'] = list(map(normalize_link, raw['links']))
+
+        if 'related' in raw and raw['related'] is not None:
+            data['related'] = list(map(ExternalObject.normalize_dict,
+                                       raw['related']))
+
+        if 'relation' in raw and raw['relation'] is not None:
+            data['relation'] = normalize_relation(raw['relation'])
+
+        return data
 
     def __repr__(self):
         return '<ExternalObject {} {}>'.format(self.id, self.type)

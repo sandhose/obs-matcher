@@ -1,4 +1,3 @@
-import itertools
 import restless.exceptions
 from flask import request
 from sqlalchemy.orm.exc import NoResultFound
@@ -40,8 +39,6 @@ class ObjectResource(CustomFlaskResource):
         return ExternalObject.query.filter(ExternalObject.id == pk).one()
 
     def create(self):
-        data = self.data
-
         scrap_id = request.headers.get('x-scrap-id', None)
         if scrap_id is None:
             raise restless.exceptions.BadRequest('Missing `x-scrap-id` header')
@@ -51,9 +48,18 @@ class ObjectResource(CustomFlaskResource):
         except NoResultFound:
             raise restless.exceptions.NotFound('Scrap not found')
 
+        data = ExternalObject.normalize_dict(self.data)
+
+        if data['type'] is None:
+            raise restless.exceptions.BadRequest('Field "type" is required')
+
+        if data['relation'] is not None:
+            raise restless.exceptions.BadRequest(
+                'Field "relation" is not allowed on the root object')
+
         try:
             obj = ExternalObject.lookup_or_create(
-                obj_type=ExternalObjectType.from_name(data['type']),
+                obj_type=data['type'],
                 links=data['links'],
                 session=db.session,
             )
@@ -64,27 +70,15 @@ class ObjectResource(CustomFlaskResource):
         except ExternalIDMismatchError as err:
             raise restless.exceptions.Conflict(str(err))
 
-        # FIXME: this is ugly
-        def map_attributes(type, attrs):
-            if not isinstance(attrs, list):
-                attrs = [attrs]
-            return [{'type': type, **attr} for attr in attrs]
-
-        try:
-            attributes = itertools.chain.from_iterable(
-                [map_attributes(t, a)
-                 for t, a in data['attributes'].items()])
-        except KeyError:
-            raise restless.exceptions.BadRequest('Missing key `attributes`')
-
-        for attribute in attributes:
-            try:
-                obj.add_attribute(attribute, scrap.platform)
-            except KeyError:
-                raise restless.exceptions.BadRequest('Malformed attribute')
-            except UnknownAttribute as e:
-                # FIXME: do something with this exception
-                print(e)
+        if data['attributes'] is not None:
+            for attribute in data['attributes']:
+                try:
+                    obj.add_attribute(attribute, scrap.platform)
+                except KeyError:
+                    raise restless.exceptions.BadRequest('Malformed attribute')
+                except UnknownAttribute as e:
+                    # FIXME: do something with this exception
+                    print(e)
 
         # We need to save the object first to reload the links
         db.session.add(obj)
