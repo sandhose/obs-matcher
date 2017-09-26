@@ -4,7 +4,7 @@ from sqlalchemy import tuple_, func
 
 from ..app import db
 from ..exceptions import AmbiguousLinkError, ExternalIDMismatchError, \
-    ObjectTypeMismatchError, UnknownAttribute
+    ObjectTypeMismatchError, UnknownAttribute, LinkNotFound
 from .mixins import ResourceMixin
 from .utils import CustomEnum
 from .platform import Platform
@@ -246,8 +246,14 @@ class ExternalObject(db.Model, ResourceMixin):
             session=db.session,
         )
 
+        # This checks if we explicitly scrapped the given object by giving
+        # attributes
+        # FIXME: maybe have this explicitly set in the input dict
+        has_attributes = False
+
         if data['attributes'] is not None:
             for attribute in data['attributes']:
+                has_attributes = True
                 try:
                     obj.add_attribute(attribute, scrap.platform)
                 except UnknownAttribute as e:
@@ -258,16 +264,16 @@ class ExternalObject(db.Model, ResourceMixin):
         db.session.add(obj)
         db.session.commit()
 
-        # Find the link created for this platform and add the scrap to it
-        link = next((link for link in obj.links
-                     if link.platform == scrap.platform), None)
-        if link is not None:
-            link.scraps.append(scrap)
-        else:
-            # FIXME: proper error handling
-            raise Exception('could not find link in {!r}'.format(obj.links))
+        if has_attributes:
+            # Find the link created for this platform and add the scrap to it
+            link = next((link for link in obj.links
+                         if link.platform == scrap.platform), None)
+            if link is not None:
+                link.scraps.append(scrap)
+            else:
+                raise LinkNotFound(links=obj.links, platform=scrap.platform)
+            db.session.commit()
 
-        db.session.commit()
         return obj
 
     def normalize_dict(raw):

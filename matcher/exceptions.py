@@ -1,4 +1,4 @@
-from restless.constants import UNAVAILABLE, CONFLICT
+from restless.constants import UNAVAILABLE, CONFLICT, BAD_REQUEST
 
 
 class AmbiguousLinkError(Exception):
@@ -72,3 +72,18 @@ class InvalidStatusTransition(Exception):
     def __str__(self):
         return "Invalid transition from {!r} to {!r}".format(self.from_status,
                                                              self.to_status)
+
+
+class LinkNotFound(Exception):
+    """The user tried to insert attributes on an object without adding a link
+       to the platform it scaps."""
+
+    status = BAD_REQUEST
+
+    def __init__(self, links, platform):
+        self.links = links
+        self.platform = platform
+
+    def __str__(self):
+        return "Could not find link for {!r} in {!r}".format(self.platform,
+                                                             self.links)
