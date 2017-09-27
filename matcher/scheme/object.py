@@ -1,6 +1,7 @@
 import itertools
 from operator import attrgetter, itemgetter
 from sqlalchemy import tuple_, func
+from sqlalchemy.ext.declarative import declared_attr
 
 from ..app import db
 from ..exceptions import AmbiguousLinkError, ExternalIDMismatchError, \
@@ -423,14 +424,28 @@ class ObjectLinkWorkMeta(db.Model):
         return '<ObjectLinkWorkMeta {}>'.format(self.link)
 
 
-class Episode(db.Model):
+class ExternalObjectMeta(object):
+    """Mixin to add metadatas to specific ExternalObject types"""
+
+    @declared_attr
+    def external_object_id(cls):
+        return db.Column(db.Integer,
+                         db.ForeignKey('external_object.id'),
+                         primary_key=True)
+    """The foreign key in the table"""
+
+    @declared_attr
+    def external_object(cls):
+        return db.relationship('ExternalObject',
+                               foreign_keys=[cls.external_object_id])
+    """The actual relationship"""
+
+
+class Episode(db.Model, ExternalObjectMeta):
     """An episode of a TV serie"""
 
     __tablename__ = 'episode'
 
-    external_object_id = db.Column(db.Integer,
-                                   db.ForeignKey('external_object.id'),
-                                   primary_key=True)
     season_id = db.Column(db.Integer,
                           db.ForeignKey('external_object.id'))
 
@@ -438,33 +453,22 @@ class Episode(db.Model):
     number = db.Column(db.Integer)
     """The episode number in the season"""
 
-    external_object = db.relationship('ExternalObject',
-                                      foreign_keys=[external_object_id])
-    """The object representing this episode"""
-
     season = db.relationship('ExternalObject',
                              foreign_keys=[season_id])
     """The season in which this episode is in"""
 
 
-class Season(db.Model):
+class Season(db.Model, ExternalObjectMeta):
     """A season of a TV serie"""
 
     __tablename__ = 'season'
 
-    external_object_id = db.Column(db.Integer,
-                                   db.ForeignKey('external_object.id'),
-                                   primary_key=True)
     serie_id = db.Column(db.Integer,
                          db.ForeignKey('external_object.id'))
 
     # FIXME: how to handle special episodes/seasons?
     number = db.Column(db.Integer)
     """The season number"""
-
-    external_object = db.relationship('ExternalObject',
-                                      foreign_keys=[external_object_id])
-    """The object representing this season"""
 
     serie = db.relationship('ExternalObject',
                             foreign_keys=[serie_id])
@@ -514,20 +518,13 @@ class Role(db.Model):
     """The type of role"""
 
 
-class Person(db.Model):
+class Person(db.Model, ExternalObjectMeta):
     """Represents a person"""
     __tablename__ = 'person'
 
     id = db.Column(db.Integer,
                    db.Sequence('person_id_seq'),
                    primary_key=True)
-
-    external_object_id = db.Column(db.Integer,
-                                   db.ForeignKey('external_object.id'),
-                                   nullable=False)
-    external_object = db.relationship('ExternalObject',
-                                      foreign_keys=[external_object_id])
-    """The object linked to this person"""
 
     gender = db.Column(db.Enum(Gender, name='gender'),
                        nullable=False,
