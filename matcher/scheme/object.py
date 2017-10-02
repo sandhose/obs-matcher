@@ -2,6 +2,7 @@ import itertools
 from operator import attrgetter, itemgetter
 from sqlalchemy import tuple_, func
 from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.orm.exc import NoResultFound
 
 from ..app import db
 from ..exceptions import AmbiguousLinkError, ExternalIDMismatchError, \
@@ -61,6 +62,25 @@ class ExternalObject(db.Model, ResourceMixin):
                                  back_populates='external_object',
                                  cascade='all, delete-orphan')
     """A list of arbitrary attributes associated with this object"""
+
+    @property
+    def related_object(self):
+        """The related object for additional metadatas if exists"""
+
+        # TODO: make this map more generic
+        class_map = {
+            ExternalObjectType.PERSON: Person,
+            ExternalObjectType.EPISODE: Episode,
+            ExternalObjectType.SEASON: Season,
+            ExternalObjectType.MOVIE: None,
+            ExternalObjectType.SERIE: None,
+        }
+
+        cls = dict.get(class_map, self.type, None)
+        if cls is None:
+            return None
+
+        return cls.from_external_object(external_object=self)
 
     def add_attribute(self, attribute, platform):
         """Add an attribute to the object"""
@@ -439,6 +459,19 @@ class ExternalObjectMeta(object):
         return db.relationship('ExternalObject',
                                foreign_keys=[cls.external_object_id])
     """The actual relationship"""
+
+    @classmethod
+    def from_external_object(cls, external_object):
+        """Get the corresponding object for a given ExternalObject"""
+        try:
+            obj = cls.query\
+                .filter(cls.external_object == external_object)\
+                .one()
+        except NoResultFound:
+            obj = cls(external_object=external_object)
+            db.session.add(obj)
+
+        return obj
 
 
 class Episode(db.Model, ExternalObjectMeta):
