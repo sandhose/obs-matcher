@@ -6,7 +6,8 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from ..app import db
 from ..exceptions import AmbiguousLinkError, ExternalIDMismatchError, \
-    ObjectTypeMismatchError, UnknownAttribute, LinkNotFound
+    ObjectTypeMismatchError, UnknownAttribute, LinkNotFound, UnknownRelation, \
+    InvalidRelation
 from .mixins import ResourceMixin
 from .utils import CustomEnum
 from .platform import Platform
@@ -41,6 +42,37 @@ scrap_link = db.Table(
               db.ForeignKey('object_link.id'),
               primary_key=True),
 )
+
+
+def create_relationship(relation, parent, child):
+    relationship_map = {
+        'played in': lambda parent, child:
+            child.related_object.add_role(parent, role=RoleType.ACTOR),
+        'featured': lambda parent, child:
+            parent.related_object.add_role(child, role=RoleType.ACTOR),
+
+        'directed': lambda parent, child:
+            child.related_object.add_role(parent, role=RoleType.DIRECTOR),
+        'directed by': lambda parent, child:
+            parent.related_object.add_role(child, role=RoleType.DIRECTOR),
+
+        'wrote': lambda parent, child:
+            child.related_object.add_role(parent, role=RoleType.WRITER),
+        'wrote by': lambda parent, child:
+            parent.related_object.add_role(child, role=RoleType.WRITER),
+
+        'part of': lambda parent, child:
+            child.related_object.set_parent(parent),
+        'contains': lambda parent, child:
+            parent.related_object.set_parent(child),
+    }
+
+    try:
+        relationship_map[relation](parent, child)
+    except KeyError:
+        raise UnknownRelation(relation)
+    except:
+        raise InvalidRelation(relation, parent, child)
 
 
 class ExternalObject(db.Model, ResourceMixin):
@@ -295,6 +327,17 @@ class ExternalObject(db.Model, ResourceMixin):
                 raise LinkNotFound(links=obj.links, platform=scrap.platform)
             db.session.commit()
 
+        # Chech for related objects
+        if data['related'] is not None:
+            for child in data['related']:
+                # Insert them…
+                child_obj = ExternalObject.insert_dict(child, scrap)
+
+                # …and if a relationship is specified, use a map to bind the
+                # two objects together
+                if 'relation' in child:
+                    create_relationship(child['relation'], obj, child_obj)
+
         return obj
 
     def normalize_dict(raw):
@@ -307,11 +350,6 @@ class ExternalObject(db.Model, ResourceMixin):
             if not isinstance(values, list):
                 values = [values]
             return [{'type': type, **attr} for attr in values]
-
-        def normalize_relation(relation):
-            if 'type' not in relation:
-                relation = {'type': relation}
-            return relation
 
         def normalize_link(link):
             """Map a link to a (platform, external_id) tuple"""
@@ -371,7 +409,7 @@ class ExternalObject(db.Model, ResourceMixin):
                                        raw['related']))
 
         if 'relation' in raw and raw['relation'] is not None:
-            data['relation'] = normalize_relation(raw['relation'])
+            data['relation'] = str(raw['relation'])
 
         return data
 
@@ -490,6 +528,11 @@ class Episode(db.Model, ExternalObjectMeta):
                              foreign_keys=[season_id])
     """The season in which this episode is in"""
 
+    def set_parent(self, parent):
+        if parent.type != ExternalObjectType.SEASON:
+            raise Exception("Invalid object type")
+        self.season = parent
+
 
 class Season(db.Model, ExternalObjectMeta):
     """A season of a TV serie"""
@@ -506,6 +549,11 @@ class Season(db.Model, ExternalObjectMeta):
     serie = db.relationship('ExternalObject',
                             foreign_keys=[serie_id])
     """The object representing the serie in which this episode is"""
+
+    def set_parent(self, parent):
+        if parent.type != ExternalObjectType.SERIE:
+            raise Exception("Invalid object type")
+        self.serie = parent
 
 
 class Gender(CustomEnum):
@@ -567,3 +615,6 @@ class Person(db.Model, ExternalObjectMeta):
     roles = db.relationship('Role',
                             back_populates='person')
     """The roles this person has on various objects"""
+
+    def add_role(movie, role):
+        raise NotImplementedError()

@@ -38,6 +38,34 @@ class ObjectTypeMismatchError(Exception):
                                                             self.should_be)
 
 
+class UnknownRelation(Exception):
+    """The given relation doesn't exists"""
+
+    status = BAD_REQUEST
+
+    def __init__(self, relation):
+        self.relation = relation
+
+    def __str__(self):
+        return "{!r} is an unknown relation type".format(self.relation)
+
+
+class InvalidRelation(Exception):
+    """The relation can't be set between the two objects"""
+
+    status = BAD_REQUEST
+
+    def __init__(self, relation, parent, child):
+        self.relation = relation
+        self.parent = parent
+        self.child = child
+
+    def __str__(self):
+        return "{!r} can't be “{}” {!r}".format(self.parent,
+                                                self.relation,
+                                                self.child)
+
+
 class ExternalIDMismatchError(Exception):
     """Raise when two links IDs for the same object/platform mismatch"""
 
