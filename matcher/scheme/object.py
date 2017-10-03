@@ -239,11 +239,41 @@ class ExternalObject(db.Model, ResourceMixin):
 
         return map(itemgetter(1), sorted(objects, key=itemgetter(0)))
 
-    def insert_dict(data):
-        pass
+    def insert_dict(data, scrap):
+        obj = ExternalObject.lookup_or_create(
+            obj_type=data['type'],
+            links=data['links'],
+            session=db.session,
+        )
+
+        if data['attributes'] is not None:
+            for attribute in data['attributes']:
+                try:
+                    obj.add_attribute(attribute, scrap.platform)
+                except UnknownAttribute as e:
+                    # FIXME: do something with this exception
+                    print(e)
+
+        # We need to save the object first to reload the links
+        db.session.add(obj)
+        db.session.commit()
+
+        # Find the link created for this platform and add the scrap to it
+        link = next((link for link in obj.links
+                     if link.platform == scrap.platform), None)
+        if link is not None:
+            link.scraps.append(scrap)
+        else:
+            # FIXME: proper error handling
+            raise Exception('could not find link in {!r}'.format(obj.links))
+
+        db.session.commit()
+        return obj
 
     def normalize_dict(raw):
         """Normalize a dict from a request payload"""
+
+        # TODO: Error handling
 
         # FIXME: move those utils
         def normalize_attribute(type, values):

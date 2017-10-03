@@ -1,5 +1,10 @@
+from restless.constants import UNAVAILABLE, CONFLICT
+
+
 class AmbiguousLinkError(Exception):
     """Raise when the lookup ends up returning multiple object"""
+
+    status = UNAVAILABLE
 
     def resolve(self, session):
         """Resolve the conflict by merging all objects
@@ -22,6 +27,8 @@ class AmbiguousLinkError(Exception):
 class ObjectTypeMismatchError(Exception):
     """Raise when the object found isn't the same type as it should"""
 
+    status = CONFLICT
+
     def __init__(self, is_type, should_be):
         self.is_type = is_type
         self.should_be = should_be
@@ -33,6 +40,8 @@ class ObjectTypeMismatchError(Exception):
 
 class ExternalIDMismatchError(Exception):
     """Raise when two links IDs for the same object/platform mismatch"""
+
+    status = CONFLICT
 
     def __init__(self, link, external_id):
         self.link = link
