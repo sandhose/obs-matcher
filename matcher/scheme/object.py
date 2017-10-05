@@ -432,7 +432,7 @@ class ObjectLink(db.Model):
     platform_id = db.Column(db.Integer,
                             db.ForeignKey('platform.id'),
                             nullable=False)
-    external_id = db.Column(db.String)
+    external_id = db.Column(db.Text)
     """The ID of the object on the platform(i.e. IMDb ID)"""
 
     external_object = db.relationship('ExternalObject',

@@ -26,7 +26,7 @@ class Value(db.Model, ResourceMixin):
     external_object_id = db.Column(db.Integer,
                                    db.ForeignKey('external_object.id'),
                                    nullable=False)
-    text = db.Column(db.String, nullable=False)
+    text = db.Column(db.Text, nullable=False)
 
     external_object = db.relationship('ExternalObject',
                                       back_populates='attributes')

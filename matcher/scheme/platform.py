@@ -16,7 +16,7 @@ class PlatformGroup(db.Model, ResourceMixin):
     id = db.Column(db.Integer,
                    db.Sequence('platform_group_id_seq'),
                    primary_key=True)
-    name = db.Column(db.String,
+    name = db.Column(db.Text,
                      nullable=False)
 
     platforms = db.relationship('Platform',
@@ -42,12 +42,12 @@ class Platform(db.Model, ResourceMixin):
     id = db.Column(db.Integer,
                    db.Sequence('platform_id_seq'),
                    primary_key=True)
-    name = db.Column(db.String,
+    name = db.Column(db.Text,
                      nullable=False)
     """A human readable name"""
 
     # FIXME: should be unique
-    slug = db.Column(db.String,
+    slug = db.Column(db.Text,
                      nullable=False,
                      default=slug_default)
     """A unique identifier"""
@@ -56,7 +56,7 @@ class Platform(db.Model, ResourceMixin):
                          db.ForeignKey('platform_group.id'))
 
     # FIXME: way to map ExternalID -> URL
-    url = db.Column(db.String)
+    url = db.Column(db.Text)
     """Base URL of this platform"""
 
     country = db.Column(db.String(2))
