@@ -491,6 +491,48 @@ class ObjectLinkWorkMeta(db.Model):
         return '<ObjectLinkWorkMeta {}>'.format(self.link)
 
 
+class Gender(CustomEnum):
+    """ISO/IEC 5218 compliant gender enum"""
+    NOT_KNOWN = 0
+    MALE = 1
+    FEMALE = 2
+    NOT_APPLICABLE = 9
+
+
+class RoleType(CustomEnum):
+    """A type of role of a person on another object"""
+    DIRECTOR = 0
+    ACTOR = 1
+    WRITER = 2
+
+
+class Role(db.Model):
+    """A role of a person on another object (movie/episode/serie…)"""
+
+    __tablename__ = 'role'
+
+    # FIXME: how to represent multiple roles of a person on the same object?
+    __table_args__ = (
+        db.PrimaryKeyConstraint('person_id', 'external_object_id'),
+    )
+
+    person_id = db.Column(db.Integer,
+                          db.ForeignKey('external_object.id'))
+    external_object_id = db.Column(db.Integer,
+                                   db.ForeignKey('external_object.id'))
+
+    person = db.relationship('ExternalObject',
+                             foreign_keys=[person_id])
+    """The person concerned"""
+
+    external_object = db.relationship('ExternalObject',
+                                      foreign_keys=[external_object_id])
+    """The object concerned"""
+
+    role = db.Column(db.Enum(RoleType))
+    """The type of role"""
+
+
 class ExternalObjectMeta(object):
     """Mixin to add metadatas to specific ExternalObject types"""
 
@@ -568,65 +610,17 @@ class Season(db.Model, ExternalObjectMeta):
         self.serie = parent
 
 
-class Gender(CustomEnum):
-    """ISO/IEC 5218 compliant gender enum"""
-    NOT_KNOWN = 0
-    MALE = 1
-    FEMALE = 2
-    NOT_APPLICABLE = 9
-
-
-class RoleType(CustomEnum):
-    """A type of role of a person on another object"""
-    DIRECTOR = 0
-    ACTOR = 1
-    WRITER = 2
-
-
-class Role(db.Model):
-    """A role of a person on another object (movie/episode/serie…)"""
-
-    __tablename__ = 'role'
-
-    # FIXME: how to represent multiple roles of a person on the same object?
-    __table_args__ = (
-        db.PrimaryKeyConstraint('person_id', 'external_object_id'),
-    )
-
-    person_id = db.Column(db.Integer,
-                          db.ForeignKey('person.id'))
-    external_object_id = db.Column(db.Integer,
-                                   db.ForeignKey('external_object.id'))
-
-    person = db.relationship('Person',
-                             foreign_keys=[person_id],
-                             back_populates='roles')
-    """The person concerned"""
-
-    external_object = db.relationship('ExternalObject',
-                                      foreign_keys=[external_object_id])
-    """The object concerned"""
-
-    role = db.Column(db.Enum(RoleType))
-    """The type of role"""
 
 
 class Person(db.Model, ExternalObjectMeta):
     """Represents a person"""
-    __tablename__ = 'person'
 
-    id = db.Column(db.Integer,
-                   db.Sequence('person_id_seq'),
-                   primary_key=True)
+    __tablename__ = 'person'
 
     gender = db.Column(db.Enum(Gender, name='gender'),
                        nullable=False,
                        default=Gender.NOT_KNOWN)
     """The gender of the person"""
-
-    roles = db.relationship('Role',
-                            back_populates='person')
-    """The roles this person has on various objects"""
 
     def add_role(movie, role):
         raise NotImplementedError()
