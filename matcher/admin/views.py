@@ -1,7 +1,7 @@
 from flask_admin.contrib.sqla import ModelView
 
 from ..scheme.value import Value
-from ..scheme.object import ObjectLink, Role
+from ..scheme.object import ObjectLink
 from ..scheme.platform import Platform
 from .utils import CustomAdminConverter
 
@@ -17,7 +17,3 @@ class PlatformGroupView(DefaultView):
 class ExternalObjectView(DefaultView):
     column_list = ('id', 'type', 'attributes')
     inline_models = (Value, ObjectLink,)
-
-
-class PersonView(DefaultView):
-    inline_models = (Role,)
