@@ -7,7 +7,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from ..app import db
 from ..exceptions import AmbiguousLinkError, ExternalIDMismatchError, \
     ObjectTypeMismatchError, UnknownAttribute, LinkNotFound, UnknownRelation, \
-    InvalidRelation, InvalidMetadata
+    InvalidRelation, InvalidMetadata, InvalidMetadataValue
 from .mixins import ResourceMixin
 from .utils import CustomEnum
 from .platform import Platform
@@ -601,6 +601,15 @@ class Episode(db.Model, ExternalObjectMeta):
             raise Exception("Invalid object type")
         self.season = parent
 
+    def add_meta(self, key, content):
+        if key != "number":
+            raise InvalidMetadata(self.object_type, key)
+
+        try:
+            self.number = int(content)
+        except ValueError:
+            raise InvalidMetadataValue(key, content)
+
 
 class Season(db.Model, ExternalObjectMeta):
     """A season of a TV serie"""
@@ -624,7 +633,14 @@ class Season(db.Model, ExternalObjectMeta):
             raise Exception("Invalid object type")
         self.serie = parent
 
+    def add_meta(self, key, content):
+        if key != "number":
+            raise InvalidMetadata(self.object_type, key)
 
+        try:
+            self.number = int(content)
+        except ValueError:
+            raise InvalidMetadataValue(key, content)
 
 
 class Person(db.Model, ExternalObjectMeta):
@@ -640,6 +656,14 @@ class Person(db.Model, ExternalObjectMeta):
 
     def add_role(movie, role):
         raise NotImplementedError()
+
+    def add_meta(self, key, content):
+        if key != "gender":
+            raise InvalidMetadata(self.object_type, key)
+
+        gender = Gender.from_name(content)
+        if gender is None:
+            raise InvalidMetadataValue(key, content)
 
 
 Episode.register()

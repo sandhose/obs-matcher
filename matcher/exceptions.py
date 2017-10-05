@@ -129,3 +129,17 @@ class InvalidMetadata(Exception):
     def __str__(self):
         return "Can't add metadata {!r} in type {!r}".format(self.key,
                                                              self.object_type)
+
+
+class InvalidMetadataValue(Exception):
+    """The given metadata value is invalid"""
+
+    status = BAD_REQUEST
+
+    def __init__(self, key, content):
+        self.key = key
+        self.content = content
+
+    def __str(self):
+        return "Invalid metadata value {!r} for {!r}".format(self.key,
+                                                             self.content)
