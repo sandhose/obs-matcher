@@ -75,6 +75,10 @@ def create_relationship(relation, parent, child):
         raise InvalidRelation(relation, parent, child)
 
 
+external_object_meta_map = {}
+"""Maps ExternalObjectTypes to ExternalObjectMeta classes"""
+
+
 class ExternalObject(db.Model, ResourceMixin):
     """An object imported from scraping"""
 
@@ -99,16 +103,7 @@ class ExternalObject(db.Model, ResourceMixin):
     def related_object(self):
         """The related object for additional metadatas if exists"""
 
-        # TODO: make this map more generic
-        class_map = {
-            ExternalObjectType.PERSON: Person,
-            ExternalObjectType.EPISODE: Episode,
-            ExternalObjectType.SEASON: Season,
-            ExternalObjectType.MOVIE: None,
-            ExternalObjectType.SERIE: None,
-        }
-
-        cls = dict.get(class_map, self.type, None)
+        cls = dict.get(external_object_meta_map, self.type, None)
         if cls is None:
             return None
 
@@ -536,6 +531,8 @@ class Role(db.Model):
 class ExternalObjectMeta(object):
     """Mixin to add metadatas to specific ExternalObject types"""
 
+    object_type = None
+
     @declared_attr
     def external_object_id(cls):
         return db.Column(db.Integer,
@@ -562,14 +559,31 @@ class ExternalObjectMeta(object):
 
         return obj
 
+    @classmethod
+    def register(cls):
+        """Register the class to the external_object_meta_map"""
+
+        if cls.object_type is None:
+            raise Exception("object_type isn't defined for {!r}"
+                            .format(cls))
+
+        if cls.object_type in external_object_meta_map:
+            raise Exception(
+                "ExternalObjectMeta was already registered for {!r}"
+                .format(cls.object_type)
+            )
+
+        external_object_meta_map[cls.object_type] = cls
+
     def add_meta(self, key, content):
-        raise NotImplementedError()
+        raise InvalidMetadata(self.object_type, key)
 
 
 class Episode(db.Model, ExternalObjectMeta):
     """An episode of a TV serie"""
 
     __tablename__ = 'episode'
+    object_type = ExternalObjectType.EPISODE
 
     season_id = db.Column(db.Integer,
                           db.ForeignKey('external_object.id'))
@@ -592,6 +606,7 @@ class Season(db.Model, ExternalObjectMeta):
     """A season of a TV serie"""
 
     __tablename__ = 'season'
+    object_type = ExternalObjectType.SEASON
 
     serie_id = db.Column(db.Integer,
                          db.ForeignKey('external_object.id'))
@@ -616,6 +631,7 @@ class Person(db.Model, ExternalObjectMeta):
     """Represents a person"""
 
     __tablename__ = 'person'
+    object_type = ExternalObjectType.PERSON
 
     gender = db.Column(db.Enum(Gender, name='gender'),
                        nullable=False,
@@ -624,3 +640,8 @@ class Person(db.Model, ExternalObjectMeta):
 
     def add_role(movie, role):
         raise NotImplementedError()
+
+
+Episode.register()
+Season.register()
+Person.register()
