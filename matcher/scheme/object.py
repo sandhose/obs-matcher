@@ -7,7 +7,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from ..app import db
 from ..exceptions import AmbiguousLinkError, ExternalIDMismatchError, \
     ObjectTypeMismatchError, UnknownAttribute, LinkNotFound, UnknownRelation, \
-    InvalidRelation
+    InvalidRelation, InvalidMetadata
 from .mixins import ResourceMixin
 from .utils import CustomEnum
 from .platform import Platform
@@ -113,6 +113,15 @@ class ExternalObject(db.Model, ResourceMixin):
             return None
 
         return cls.from_external_object(external_object=self)
+
+    def add_meta(self, key, content):
+        """Add a metadata on the related_object"""
+
+        related_object = self.related_object
+        if related_object is None:
+            raise InvalidMetadata(self.type, key)
+
+        related_object.add_meta(key, content)
 
     def add_attribute(self, attribute, platform):
         """Add an attribute to the object"""
@@ -510,6 +519,9 @@ class ExternalObjectMeta(object):
             db.session.add(obj)
 
         return obj
+
+    def add_meta(self, key, content):
+        raise NotImplementedError()
 
 
 class Episode(db.Model, ExternalObjectMeta):

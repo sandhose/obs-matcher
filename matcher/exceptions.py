@@ -115,3 +115,17 @@ class LinkNotFound(Exception):
     def __str__(self):
         return "Could not find link for {!r} in {!r}".format(self.platform,
                                                              self.links)
+
+
+class InvalidMetadata(Exception):
+    """The given metadata can't be set for this type"""
+
+    status = BAD_REQUEST
+
+    def __init__(self, object_type, key):
+        self.object_type = object_type
+        self.key = key
+
+    def __str__(self):
+        return "Can't add metadata {!r} in type {!r}".format(self.key,
+                                                             self.object_type)
