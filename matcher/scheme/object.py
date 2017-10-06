@@ -1,21 +1,27 @@
 import itertools
 from operator import attrgetter, itemgetter
-from sqlalchemy import tuple_, func
+
+from sqlalchemy import (Boolean, Column, Enum, ForeignKey, Integer,
+                        PrimaryKeyConstraint, Sequence, Table, Text, func,
+                        tuple_)
 from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.orm import relationship
 from sqlalchemy.orm.exc import NoResultFound
 
 from ..app import db
-from ..exceptions import AmbiguousLinkError, ExternalIDMismatchError, \
-    ObjectTypeMismatchError, UnknownAttribute, LinkNotFound, UnknownRelation, \
-    InvalidRelation, InvalidMetadata, InvalidMetadataValue
+from ..exceptions import (AmbiguousLinkError, ExternalIDMismatchError,
+                          InvalidMetadata, InvalidMetadataValue,
+                          InvalidRelation, LinkNotFound,
+                          ObjectTypeMismatchError, UnknownAttribute,
+                          UnknownRelation)
 from .mixins import ResourceMixin
-from .utils import CustomEnum
 from .platform import Platform
-from .value import ValueType, Value, ValueSource
+from .utils import CustomEnum
+from .value import Value, ValueSource, ValueType
 
 
 class ExternalObjectType(CustomEnum):
-    """A type of object in database"""
+    """A type of object in database."""
 
     PERSON = 1
     """Represents a person. Can be an actor, director, or anything else"""
@@ -33,21 +39,30 @@ class ExternalObjectType(CustomEnum):
     """Represents a (TV) serie"""
 
 
-scrap_link = db.Table(
+scrap_link = Table(
     'scrap_link',
-    db.Column('scrap_id',
-              db.ForeignKey('scrap.id'),
-              primary_key=True),
-    db.Column('object_link_id',
-              db.ForeignKey('object_link.id'),
-              primary_key=True),
+    db.metadata,
+    Column('scrap_id',
+           ForeignKey('scrap.id'),
+           primary_key=True),
+    Column('object_link_id',
+           ForeignKey('object_link.id'),
+           primary_key=True),
 )
 
 
 def create_relationship(relation, parent, child):
+    """Create a relationship between two `ExternalObject`s.
+
+    Args:
+        relation (str): the type of relationship to create
+        parent (ExternalObject): the parent object
+        child (ExternalObject): the child object
+
+    """
     relationship_map = {
         'played in': lambda parent, child:
-            child.related_object.add_role(parent, role=RoleType.ACTOR),
+        child.related_object.add_role(parent, role=RoleType.ACTOR),
         'featured': lambda parent, child:
             parent.related_object.add_role(child, role=RoleType.ACTOR),
 
@@ -76,32 +91,32 @@ def create_relationship(relation, parent, child):
 
 
 external_object_meta_map = {}
-"""Maps ExternalObjectTypes to ExternalObjectMeta classes"""
+"""Maps ExternalObjectTypes to ExternalObjectMeta classes."""
 
 
 class ExternalObject(db.Model, ResourceMixin):
-    """An object imported from scraping"""
+    """An object imported from scraping."""
 
     __tablename__ = 'external_object'
 
-    id = db.Column(db.Integer,
-                   db.Sequence('external_object_id_seq'),
-                   primary_key=True)
+    id = Column(Integer,
+                Sequence('external_object_id_seq'),
+                primary_key=True)
 
-    type = db.Column(db.Enum(ExternalObjectType))
+    type = Column(Enum(ExternalObjectType))
 
-    links = db.relationship('ObjectLink',
-                            back_populates='external_object')
+    links = relationship('ObjectLink',
+                         back_populates='external_object')
     """Links to where the object has been/should be found"""
 
-    attributes = db.relationship('Value',
-                                 back_populates='external_object',
-                                 cascade='all, delete-orphan')
+    attributes = relationship('Value',
+                              back_populates='external_object',
+                              cascade='all, delete-orphan')
     """A list of arbitrary attributes associated with this object"""
 
     @property
     def related_object(self):
-        """The related object for additional metadatas if exists"""
+        """The related object for additional metadatas if exists."""
 
         cls = dict.get(external_object_meta_map, self.type, None)
         if cls is None:
@@ -110,7 +125,7 @@ class ExternalObject(db.Model, ResourceMixin):
         return cls.from_external_object(external_object=self)
 
     def add_meta(self, key, content):
-        """Add a metadata on the related_object"""
+        """Add a metadata on the related_object."""
 
         related_object = self.related_object
         if related_object is None:
@@ -119,7 +134,7 @@ class ExternalObject(db.Model, ResourceMixin):
         related_object.add_meta(key, content)
 
     def add_attribute(self, attribute, platform):
-        """Add an attribute to the object"""
+        """Add an attribute to the object."""
 
         text = str(attribute['text'])
         type = attribute['type']
@@ -150,8 +165,9 @@ class ExternalObject(db.Model, ResourceMixin):
             value.sources.append(ValueSource(
                 platform=platform, score_factor=score_factor))
 
+    @staticmethod
     def lookup_from_links(links):
-        """Lookup for an object from its links
+        """Lookup for an object from its links.
 
         :links: List of links (platform, external_id) to use.
         """
@@ -178,7 +194,7 @@ class ExternalObject(db.Model, ResourceMixin):
             return db_links[0].external_object
 
     def add_missing_links(self, links):
-        """Add missing links to an external object"""
+        """Add missing links to an external object."""
 
         for (platform_id, external_id) in links:
             # Lookup for an existing link
@@ -194,6 +210,7 @@ class ExternalObject(db.Model, ResourceMixin):
                 # Duplicate link with different ID for object
                 raise ExternalIDMismatchError(existing_link, external_id)
 
+    @staticmethod
     def lookup_or_create(obj_type, links, session=None):
         """Lookup for an object from its links
 
@@ -230,7 +247,7 @@ class ExternalObject(db.Model, ResourceMixin):
         return external_object
 
     def merge(self, their):
-        """Try to merge two objects"""
+        """Try to merge two objects."""
         # FIXME: A lot of other references needs merging (!)
         # First check if the merge is possible
 
@@ -272,13 +289,13 @@ class ExternalObject(db.Model, ResourceMixin):
                     # their_attr.sources.append(our_source)
 
     def merge_and_delete(self, their, session):
-        """Merge into another ExternalObject, and delete the old one"""
+        """Merge into another ExternalObject, and delete the old one."""
         self.merge(their)
         session.delete(self)
         return their
 
     def similar(self):
-        """Find similar objects"""
+        """Find similar objects."""
 
         titles = sorted(filter(lambda a: a.type == ValueType.TITLE,
                                self.attributes),
@@ -296,6 +313,7 @@ class ExternalObject(db.Model, ResourceMixin):
 
         return map(itemgetter(1), sorted(objects, key=itemgetter(0)))
 
+    @staticmethod
     def insert_dict(data, scrap):
         obj = ExternalObject.lookup_or_create(
             obj_type=data['type'],
@@ -347,8 +365,9 @@ class ExternalObject(db.Model, ResourceMixin):
 
         return obj
 
+    @staticmethod
     def normalize_dict(raw):
-        """Normalize a dict from a request payload"""
+        """Normalize a dict from a request payload."""
 
         # TODO: Error handling
 
@@ -359,7 +378,7 @@ class ExternalObject(db.Model, ResourceMixin):
             return [{'type': type, **attr} for attr in values]
 
         def normalize_link(link):
-            """Map a link to a (platform, external_id) tuple"""
+            """Map a link to a (platform, external_id) tuple."""
             if isinstance(link, tuple):
                 # arg can already be a tuple…
                 (platform, external_id) = link
@@ -431,38 +450,38 @@ class ExternalObject(db.Model, ResourceMixin):
 
 
 class ObjectLink(db.Model):
-    """Links an object to a platform, with it's ID on the platform"""
+    """Links an object to a platform, with it's ID on the platform."""
 
     __tablename__ = 'object_link'
 
-    id = db.Column(db.Integer,
-                   db.Sequence('object_link_id_seq'),
-                   primary_key=True)
+    id = Column(Integer,
+                Sequence('object_link_id_seq'),
+                primary_key=True)
 
-    external_object_id = db.Column(db.Integer,
-                                   db.ForeignKey('external_object.id'),
-                                   nullable=False)
-    platform_id = db.Column(db.Integer,
-                            db.ForeignKey('platform.id'),
-                            nullable=False)
-    external_id = db.Column(db.Text)
+    external_object_id = Column(Integer,
+                                ForeignKey('external_object.id'),
+                                nullable=False)
+    platform_id = Column(Integer,
+                         ForeignKey('platform.id'),
+                         nullable=False)
+    external_id = Column(Text)
     """The ID of the object on the platform(i.e. IMDb ID)"""
 
-    external_object = db.relationship('ExternalObject',
-                                      back_populates='links')
+    external_object = relationship('ExternalObject',
+                                   back_populates='links')
     """The object linked"""
 
-    platform = db.relationship('Platform',
-                               back_populates='links')
+    platform = relationship('Platform',
+                            back_populates='links')
     """The platform linked"""
 
-    scraps = db.relationship('Scrap',
-                             secondary='scrap_link',
-                             back_populates='links')
+    scraps = relationship('Scrap',
+                          secondary='scrap_link',
+                          back_populates='links')
     """Lists of scraps where the link was(or should be) found"""
 
     # FIXME: do something more generic?
-    work_meta = db.relationship('ObjectLinkWorkMeta')
+    work_meta = relationship('ObjectLinkWorkMeta')
     """Some metadata associated with the item on the platform"""
 
     def __repr__(self):
@@ -471,24 +490,24 @@ class ObjectLink(db.Model):
 
 
 class ObjectLinkWorkMeta(db.Model):
-    """Metadatas associated with an object on a platform"""
+    """Metadatas associated with an object on a platform."""
 
     __tablename__ = 'object_link_work_meta'
 
-    id = db.Column(db.Integer,
-                   db.ForeignKey('object_link.id'),
-                   nullable=False,
-                   primary_key=True)
+    id = Column(Integer,
+                ForeignKey('object_link.id'),
+                nullable=False,
+                primary_key=True)
 
-    original_content = db.Column(db.Boolean)
+    original_content = Column(Boolean)
     """Is this object produced by the platform?"""
 
-    rating = db.Column(db.Integer)
+    rating = Column(Integer)
     """What's the rating of this item on the platform"""
 
-    link = db.relationship('ObjectLink',
-                           back_populates='work_meta',
-                           uselist=False)
+    link = relationship('ObjectLink',
+                        back_populates='work_meta',
+                        uselist=False)
     """The link concerned by those metadatas"""
 
     def __repr__(self):
@@ -496,7 +515,7 @@ class ObjectLinkWorkMeta(db.Model):
 
 
 class Gender(CustomEnum):
-    """ISO/IEC 5218 compliant gender enum"""
+    """ISO/IEC 5218 compliant gender enum."""
     NOT_KNOWN = 0
     MALE = 1
     FEMALE = 2
@@ -504,7 +523,7 @@ class Gender(CustomEnum):
 
 
 class RoleType(CustomEnum):
-    """A type of role of a person on another object"""
+    """A type of role of a person on another object."""
     DIRECTOR = 0
     ACTOR = 1
     WRITER = 2
@@ -517,49 +536,51 @@ class Role(db.Model):
 
     # FIXME: how to represent multiple roles of a person on the same object?
     __table_args__ = (
-        db.PrimaryKeyConstraint('person_id', 'external_object_id'),
+        PrimaryKeyConstraint('person_id', 'external_object_id'),
     )
 
-    person_id = db.Column(db.Integer,
-                          db.ForeignKey('external_object.id'))
-    external_object_id = db.Column(db.Integer,
-                                   db.ForeignKey('external_object.id'))
+    person_id = Column(Integer,
+                       ForeignKey('external_object.id'))
+    external_object_id = Column(Integer,
+                                ForeignKey('external_object.id'))
 
-    person = db.relationship('ExternalObject',
-                             foreign_keys=[person_id])
+    person = relationship('ExternalObject',
+                          foreign_keys=[person_id])
     """The person concerned"""
 
-    external_object = db.relationship('ExternalObject',
-                                      foreign_keys=[external_object_id])
+    external_object = relationship('ExternalObject',
+                                   foreign_keys=[external_object_id])
     """The object concerned"""
 
-    role = db.Column(db.Enum(RoleType))
+    role = Column(Enum(RoleType))
     """The type of role"""
 
 
 class ExternalObjectMeta(object):
-    """Mixin to add metadatas to specific ExternalObject types"""
+    """Mixin to add metadatas to specific ExternalObject types."""
 
     object_type = None
 
+    @classmethod
     @declared_attr
     def external_object_id(cls):
-        return db.Column(db.Integer,
-                         db.ForeignKey('external_object.id'),
-                         primary_key=True)
-    """The foreign key in the table"""
+        """The foreign key in the table."""
+        return Column(Integer,
+                      ForeignKey('external_object.id'),
+                      primary_key=True)
 
+    @classmethod
     @declared_attr
     def external_object(cls):
-        return db.relationship('ExternalObject',
-                               foreign_keys=[cls.external_object_id])
-    """The actual relationship"""
+        """The actual relationship."""
+        return relationship('ExternalObject',
+                            foreign_keys=[cls.external_object_id])
 
     @classmethod
     def from_external_object(cls, external_object):
-        """Get the corresponding object for a given ExternalObject"""
+        """Get the corresponding object for a given ExternalObject."""
         try:
-            obj = cls.query\
+            obj = db.session.query(cls)\
                 .filter(cls.external_object == external_object)\
                 .one()
         except NoResultFound:
@@ -570,7 +591,7 @@ class ExternalObjectMeta(object):
 
     @classmethod
     def register(cls):
-        """Register the class to the external_object_meta_map"""
+        """Register the class to the external_object_meta_map."""
 
         if cls.object_type is None:
             raise Exception("object_type isn't defined for {!r}"
@@ -589,20 +610,20 @@ class ExternalObjectMeta(object):
 
 
 class Episode(db.Model, ExternalObjectMeta):
-    """An episode of a TV serie"""
+    """An episode of a TV serie."""
 
     __tablename__ = 'episode'
     object_type = ExternalObjectType.EPISODE
 
-    season_id = db.Column(db.Integer,
-                          db.ForeignKey('external_object.id'))
+    season_id = Column(Integer,
+                       ForeignKey('external_object.id'))
 
     # FIXME: how to handle special episodes?
-    number = db.Column(db.Integer)
+    number = Column(Integer)
     """The episode number in the season"""
 
-    season = db.relationship('ExternalObject',
-                             foreign_keys=[season_id])
+    season = relationship('ExternalObject',
+                          foreign_keys=[season_id])
     """The season in which this episode is in"""
 
     def set_parent(self, parent):
@@ -621,20 +642,20 @@ class Episode(db.Model, ExternalObjectMeta):
 
 
 class Season(db.Model, ExternalObjectMeta):
-    """A season of a TV serie"""
+    """A season of a TV serie."""
 
     __tablename__ = 'season'
     object_type = ExternalObjectType.SEASON
 
-    serie_id = db.Column(db.Integer,
-                         db.ForeignKey('external_object.id'))
+    serie_id = Column(Integer,
+                      ForeignKey('external_object.id'))
 
     # FIXME: how to handle special episodes/seasons?
-    number = db.Column(db.Integer)
+    number = Column(Integer)
     """The season number"""
 
-    serie = db.relationship('ExternalObject',
-                            foreign_keys=[serie_id])
+    serie = relationship('ExternalObject',
+                         foreign_keys=[serie_id])
     """The object representing the serie in which this episode is"""
 
     def set_parent(self, parent):
@@ -653,17 +674,17 @@ class Season(db.Model, ExternalObjectMeta):
 
 
 class Person(db.Model, ExternalObjectMeta):
-    """Represents a person"""
+    """Represents a person."""
 
     __tablename__ = 'person'
     object_type = ExternalObjectType.PERSON
 
-    gender = db.Column(db.Enum(Gender, name='gender'),
-                       nullable=False,
-                       default=Gender.NOT_KNOWN)
+    gender = Column(Enum(Gender, name='gender'),
+                    nullable=False,
+                    default=Gender.NOT_KNOWN)
     """The gender of the person"""
 
-    def add_role(movie, role):
+    def add_role(self, movie, role):
         raise NotImplementedError()
 
     def add_meta(self, key, content):
