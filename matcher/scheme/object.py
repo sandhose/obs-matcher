@@ -303,6 +303,9 @@ class ExternalObject(db.Model, ResourceMixin):
             session=db.session,
         )
 
+        for key, value in data['meta'].items():
+            obj.add_meta(key, value)
+
         # This checks if we explicitly scrapped the given object by giving
         # attributes
         # FIXME: maybe have this explicitly set in the input dict
@@ -394,7 +397,10 @@ class ExternalObject(db.Model, ResourceMixin):
             'related': None,
 
             # str
-            'relation': None
+            'relation': None,
+
+            # dict<str, any>
+            'meta': {}
         }
 
         if 'type' in raw and raw['type'] is not None:
@@ -414,6 +420,9 @@ class ExternalObject(db.Model, ResourceMixin):
 
         if 'relation' in raw and raw['relation'] is not None:
             data['relation'] = str(raw['relation'])
+
+        if 'meta' in raw and raw['meta'] is not None:
+            data['meta'] = raw['meta']
 
         return data
 
