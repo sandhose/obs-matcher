@@ -1,8 +1,8 @@
-from restless.preparers import FieldsPreparer, SubPreparer, \
-    CollectionSubPreparer
+from restless.preparers import (CollectionSubPreparer, FieldsPreparer,
+                                SubPreparer)
 
-from .utils import AutoPreparer, CustomFlaskResource
 from ..scheme.value import Value
+from .utils import AutoPreparer, CustomFlaskResource
 
 
 class ValueResource(CustomFlaskResource):

@@ -1,9 +1,9 @@
+from sqlalchemy import func, select
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy import select, func
 
 from ..app import db
-from .platform import Platform
 from .mixins import ResourceMixin
+from .platform import Platform
 from .utils import CustomEnum
 
 

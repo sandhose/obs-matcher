@@ -1,8 +1,8 @@
 from flask_admin.contrib.sqla import ModelView
 
-from ..scheme.value import Value
 from ..scheme.object import ObjectLink
 from ..scheme.platform import Platform
+from ..scheme.value import Value
 from .utils import CustomAdminConverter
 
 

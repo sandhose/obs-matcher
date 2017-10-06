@@ -1,7 +1,7 @@
 import sqlalchemy
-from flask_admin.form.fields import Select2Field, JSONField
-from flask_admin.model.form import converts
 from flask_admin.contrib.sqla.form import AdminModelConverter
+from flask_admin.form.fields import JSONField, Select2Field
+from flask_admin.model.form import converts
 
 
 class EnumField(Select2Field):

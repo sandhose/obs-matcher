@@ -1,5 +1,6 @@
-from slugify import slugify
 from datetime import datetime
+
+from slugify import slugify
 
 from ..app import db
 from .mixins import ResourceMixin

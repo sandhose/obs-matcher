@@ -1,12 +1,12 @@
 import restless.exceptions
 from flask import request
+from restless.preparers import (CollectionSubPreparer, FieldsPreparer,
+                                SubPreparer)
 from sqlalchemy.orm.exc import NoResultFound
-from restless.preparers import CollectionSubPreparer, SubPreparer, \
-    FieldsPreparer
 
-from .utils import AutoPreparer, CustomFlaskResource
 from ..scheme.object import ExternalObject
 from ..scheme.platform import Scrap
+from .utils import AutoPreparer, CustomFlaskResource
 
 
 class ObjectResource(CustomFlaskResource):

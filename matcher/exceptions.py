@@ -1,4 +1,4 @@
-from restless.constants import UNAVAILABLE, CONFLICT, BAD_REQUEST
+from restless.constants import BAD_REQUEST, CONFLICT, UNAVAILABLE
 
 
 class AmbiguousLinkError(Exception):

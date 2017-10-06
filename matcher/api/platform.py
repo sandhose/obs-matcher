@@ -1,9 +1,9 @@
 import restless.exceptions
-from restless.preparers import SubPreparer, CollectionSubPreparer
+from restless.preparers import CollectionSubPreparer, SubPreparer
 
-from .utils import AutoPreparer, CustomFlaskResource
-from ..scheme.platform import Platform, PlatformGroup, Scrap, ScrapStatus
 from ..app import db
+from ..scheme.platform import Platform, PlatformGroup, Scrap, ScrapStatus
+from .utils import AutoPreparer, CustomFlaskResource
 
 
 class PlatformGroupResource(CustomFlaskResource):

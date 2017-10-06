@@ -1,5 +1,6 @@
 import contextlib
 from operator import itemgetter
+
 from flask import url_for
 from flask_script import Command
 

@@ -1,4 +1,5 @@
 from flask import url_for
+
 from ..api.index import IndexView
 
 

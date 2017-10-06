@@ -1,7 +1,8 @@
 import json
-from restless.preparers import Preparer, FieldsPreparer
+
 from restless.fl import FlaskResource
-from restless.serializers import MoreTypesJSONEncoder, JSONSerializer
+from restless.preparers import FieldsPreparer, Preparer
+from restless.serializers import JSONSerializer, MoreTypesJSONEncoder
 
 from ..scheme.utils import CustomEnum
 
