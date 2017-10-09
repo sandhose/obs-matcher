@@ -62,7 +62,7 @@ def create_relationship(relation, parent, child):
     """
     relationship_map = {
         'played in': lambda parent, child:
-        child.related_object.add_role(parent, role=RoleType.ACTOR),
+            child.related_object.add_role(parent, role=RoleType.ACTOR),
         'featured': lambda parent, child:
             parent.related_object.add_role(child, role=RoleType.ACTOR),
 
@@ -126,7 +126,6 @@ class ExternalObject(db.Model, ResourceMixin):
 
     def add_meta(self, key, content):
         """Add a metadata on the related_object."""
-
         related_object = self.related_object
         if related_object is None:
             raise InvalidMetadata(self.type, key)
@@ -135,7 +134,6 @@ class ExternalObject(db.Model, ResourceMixin):
 
     def add_attribute(self, attribute, platform):
         """Add an attribute to the object."""
-
         text = str(attribute['text'])
         type = attribute['type']
         if not isinstance(type, ValueType):
@@ -561,7 +559,6 @@ class ExternalObjectMeta(object):
 
     object_type = None
 
-    @classmethod
     @declared_attr
     def external_object_id(cls):
         """The foreign key in the table."""
@@ -569,7 +566,6 @@ class ExternalObjectMeta(object):
                       ForeignKey('external_object.id'),
                       primary_key=True)
 
-    @classmethod
     @declared_attr
     def external_object(cls):
         """The actual relationship."""
