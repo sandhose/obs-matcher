@@ -54,10 +54,14 @@ scrap_link = Table(
 def create_relationship(relation, parent, child):
     """Create a relationship between two `ExternalObject`s.
 
-    Args:
-        relation (str): the type of relationship to create
-        parent (ExternalObject): the parent object
-        child (ExternalObject): the child object
+    Parameters
+    ==========
+    relation : str
+        the type of relationship to create
+    parent : ExternalObject
+        the parent object
+    child : ExternalObject
+        the child object
 
     """
     relationship_map = {
@@ -116,8 +120,16 @@ class ExternalObject(db.Model, ResourceMixin):
 
     @property
     def related_object(self):
-        """The related object for additional metadatas if exists."""
+        """Get the related object for additional metadatas if exists.
 
+        Returns
+        -------
+        None
+            if no class was mapped for this type
+        ExternalObjectMeta
+            the mapped object linked with this type
+
+        """
         cls = dict.get(external_object_meta_map, self.type, None)
         if cls is None:
             return None
@@ -167,9 +179,19 @@ class ExternalObject(db.Model, ResourceMixin):
     def lookup_from_links(links):
         """Lookup for an object from its links.
 
-        :links: List of links (platform, external_id) to use.
-        """
+        Parameters
+        ----------
+        links : list of tuple of int
+            List of links (platform, external_id) to use for lookup
 
+        Returns
+        -------
+        ExternalObject
+            The ExternalObject found using the links
+        None
+            If no ExternalObject was found
+
+        """
         # Existing links from DB
         db_links = ObjectLink.query\
             .filter(tuple_(ObjectLink.platform_id,
