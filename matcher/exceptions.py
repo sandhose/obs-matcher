@@ -140,6 +140,20 @@ class InvalidMetadataValue(Exception):
         self.key = key
         self.content = content
 
-    def __str(self):
+    def __str__(self):
         return "Invalid metadata value {!r} for {!r}".format(self.key,
                                                              self.content)
+
+
+class LinksOverlap(Exception):
+    """The two objects have links that overlaps."""
+
+    status = CONFLICT
+
+    def __init__(self, mine, their):
+        self.mine = mine
+        self.their = their
+
+    def __str__(self):
+        return "Links in {!r} overlaps with the ones in {!r}".format(self.mine,
+                                                                     self.their)

@@ -13,7 +13,7 @@ from ..exceptions import (AmbiguousLinkError, ExternalIDMismatchError,
                           InvalidMetadata, InvalidMetadataValue,
                           InvalidRelation, LinkNotFound,
                           ObjectTypeMismatchError, UnknownAttribute,
-                          UnknownRelation)
+                          UnknownRelation, LinksOverlap)
 from .mixins import ResourceMixin
 from .platform import Platform
 from .utils import CustomEnum
@@ -52,10 +52,10 @@ scrap_link = Table(
 
 
 def create_relationship(relation, parent, child):
-    """Create a relationship between two `ExternalObject`s.
+    """Create a relationship between two :obj:`ExternalObject`.
 
     Parameters
-    ==========
+    ----------
     relation : str
         the type of relationship to create
     parent : ExternalObject
@@ -106,17 +106,19 @@ class ExternalObject(db.Model, ResourceMixin):
     id = Column(Integer,
                 Sequence('external_object_id_seq'),
                 primary_key=True)
+    """:obj:`int` : primary key"""
 
     type = Column(Enum(ExternalObjectType))
+    """:obj:`ExternalObjectType` : the type of object"""
 
     links = relationship('ObjectLink',
                          back_populates='external_object')
-    """Links to where the object has been/should be found"""
+    """list of :obj:`ObjectLink` : Links to where the object should be found"""
 
     attributes = relationship('Value',
                               back_populates='external_object',
                               cascade='all, delete-orphan')
-    """A list of arbitrary attributes associated with this object"""
+    """list of :obj:`.value.Value` : arbitrary attributes for this object"""
 
     @property
     def related_object(self):
@@ -124,9 +126,9 @@ class ExternalObject(db.Model, ResourceMixin):
 
         Returns
         -------
-        None
+        :obj:`None`
             if no class was mapped for this type
-        ExternalObjectMeta
+        :obj:`ExternalObjectMeta`
             the mapped object linked with this type
 
         """
@@ -137,7 +139,23 @@ class ExternalObject(db.Model, ResourceMixin):
         return cls.from_external_object(external_object=self)
 
     def add_meta(self, key, content):
-        """Add a metadata on the related_object."""
+        """Add a metadata on the related_object.
+
+        Parameters
+        ----------
+        key : str
+            the key of the metadata to insert
+        content : any
+            the content of the metadata to insert
+
+        Raises
+        ------
+        matcher.exceptions.InvalidMetadata
+            when the given metadata type can't be inserted
+        matcher.exceptions.InvalidMetadataValue
+            when the given metadata value can't be inserted
+
+        """
         related_object = self.related_object
         if related_object is None:
             raise InvalidMetadata(self.type, key)
@@ -145,7 +163,16 @@ class ExternalObject(db.Model, ResourceMixin):
         related_object.add_meta(key, content)
 
     def add_attribute(self, attribute, platform):
-        """Add an attribute to the object."""
+        """Add an attribute to the object.
+
+        Parameters
+        ----------
+        attribute : dict
+            with a `type`, a `text` and maybe a `score_factor` item
+        platform : Platform
+            where this attribute was found
+
+        """
         text = str(attribute['text'])
         type = attribute['type']
         if not isinstance(type, ValueType):
@@ -181,15 +208,15 @@ class ExternalObject(db.Model, ResourceMixin):
 
         Parameters
         ----------
-        links : list of tuple of int
-            List of links (platform, external_id) to use for lookup
+        links : :obj:`list` of :obj:`tuple` of :obj:`int`
+            list of links (platform, external_id) to use for lookup
 
         Returns
         -------
-        ExternalObject
-            The ExternalObject found using the links
-        None
-            If no ExternalObject was found
+        :obj:`ExternalObject`
+            the ExternalObject found using the links
+        :obj:`None`
+            if no ExternalObject was found
 
         """
         # Existing links from DB
@@ -214,8 +241,19 @@ class ExternalObject(db.Model, ResourceMixin):
             return db_links[0].external_object
 
     def add_missing_links(self, links):
-        """Add missing links to an external object."""
+        """Add missing links to an external object.
 
+        Parameters
+        ----------
+        links : :obj:`list` of :obj:`tuple` of :obj:`int`
+            list of links to use, see :func:`lookup_from_links`
+
+        Raises
+        ------
+        matcher.exceptions.ExternalIDMismatchError
+            when there is two links on the same platform with different IDs
+
+        """
         for (platform_id, external_id) in links:
             # Lookup for an existing link
             existing_link = next((link for link in self.links if
@@ -232,14 +270,21 @@ class ExternalObject(db.Model, ResourceMixin):
 
     @staticmethod
     def lookup_or_create(obj_type, links, session=None):
-        """Lookup for an object from its links
+        """Lookup for an object from its links.
 
-        :obj_type: The type of object to search for.
-                   Throws an exception if type mismatches.
-        :links: List of links to use
-                Non-existent links will be created
+        Parameters
+        ----------
+        obj_type : ExternalObjectType
+            the type of object to search for.
+        links : :obj:`list` of :obj:`tuple` of :obj:`int`
+            list of links to use, see :func:`lookup_from_links`
+
+        Notes
+        -----
+        If no object matches any of the links, it will be created.
+        Non-existent links will be added to the object.
+
         """
-
         try:
             external_object = ExternalObject.lookup_from_links(links)
         except AmbiguousLinkError as err:
@@ -267,7 +312,21 @@ class ExternalObject(db.Model, ResourceMixin):
         return external_object
 
     def merge(self, their):
-        """Try to merge two objects."""
+        """Try to merge two objects.
+
+        Parameters
+        ----------
+        their : ExternalObject
+            the other object in which this object will be merged into
+
+        Raises
+        ------
+        matcher.exceptions.ObjectTypeMismatchError
+            when this object and their aren't the same type
+        matcher.exceptions.LinksOverlap
+            when the two objects have linked platforms in common
+
+        """
         # FIXME: A lot of other references needs merging (!)
         # First check if the merge is possible
 
@@ -280,8 +339,7 @@ class ExternalObject(db.Model, ResourceMixin):
 
         # The two objects should not have links to the same platform
         if our_platforms & their_platforms:
-            # FIXME: custom exception
-            raise Exception("Cannot merge")
+            raise LinksOverlap(self, their)
 
         # First merge the links
         for link in list(self.links):
@@ -291,8 +349,8 @@ class ExternalObject(db.Model, ResourceMixin):
         for our_attr in self.attributes:
             # Lookup for a matching attribute
             their_attr = next((attr for attr in their.attributes
-                               if our_attr.text == attr.text
-                               and our_attr.type == attr.type), None)
+                               if our_attr.text == attr.text and
+                               our_attr.type == attr.type), None)
 
             if their_attr is None:
                 # Move attribute if it was not present on their side
@@ -309,14 +367,34 @@ class ExternalObject(db.Model, ResourceMixin):
                     # their_attr.sources.append(our_source)
 
     def merge_and_delete(self, their, session):
-        """Merge into another ExternalObject, and delete the old one."""
+        """Merge into another ExternalObject, and delete the old one.
+
+        Parameters
+        ----------
+        their : ExternalObject
+            the other object in which this object will be merged into
+        session : sqlalchemy.orm.session.Session
+            the session in which the deletion of the object will be done
+
+        Returns
+        -------
+        :obj:`ExternalObject`
+            the merged object
+
+        """
         self.merge(their)
         session.delete(self)
         return their
 
     def similar(self):
-        """Find similar objects."""
+        """Find similar objects.
 
+        Returns
+        -------
+        list of :obj:`ExternalObject`
+            other objects that are similar to this one
+
+        """
         titles = sorted(filter(lambda a: a.type == ValueType.TITLE,
                                self.attributes),
                         key=attrgetter('score'),
@@ -335,6 +413,20 @@ class ExternalObject(db.Model, ResourceMixin):
 
     @staticmethod
     def insert_dict(data, scrap):
+        """Insert a dict of raw data into the database.
+
+        Parameters
+        ----------
+        data : dict
+        scrap : Scrap
+            the objects inserted will be added to this scrap
+
+        Returns
+        -------
+        ExternalObject
+            the top level inserted object
+
+        """
         obj = ExternalObject.lookup_or_create(
             obj_type=data['type'],
             links=data['links'],
@@ -387,8 +479,23 @@ class ExternalObject(db.Model, ResourceMixin):
 
     @staticmethod
     def normalize_dict(raw):
-        """Normalize a dict from a request payload."""
+        """Normalize a dict from a request payload.
 
+        Parameters
+        ----------
+        raw : dict
+            the raw input from the requests JSON
+
+        Returns
+        -------
+        dict
+            the normalized dict that can be passed to :func:`insert_dict`
+
+        Todo
+        ----
+        Document the shape of the raw and normalized dicts
+
+        """
         # TODO: Error handling
 
         # FIXME: move those utils
@@ -477,32 +584,37 @@ class ObjectLink(db.Model):
     id = Column(Integer,
                 Sequence('object_link_id_seq'),
                 primary_key=True)
+    """:obj:`int` : primary key"""
 
     external_object_id = Column(Integer,
                                 ForeignKey('external_object.id'),
                                 nullable=False)
+    """:obj:`int` : Foreign key to the linked object"""
+
     platform_id = Column(Integer,
                          ForeignKey('platform.id'),
                          nullable=False)
+    """:obj:`int` : Foreign key to the linked platform"""
+
     external_id = Column(Text)
-    """The ID of the object on the platform(i.e. IMDb ID)"""
+    """:obj:`str` : ID of the external_object on the platform"""
 
     external_object = relationship('ExternalObject',
                                    back_populates='links')
-    """The object linked"""
+    """:obj:`ExternalObject` : Relationship to the linked object"""
 
     platform = relationship('Platform',
                             back_populates='links')
-    """The platform linked"""
+    """:obj:`.platform.Platform` : Relationship to the linked platform"""
 
     scraps = relationship('Scrap',
                           secondary='scrap_link',
                           back_populates='links')
-    """Lists of scraps where the link was(or should be) found"""
+    """list of :obj:`Scrap` : scraps where the link was found"""
 
     # FIXME: do something more generic?
     work_meta = relationship('ObjectLinkWorkMeta')
-    """Some metadata associated with the item on the platform"""
+    """:obj:`ObjectLinkWorkMeta`"""
 
     def __repr__(self):
         return '<ObjectLink ({}, {})>'.format(self.external_object,
@@ -520,15 +632,15 @@ class ObjectLinkWorkMeta(db.Model):
                 primary_key=True)
 
     original_content = Column(Boolean)
-    """Is this object produced by the platform?"""
+    """:obj:`bool` : Is this object produced by the platform?"""
 
     rating = Column(Integer)
-    """What's the rating of this item on the platform"""
+    """:obj:`int` : What's the rating of this item on the platform"""
 
     link = relationship('ObjectLink',
                         back_populates='work_meta',
                         uselist=False)
-    """The link concerned by those metadatas"""
+    """:obj:`ObjectLink` : The link concerned by those metadatas"""
 
     def __repr__(self):
         return '<ObjectLinkWorkMeta {}>'.format(self.link)
@@ -536,6 +648,7 @@ class ObjectLinkWorkMeta(db.Model):
 
 class Gender(CustomEnum):
     """ISO/IEC 5218 compliant gender enum."""
+
     NOT_KNOWN = 0
     MALE = 1
     FEMALE = 2
@@ -544,13 +657,14 @@ class Gender(CustomEnum):
 
 class RoleType(CustomEnum):
     """A type of role of a person on another object."""
+
     DIRECTOR = 0
     ACTOR = 1
     WRITER = 2
 
 
 class Role(db.Model):
-    """A role of a person on another object (movie/episode/serie…)"""
+    """A role of a person on another object (movie/episode/serie…)."""
 
     __tablename__ = 'role'
 
@@ -561,42 +675,69 @@ class Role(db.Model):
 
     person_id = Column(Integer,
                        ForeignKey('external_object.id'))
+    """:obj:`int` : The ID of the person concerned"""
     external_object_id = Column(Integer,
                                 ForeignKey('external_object.id'))
+    """:obj:`int` : The ID of the object concerned"""
 
     person = relationship('ExternalObject',
                           foreign_keys=[person_id])
-    """The person concerned"""
+    """:obj:`ExternalObject` : The person concerned"""
 
     external_object = relationship('ExternalObject',
                                    foreign_keys=[external_object_id])
-    """The object concerned"""
+    """:obj:`ExternalObject` : The object concerned"""
 
     role = Column(Enum(RoleType))
-    """The type of role"""
+    """:obj:`RoleType` : The type of role"""
 
 
 class ExternalObjectMeta(object):
-    """Mixin to add metadatas to specific ExternalObject types."""
+    """Mixin to add metadatas to specific ExternalObject types.
+
+    Attributes
+    ----------
+    external_object_id : :obj:`int`
+        The foreign key of the linked object
+    external_object : :obj:`ExternalObject`
+        The linked object
+
+    """
 
     object_type = None
+    """The type of ExternalObject this object maps to"""
 
     @declared_attr
     def external_object_id(cls):
-        """The foreign key in the table."""
+        """Get the type of the external_object_id attribute."""
         return Column(Integer,
                       ForeignKey('external_object.id'),
                       primary_key=True)
 
     @declared_attr
     def external_object(cls):
-        """The actual relationship."""
+        """Get the type of the external_object attribute."""
         return relationship('ExternalObject',
                             foreign_keys=[cls.external_object_id])
 
     @classmethod
     def from_external_object(cls, external_object):
-        """Get the corresponding object for a given ExternalObject."""
+        """Get the corresponding object for a given ExternalObject.
+
+        Parameters
+        ----------
+        external_object : ExternalObject
+            from which import we want to get the metadatas
+
+        Returns
+        -------
+        cls
+
+        Notes
+        -----
+        The metadata object is created and added to the session if non-existent
+
+        """
         try:
             obj = db.session.query(cls)\
                 .filter(cls.external_object == external_object)\
@@ -610,7 +751,6 @@ class ExternalObjectMeta(object):
     @classmethod
     def register(cls):
         """Register the class to the external_object_meta_map."""
-
         if cls.object_type is None:
             raise Exception("object_type isn't defined for {!r}"
                             .format(cls))
@@ -624,6 +764,18 @@ class ExternalObjectMeta(object):
         external_object_meta_map[cls.object_type] = cls
 
     def add_meta(self, key, content):
+        """Add a metadata to the object.
+
+        Parameters
+        ----------
+        key : str
+        content : any
+
+        Raises
+        ------
+        matcher.exceptions.InvalidMetadata
+
+        """
         raise InvalidMetadata(self.object_type, key)
 
 
@@ -638,18 +790,36 @@ class Episode(db.Model, ExternalObjectMeta):
 
     # FIXME: how to handle special episodes?
     number = Column(Integer)
-    """The episode number in the season"""
+    """:obj:`int` : The episode number in the season"""
 
     season = relationship('ExternalObject',
                           foreign_keys=[season_id])
-    """The season in which this episode is in"""
+    """:obj:`ExternalObject` : The season in which this episode is in"""
 
     def set_parent(self, parent):
+        """Set the parent season.
+
+        Parameters
+        ----------
+        parent : ExternalObject
+            the season that contains this :obj:`Episode`
+
+        Raises
+        ------
+        matcher.exceptions.InvalidRelation
+            when the parent's type isn't a :obj:`ExternalObjectType.SEASON`
+
+        """
         if parent.type != ExternalObjectType.SEASON:
-            raise Exception("Invalid object type")
+            raise InvalidRelation("part of", parent, self)
         self.season = parent
 
     def add_meta(self, key, content):
+        """Add a metadata to the object.
+
+        See :func:`ExternalObjectMeta.add_meta`
+
+        """
         if key != "number":
             raise InvalidMetadata(self.object_type, key)
 
@@ -670,18 +840,36 @@ class Season(db.Model, ExternalObjectMeta):
 
     # FIXME: how to handle special episodes/seasons?
     number = Column(Integer)
-    """The season number"""
+    """int : The season number"""
 
     serie = relationship('ExternalObject',
                          foreign_keys=[serie_id])
-    """The object representing the serie in which this episode is"""
+    """:obj:`ExternalObject` : The serie in which this episode is"""
 
     def set_parent(self, parent):
+        """Set the parent serie.
+
+        Parameters
+        ----------
+        parent : ExternalObject
+            the serie that contains this :obj:`Season`
+
+        Raises
+        ------
+        matcher.exceptions.InvalidRelation
+            when the parent's type isn't a :obj:`ExternalObjectType.SERIE`
+
+        """
         if parent.type != ExternalObjectType.SERIE:
-            raise Exception("Invalid object type")
+            raise InvalidRelation("part of", parent, self)
         self.serie = parent
 
     def add_meta(self, key, content):
+        """Add a metadata to the object.
+
+        See :func:`ExternalObjectMeta.add_meta`
+
+        """
         if key != "number":
             raise InvalidMetadata(self.object_type, key)
 
@@ -700,12 +888,24 @@ class Person(db.Model, ExternalObjectMeta):
     gender = Column(Enum(Gender, name='gender'),
                     nullable=False,
                     default=Gender.NOT_KNOWN)
-    """The gender of the person"""
+    """:obj:`Gender` : The gender of the person"""
 
     def add_role(self, movie, role):
+        """Add a role to a person.
+
+        Raises
+        ------
+        NotImplementedError
+            Not implemented
+        """
         raise NotImplementedError()
 
     def add_meta(self, key, content):
+        """Add a metadata to the object.
+
+        See :func:`ExternalObjectMeta.add_meta`
+
+        """
         if key != "gender":
             raise InvalidMetadata(self.object_type, key)
 
