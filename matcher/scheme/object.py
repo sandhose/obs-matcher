@@ -1,3 +1,14 @@
+# -*- coding: utf-8 -*-
+"""ExternalObject related models, for handling object manipulation.
+
+This module contains many SQLAlchemy models to insert, merge, and link scrapped
+objects together. Everything is built around the :obj:`ExternalObject` model,
+which has a type (:obj:`ExternalObjectType`), links to
+:obj:`.platform.Platform` (:obj:`ObjectLink`), with models specific to each
+:obj:`ExternalObjectType` to store metadatas like relationships (see
+:obj:`ExternalObjectMetaMixin`) or episode number.
+
+"""
 import itertools
 from operator import attrgetter, itemgetter
 

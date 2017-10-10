@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+"""This modules defines exceptions used in this application.
+
+Notes
+-----
+Each exception defines a `status` attribute which is used to set the HTTP
+status the server should respond with when the exception is raised.
+
+"""
 from restless.constants import BAD_REQUEST, CONFLICT, UNAVAILABLE
 
 
