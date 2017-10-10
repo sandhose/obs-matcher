@@ -95,7 +95,7 @@ def create_relationship(relation, parent, child):
 
 
 external_object_meta_map = {}
-"""Maps ExternalObjectTypes to ExternalObjectMeta classes."""
+"""Maps ExternalObjectTypes to ExternalObjectMetaMixin classes."""
 
 
 class ExternalObject(db.Model, ResourceMixin):
@@ -128,7 +128,7 @@ class ExternalObject(db.Model, ResourceMixin):
         -------
         :obj:`None`
             if no class was mapped for this type
-        :obj:`ExternalObjectMeta`
+        :obj:`ExternalObjectMetaMixin`
             the mapped object linked with this type
 
         """
@@ -692,7 +692,7 @@ class Role(db.Model):
     """:obj:`RoleType` : The type of role"""
 
 
-class ExternalObjectMeta(object):
+class ExternalObjectMetaMixin(object):
     """Mixin to add metadatas to specific ExternalObject types.
 
     Attributes
@@ -757,7 +757,7 @@ class ExternalObjectMeta(object):
 
         if cls.object_type in external_object_meta_map:
             raise Exception(
-                "ExternalObjectMeta was already registered for {!r}"
+                "ExternalObjectMetaMixin was already registered for {!r}"
                 .format(cls.object_type)
             )
 
@@ -779,7 +779,7 @@ class ExternalObjectMeta(object):
         raise InvalidMetadata(self.object_type, key)
 
 
-class Episode(db.Model, ExternalObjectMeta):
+class Episode(db.Model, ExternalObjectMetaMixin):
     """An episode of a TV serie."""
 
     __tablename__ = 'episode'
@@ -817,7 +817,7 @@ class Episode(db.Model, ExternalObjectMeta):
     def add_meta(self, key, content):
         """Add a metadata to the object.
 
-        See :func:`ExternalObjectMeta.add_meta`
+        See :func:`ExternalObjectMetaMixin.add_meta`
 
         """
         if key != "number":
@@ -829,7 +829,7 @@ class Episode(db.Model, ExternalObjectMeta):
             raise InvalidMetadataValue(key, content)
 
 
-class Season(db.Model, ExternalObjectMeta):
+class Season(db.Model, ExternalObjectMetaMixin):
     """A season of a TV serie."""
 
     __tablename__ = 'season'
@@ -867,7 +867,7 @@ class Season(db.Model, ExternalObjectMeta):
     def add_meta(self, key, content):
         """Add a metadata to the object.
 
-        See :func:`ExternalObjectMeta.add_meta`
+        See :func:`ExternalObjectMetaMixin.add_meta`
 
         """
         if key != "number":
@@ -879,7 +879,7 @@ class Season(db.Model, ExternalObjectMeta):
             raise InvalidMetadataValue(key, content)
 
 
-class Person(db.Model, ExternalObjectMeta):
+class Person(db.Model, ExternalObjectMetaMixin):
     """Represents a person."""
 
     __tablename__ = 'person'
@@ -897,13 +897,14 @@ class Person(db.Model, ExternalObjectMeta):
         ------
         NotImplementedError
             Not implemented
+
         """
         raise NotImplementedError()
 
     def add_meta(self, key, content):
         """Add a metadata to the object.
 
-        See :func:`ExternalObjectMeta.add_meta`
+        See :func:`ExternalObjectMetaMixin.add_meta`
 
         """
         if key != "gender":
