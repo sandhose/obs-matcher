@@ -2,12 +2,19 @@ from restless.constants import BAD_REQUEST, CONFLICT, UNAVAILABLE
 
 
 class AmbiguousLinkError(Exception):
-    """Raise when the lookup ends up returning multiple object"""
+    """Raise when the lookup ends up returning multiple object.
+
+    Attributes
+    ----------
+    objects : array of :obj:`.scheme.object.ExternalObject`
+        List of objects that should be merged
+
+    """
 
     status = UNAVAILABLE
 
     def resolve(self, session):
-        """Resolve the conflict by merging all objects
+        """Resolve the conflict by merging all objects.
 
         :session: The DB session
         """
@@ -17,6 +24,7 @@ class AmbiguousLinkError(Exception):
         return obj
 
     def __init__(self, objects):
+        """Raise with the objects that should be merged."""
         self.objects = objects
 
     def __str__(self):
@@ -25,11 +33,21 @@ class AmbiguousLinkError(Exception):
 
 
 class ObjectTypeMismatchError(Exception):
-    """Raise when the object found isn't the same type as it should"""
+    """Raise when the object found isn't the same type as it should.
+
+    Attributes
+    ----------
+    is_type : :obj:`.scheme.object.ExternalObjectType`
+        The type the object is currently
+    should_be : :obj:`.scheme.object.ExternalObjectType`
+        The type the object should be according to its links
+
+    """
 
     status = CONFLICT
 
     def __init__(self, is_type, should_be):
+        """Raise with both types we've got for this object."""
         self.is_type = is_type
         self.should_be = should_be
 
@@ -39,11 +57,19 @@ class ObjectTypeMismatchError(Exception):
 
 
 class UnknownRelation(Exception):
-    """The given relation doesn't exists"""
+    """The given relation doesn't exists.
+
+    Attributes
+    ----------
+    relation : str
+        The relation that was given.
+
+    """
 
     status = BAD_REQUEST
 
     def __init__(self, relation):
+        """Raise for a given unknown relation type."""
         self.relation = relation
 
     def __str__(self):
@@ -51,11 +77,23 @@ class UnknownRelation(Exception):
 
 
 class InvalidRelation(Exception):
-    """The relation can't be set between the two objects"""
+    """The relation can't be set between the two objects.
+
+    Attributes
+    ----------
+    relation: :obj:`str`
+        The relation that was given
+    parent : :obj:`.scheme.object.ExternalObject`
+        The parent object in this relation
+    child : :obj:`.scheme.object.ExternalObject`
+        The child object in this relation
+
+    """
 
     status = BAD_REQUEST
 
     def __init__(self, relation, parent, child):
+        """Raise when a relation can't be set with this set of objects."""
         self.relation = relation
         self.parent = parent
         self.child = child
@@ -67,11 +105,21 @@ class InvalidRelation(Exception):
 
 
 class ExternalIDMismatchError(Exception):
-    """Raise when two links IDs for the same object/platform mismatch"""
+    """Raise when two links IDs for the same object/platform mismatch.
+
+    Attributes
+    ----------
+    link : :obj:`.scheme.object.ObjectLink`
+        The existing link on the :obj:`.scheme.object.ExternalObject`
+    external_id : str
+        The ID that was given
+
+    """
 
     status = CONFLICT
 
     def __init__(self, link, external_id):
+        """Raise with the existing link and the external_id that was given."""
         self.link = link
         self.external_id = external_id
 
@@ -81,9 +129,17 @@ class ExternalIDMismatchError(Exception):
 
 
 class UnknownAttribute(Exception):
-    """Raised when an unknown parameter was given"""
+    """Raised when an unknown parameter was given.
+
+    Attributes
+    ----------
+    name : str
+        The name of the attribute that was given
+
+    """
 
     def __init__(self, name):
+        """Raise with the name of the attribute given."""
         self.name = name
 
     def __str__(self):
@@ -91,9 +147,19 @@ class UnknownAttribute(Exception):
 
 
 class InvalidStatusTransition(Exception):
-    """Raised when the scrap status change fails"""
+    """Raised when the scrap status change fails.
+
+    Attributes
+    ----------
+    from_status : :obj:`.scheme.platform.ScrapStatus`
+        The current scrap status
+    to_status : :obj:`.scheme.platform.ScrapStatus`
+        The status that was tried to be set to
+
+    """
 
     def __init__(self, from_status, to_status):
+        """Raise with the current and next status."""
         self.from_status = from_status
         self.to_status = to_status
 
@@ -103,12 +169,21 @@ class InvalidStatusTransition(Exception):
 
 
 class LinkNotFound(Exception):
-    """The user tried to insert attributes on an object without adding a link
-       to the platform it scaps."""
+    """Raise when the scrapped platform has no links in the inserted object.
+
+    Attributes
+    ----------
+    links : list of :obj:`.scheme.object.ObjectLink`
+        The links that exists on the object
+    platform : :obj:`.scheme.platform.Platform`
+        The platform that was scrapped where the object was found
+
+    """
 
     status = BAD_REQUEST
 
     def __init__(self, links, platform):
+        """Raise with the links on the object and the platform scrapped."""
         self.links = links
         self.platform = platform
 
@@ -118,11 +193,21 @@ class LinkNotFound(Exception):
 
 
 class InvalidMetadata(Exception):
-    """The given metadata can't be set for this type"""
+    """The given metadata can't be set for this type.
+
+    Attributes
+    ----------
+    object_type : :obj:`.scheme.object.ExternalObjectType`
+        The type of object being inserted
+    key : str
+        The metadata that was tried to be added
+
+    """
 
     status = BAD_REQUEST
 
     def __init__(self, object_type, key):
+        """Raise with the type the object is and the metadata key."""
         self.object_type = object_type
         self.key = key
 
@@ -132,11 +217,21 @@ class InvalidMetadata(Exception):
 
 
 class InvalidMetadataValue(Exception):
-    """The given metadata value is invalid"""
+    """The given metadata value is invalid.
+
+    Attributes
+    ----------
+    key : str
+        The key of the metadata
+    content : any
+        The content of the metadata
+
+    """
 
     status = BAD_REQUEST
 
     def __init__(self, key, content):
+        """Raise with the metadata key and content."""
         self.key = key
         self.content = content
 
@@ -146,11 +241,21 @@ class InvalidMetadataValue(Exception):
 
 
 class LinksOverlap(Exception):
-    """The two objects have links that overlaps."""
+    """The two objects have links that overlaps.
+
+    Attributes
+    ----------
+    mine : :obj:`.scheme.object.ExternalObject`
+        The object that is being merged
+    their : :obj:`.scheme.object.ExternalObject`
+        The object it is merged into
+
+    """
 
     status = CONFLICT
 
     def __init__(self, mine, their):
+        """Raise with the two objects being merged."""
         self.mine = mine
         self.their = their
 
