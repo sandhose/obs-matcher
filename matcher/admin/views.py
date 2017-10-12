@@ -17,3 +17,4 @@ class PlatformGroupView(DefaultView):
 class ExternalObjectView(DefaultView):
     column_list = ('id', 'type', 'attributes')
     inline_models = (Value, ObjectLink,)
+    column_filters = ['type']

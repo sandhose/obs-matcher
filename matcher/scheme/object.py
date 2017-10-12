@@ -486,6 +486,8 @@ class ExternalObject(db.Model, ResourceMixin):
                 if 'relation' in child:
                     create_relationship(child['relation'], obj, child_obj)
 
+        db.session.commit()
+
         return obj
 
     @staticmethod
