@@ -201,6 +201,8 @@ class Scrap(db.Model, ResourceMixin):
             # FIXME: custom exception
             raise Exception('"{}" is not a finished state'.format(status))
 
+        self.status = status
+
     def run(self):
         """Mark the job as running"""
         if self.status is not ScrapStatus.SCHEDULED:
