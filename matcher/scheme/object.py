@@ -515,7 +515,11 @@ class ExternalObject(db.Model, ResourceMixin):
         def normalize_attribute(type, values):
             if not isinstance(values, list):
                 values = [values]
-            return [{'type': type, **attr} for attr in values]
+
+            for value in values:
+                if isinstance(value, str):
+                    value = {'text': value, 'score_factor': 1}
+                yield {'type': type, **value}
 
         def normalize_link(link):
             """Map a link to a (platform, external_id) tuple."""
