@@ -8,3 +8,5 @@ psycopg2==2.7.3
 restless==2.1.1
 slugify==0.0.1
 SQLAlchemy==1.1.12
+Sphinx==1.6.5
+sphinxcontrib-napoleon==0.6.1
