@@ -3,7 +3,7 @@ from __future__ import with_statement
 import logging
 from logging.config import fileConfig
 
-import alembic_autogenerate_enums
+import alembic_autogenerate_enums  # noqa
 from alembic import context
 # add your model's MetaData object here
 # for 'autogenerate' support
