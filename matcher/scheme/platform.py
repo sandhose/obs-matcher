@@ -26,6 +26,9 @@ class PlatformGroup(db.Model, ResourceMixin):
     def __repr__(self):
         return '<PlatformGroup "{}">'.format(self.name)
 
+    def __str__(self):
+        return self.name
+
 
 def slug_default(context):
     """Automatically slugify the platform's name"""
