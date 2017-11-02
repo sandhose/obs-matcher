@@ -1,3 +1,4 @@
+import sqlalchemy.orm.exc
 import restless.exceptions
 from restless.preparers import CollectionSubPreparer, SubPreparer
 
@@ -25,7 +26,7 @@ class PlatformGroupResource(CustomFlaskResource):
     def detail(self, pk):
         try:
             return PlatformGroup.query.filter(PlatformGroup.id == pk).one()
-        except:
+        except sqlalchemy.orm.exc.NoResultFound:
             raise restless.exceptions.NotFound()
 
     def create(self):
@@ -38,7 +39,7 @@ class PlatformGroupResource(CustomFlaskResource):
                 try:
                     group.platforms.append(Platform.query.filter(
                         Platform.id == pid).one())
-                except:
+                except sqlalchemy.orm.exc.NoResultFound:
                     raise restless.exceptions.BadRequest()
 
         db.session.add(group)
@@ -48,7 +49,7 @@ class PlatformGroupResource(CustomFlaskResource):
     def delete(self, pk):
         try:
             group = PlatformGroup.query.filter(PlatformGroup.id == pk).one()
-        except:
+        except sqlalchemy.orm.exc.NoResultFound:
             raise restless.exceptions.NotFound()
 
         db.session.delete(group)
@@ -57,7 +58,7 @@ class PlatformGroupResource(CustomFlaskResource):
     def update(self, pk):
         try:
             group = PlatformGroup.query.filter(PlatformGroup.id == pk).one()
-        except:
+        except sqlalchemy.orm.exc.NoResultFound:
             raise restless.exceptions.NotFound()
 
         if 'name' in self.data:
@@ -89,7 +90,7 @@ class PlatformResource(CustomFlaskResource):
     def detail(self, pk):
         try:
             return Platform.query.filter(Platform.id == pk).one()
-        except:
+        except sqlalchemy.orm.exc.NoResultFound:
             raise restless.exceptions.NotFound()
 
     def create(self):
@@ -101,7 +102,7 @@ class PlatformResource(CustomFlaskResource):
             try:
                 self.data['group'] = PlatformGroup.query.filter(
                     PlatformGroup.id == gid)
-            except:
+            except sqlalchemy.orm.exc.NoResultFound:
                 raise restless.exceptions.NotFound()
 
         platform = Platform(**self.data)
@@ -112,7 +113,7 @@ class PlatformResource(CustomFlaskResource):
     def update(self, pk):
         try:
             platform = Platform.query.filter(Platform.id == pk).one()
-        except:
+        except sqlalchemy.orm.exc.NoResultFound:
             raise restless.exceptions.NotFound()
 
         if 'group' in self.data:
@@ -123,7 +124,7 @@ class PlatformResource(CustomFlaskResource):
             try:
                 platform.group = PlatformGroup.query.filter(
                     PlatformGroup.id == gid)
-            except:
+            except sqlalchemy.orm.exc.NoResultFound:
                 raise restless.exceptions.NotFound()
 
         if 'name' in self.data:
@@ -175,7 +176,7 @@ class ScrapResource(CustomFlaskResource):
     def create(self):
         try:
             platform = Platform.lookup(self.data['platform'])
-        except:
+        except ValueError:
             raise restless.exceptions.BadRequest('Missing key `platform`')
 
         if platform is None:

@@ -101,8 +101,6 @@ def create_relationship(relation, parent, child):
         relationship_map[relation](parent, child)
     except KeyError:
         raise UnknownRelation(relation)
-    except:
-        raise InvalidRelation(relation, parent, child)
 
 
 external_object_meta_map = {}
