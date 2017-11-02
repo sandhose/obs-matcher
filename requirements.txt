@@ -4,6 +4,7 @@ Flask-Migrate==2.0.4
 Flask-Script==2.0.5
 Flask-SQLAlchemy==2.2
 Flask==0.12.2
+flake8==3.5.0
 psycopg2==2.7.3
 restless==2.1.1
 slugify==0.0.1
