@@ -1,7 +1,8 @@
 from flask_admin import Admin
 
 from ..app import db
-from .views import DefaultView, ExternalObjectView, PlatformGroupView
+from .views import DefaultView, ExternalObjectView, PlatformGroupView, \
+    PlatformView, ValueView
 from ..scheme.platform import Platform, PlatformGroup, Scrap
 from ..scheme.value import Value, ValueSource
 from ..scheme.object import ObjectLink, ObjectLinkWorkMeta, ExternalObject, \
@@ -10,11 +11,11 @@ from ..scheme.object import ObjectLink, ObjectLinkWorkMeta, ExternalObject, \
 
 admin = Admin()
 admin.add_views(
-    DefaultView(Platform, db.session, name='Platform', category='Platforms'),
+    PlatformView(Platform, db.session, name='Platform', category='Platforms'),
     PlatformGroupView(PlatformGroup, db.session,
                       name='Group', category='Platforms'),
     DefaultView(Scrap, db.session, name='Scrap', category='Platforms'),
-    DefaultView(Value, db.session, name='Value', category='Values'),
+    ValueView(Value, db.session, name='Value', category='Values'),
     DefaultView(ValueSource, db.session, name='Source', category='Values'),
     DefaultView(ObjectLink, db.session),
     DefaultView(ObjectLinkWorkMeta, db.session),

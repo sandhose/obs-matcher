@@ -101,12 +101,44 @@ def create_relationship(relation, parent, child):
         relationship_map[relation](parent, child)
     except KeyError:
         raise UnknownRelation(relation)
-    except:
-        raise InvalidRelation(relation, parent, child)
 
 
 external_object_meta_map = {}
 """Maps ExternalObjectTypes to ExternalObjectMetaMixin classes."""
+
+
+def _normalize_attribute(type, values):
+    if not isinstance(values, list):
+        values = [values]
+
+    for value in values:
+        if isinstance(value, str):
+            value = {'text': value, 'score_factor': 1}
+        yield {'type': type, **value}
+
+
+def _normalize_link(link):
+    """Map a link to a (platform, external_id) tuple."""
+    if isinstance(link, tuple):
+        # arg can already be a tuple…
+        (platform, external_id) = link
+    else:
+        # …or a dict
+        platform = link.get('platform', None)
+        external_id = link.get('external_id', None)
+        if external_id is None:
+            external_id = link.get('id', None)
+
+    # We check if the platform exists (if this doesn't crush
+    # performance)
+    platform = Platform.lookup(platform)
+    if platform is None:
+        # TODO: custom exception
+        raise Exception('platform not found')
+    else:
+        platform_id = platform.id
+
+    return (int(platform_id), str(external_id))
 
 
 class ExternalObject(db.Model, ResourceMixin):
@@ -512,37 +544,6 @@ class ExternalObject(db.Model, ResourceMixin):
         # TODO: Error handling
 
         # FIXME: move those utils
-        def normalize_attribute(type, values):
-            if not isinstance(values, list):
-                values = [values]
-
-            for value in values:
-                if isinstance(value, str):
-                    value = {'text': value, 'score_factor': 1}
-                yield {'type': type, **value}
-
-        def normalize_link(link):
-            """Map a link to a (platform, external_id) tuple."""
-            if isinstance(link, tuple):
-                # arg can already be a tuple…
-                (platform, external_id) = link
-            else:
-                # …or a dict
-                platform = link.get('platform', None)
-                external_id = link.get('external_id', None)
-                if external_id is None:
-                    external_id = link.get('id', None)
-
-            # We check if the platform exists (if this doesn't crush
-            # performance)
-            platform = Platform.lookup(platform)
-            if platform is None:
-                # TODO: custom exception
-                raise Exception('platform not found')
-            else:
-                platform_id = platform.id
-
-            return (int(platform_id), str(external_id))
 
         # TODO: move to a real python object?
         # FIXME: how do i comment this?
@@ -571,11 +572,11 @@ class ExternalObject(db.Model, ResourceMixin):
 
         if 'attributes' in raw and raw['attributes'] is not None:
             data['attributes'] = list(itertools.chain.from_iterable(
-                [normalize_attribute(t, a)
+                [_normalize_attribute(t, a)
                  for t, a in raw['attributes'].items()]))
 
         if 'links' in raw and raw['links'] is not None:
-            data['links'] = list(map(normalize_link, raw['links']))
+            data['links'] = list(map(_normalize_link, raw['links']))
 
         if 'related' in raw and raw['related'] is not None:
             data['related'] = list(map(ExternalObject.normalize_dict,

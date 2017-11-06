@@ -26,6 +26,9 @@ class PlatformGroup(db.Model, ResourceMixin):
     def __repr__(self):
         return '<PlatformGroup "{}">'.format(self.name)
 
+    def __str__(self):
+        return self.name
+
 
 def slug_default(context):
     """Automatically slugify the platform's name"""
@@ -101,15 +104,11 @@ class Platform(db.Model, ResourceMixin):
         try:
             # Try converting into an ID first
             q = Platform.query.filter(Platform.id == int(platform))
-        except:
+        except ValueError:
             # then try to match the slug
             q = Platform.query.filter(Platform.slug == platform)
 
-        try:
-            return q.one()
-        except:
-            # Return None if object wasn't found
-            return None
+        return q.one_or_none()
 
 
 class ScrapStatus(CustomEnum):
