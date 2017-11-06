@@ -15,17 +15,17 @@ Install
 -------
 
 * Unix
-```bash
+``bash
 git clone https://github.com/sandhose/obs-matcher
 cd obs-matcher
 virtualenv venv
 source venv/bin/activate
 python3 setup.py install
 python3 setup.py develop
-```
+``
 
 * Create Postgresql Database
-```bash
+``bash
 # You may need to create the postgresql database before all :
 #sudo su - postgres -c "initdb --locale en_US. UTF-8 -D 'var/lib/postgres/data'"
 systemctl start postgresql
@@ -38,26 +38,26 @@ Ctrl+D
 matcher db upgrade
 # Run server
 matcher runserver
-```
+``
 
 Usage
 -----
 
-```bash
+``bash
 # Initiate virtualenv
 source venv/bin/activate
 # Run local server
 matcher runserver
 # Delete object entries (not the platforms)
 matcher nuke
-```
+``
 
 Documentation
 -------------
 
-```bash
+``bash
 # Compile documentation
 cd doc
 make html
-```
+``
 * Browse to /path/to/obs-matcher/doc
