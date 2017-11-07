@@ -112,8 +112,8 @@ def _normalize_attribute(type, values):
         values = [values]
 
     for value in values:
-        if isinstance(value, str):
-            value = {'text': value, 'score_factor': 1}
+        if isinstance(value, (str, int, float)):
+            value = {'text': str(value), 'score_factor': 1}
         yield {'type': type, **value}
 
 
