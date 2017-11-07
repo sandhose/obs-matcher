@@ -917,7 +917,9 @@ class Person(db.Model, ExternalObjectMetaMixin):
             Not implemented
 
         """
-        raise NotImplementedError()
+        role = Role(person=self.external_object, external_object=movie,
+                    role=role)
+        db.session.add(role)
 
     def add_meta(self, key, content):
         """Add a metadata to the object.
