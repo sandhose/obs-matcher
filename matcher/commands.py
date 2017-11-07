@@ -2,7 +2,7 @@ import contextlib
 from operator import itemgetter
 
 from flask import url_for
-from flask_script import Command
+from flask_script import Command, prompt_bool
 
 
 class RoutesCommand(Command):
@@ -38,9 +38,16 @@ class NukeCommand(Command):
         self.db = db
 
     def run(self):
-        with contextlib.closing(self.db.engine.connect()) as con:
-            trans = con.begin()
-            for table in reversed(self.db.metadata.sorted_tables):
-                if table.name != 'platform':
-                    con.execute(table.delete())
-            trans.commit()
+        if prompt_bool(
+            "This will remove all data (excluding platforms). Are you sure?",
+            default=False
+        ):
+            with contextlib.closing(self.db.engine.connect()) as con:
+                trans = con.begin()
+                for table in reversed(self.db.metadata.sorted_tables):
+                    if table.name not in ['platform', 'platform_group']:
+                        con.execute(table.delete())
+                trans.commit()
+            print("Done.")
+        else:
+            print("Aborted.")
