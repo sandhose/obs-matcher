@@ -1,0 +1,66 @@
+{% extends "admin/base.html" %}
+
+{% macro attributes_list(model, column) %}
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th width="99%">Text</th>
+        <th>Score</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for attribute in model.attributes %}
+        <tr>
+          <td>{{ attribute.type|upper }}</td>
+          <td>
+            <a href="{{ url_for('value.edit_view', id=attribute.id) }}">
+              {{ attribute.text }}
+            </a>
+          </td>
+          <td>{{ attribute.score }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endmacro %}
+
+{% macro links_list(model, column) %}
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>External ID</th>
+        <th>Platform</th>
+        <th>Scraps</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for link in model.links %}
+        <tr>
+          <td>{{ link.external_object_id }}</td>
+          <td>
+            <a href="{{ url_for('platform.details_view', id=link.platform.id) }}">
+              {{ link.platform }}
+            </a>
+          </td>
+          <td>
+            {% if link.scraps|length > 0 %}
+              <ul>
+                {% for scrap in link.scraps[:3] %}
+                  <li>
+                    <a href="{{ url_for('scrap.edit_view', id=scrap.id) }}">
+                      {{ scrap.date }}
+                    </a>
+                  </li>
+                {% endfor %}
+              </ul>
+              (total: {{ link.scraps|length }})
+            {% else %}
+              None
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endmacro %}
