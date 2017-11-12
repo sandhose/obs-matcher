@@ -1,4 +1,5 @@
 from datetime import datetime
+from operator import attrgetter
 
 from slugify import slugify
 
@@ -221,6 +222,23 @@ class Scrap(db.Model, ResourceMixin):
             raise Exception()
 
         self.status = ScrapStatus.SCHEDULED
+
+    def match_objects(self):
+        """Try to match objects that where found in this scrap"""
+        candidates = set()
+        perfect_candidates = set()
+        for link in self.links:
+            print('Matching {} {} on {}'.format(link.external_object.type,
+                                                link.external_id,
+                                                link.platform.name))
+            similar, perfect = link.external_object.similar()
+            for (obj, into, score) in similar | perfect:
+                print("{} {} {}".format(obj, into, score))
+            candidates |= similar
+            perfect_candidates |= perfect
+
+        print(sorted(perfect_candidates, key=attrgetter('score')))
+        print(sorted(candidates, key=attrgetter('score')))
 
     def __repr__(self):
         return '<Scrap ({}, {})>'.format(self.platform, self.date)

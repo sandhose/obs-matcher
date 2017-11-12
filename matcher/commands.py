@@ -1,8 +1,9 @@
+import sys
 import contextlib
 from operator import itemgetter
 
 from flask import url_for
-from flask_script import Command, prompt_bool
+from flask_script import Command, Option, prompt_bool
 
 
 class RoutesCommand(Command):
@@ -51,3 +52,24 @@ class NukeCommand(Command):
             print("Done.")
         else:
             print("Aborted.")
+
+
+class MatchCommand(Command):
+    """Run the matcher for a given scrap"""
+
+    option_list = (
+        Option('--scrap', '-s', dest='scrap'),
+    )
+
+    def run(self, scrap=None):
+        from .scheme.platform import Scrap
+        if scrap is None:
+            scrap = Scrap.query.order_by(Scrap.id.desc()).first()
+        else:
+            scrap = Scrap.query.filter(Scrap.id == scrap).first()
+
+        if scrap is None:
+            print("Scrap not found")
+            sys.exit(1)
+
+        scrap.match_objects()

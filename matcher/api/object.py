@@ -1,3 +1,4 @@
+import traceback
 import restless.exceptions
 from flask import request
 from restless.preparers import (CollectionSubPreparer, FieldsPreparer,
@@ -54,6 +55,13 @@ class ObjectResource(CustomFlaskResource):
             raise restless.exceptions.BadRequest(
                 'Field "relation" is not allowed on the root object')
 
-        obj = ExternalObject.insert_dict(data, scrap)
+        try:
+            obj = ExternalObject.insert_dict(data, scrap)
+        except:
+            tb = traceback.format_exc()
+        else:
+            tb = "No error"
+        finally:
+            print(tb)
 
         return obj

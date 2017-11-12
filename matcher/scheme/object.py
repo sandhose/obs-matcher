@@ -9,14 +9,16 @@ which has a type (:obj:`ExternalObjectType`), links to
 :obj:`ExternalObjectMetaMixin`) or episode number.
 
 """
+import re
+import collections
 import itertools
-from operator import attrgetter, itemgetter
+from operator import attrgetter
 
 from sqlalchemy import (Boolean, Column, Enum, ForeignKey, Integer,
                         PrimaryKeyConstraint, Sequence, Table, Text, func,
-                        tuple_)
+                        tuple_, and_)
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, aliased
 from sqlalchemy.orm.exc import NoResultFound
 
 from ..app import db
@@ -139,6 +141,9 @@ def _normalize_link(link):
         platform_id = platform.id
 
     return (int(platform_id), str(external_id))
+
+
+MergeCandidate = collections.namedtuple('MergeCandidate', 'obj into score')
 
 
 class ExternalObject(db.Model, ResourceMixin):
@@ -438,21 +443,70 @@ class ExternalObject(db.Model, ResourceMixin):
             other objects that are similar to this one
 
         """
-        titles = sorted(filter(lambda a: a.type == ValueType.TITLE,
-                               self.attributes),
-                        key=attrgetter('score'),
-                        reverse=True)
+        platforms = [link.platform_id for link in self.links]
+        exclude_list = db.session.query(ObjectLink.external_object_id)\
+            .filter(ObjectLink.platform_id.in_(platforms))\
+            .group_by(ObjectLink.external_object_id)
 
-        objects = []
-        for title in titles:
-            values = Value.query\
-                .filter(Value.type == ValueType.TITLE)\
-                .filter(func.lower(Value.text) == func.lower(title.text))\
-                .filter(Value.external_object != self)
-            objects += list(map(lambda v: (v.score * title.score,
-                                           v.external_object), values))
+        other_value = aliased(Value)
+        matches = db.session.query(other_value.external_object_id,
+                                   func.sum(other_value.score * Value.score))\
+            .join(Value, and_(
+                func.regexp_replace(Value.text, '[^\w]+', '').ilike(
+                    func.regexp_replace(other_value.text, '[^\w]+', '')),
+                Value.type == other_value.type,
+                Value.external_object == self
+            ))\
+            .join(other_value.external_object)\
+            .filter(~other_value.external_object_id.in_(exclude_list))\
+            .filter(ExternalObject.type == self.type)\
+            .filter(other_value.type == ValueType.TITLE)\
+            .group_by(other_value.external_object_id)
+        objects = map(lambda v: MergeCandidate(obj=self.id,
+                                               into=v[0],
+                                               score=int(v[1])), matches)
 
-        return map(itemgetter(1), sorted(objects, key=itemgetter(0)))
+        def into_year(text):
+            m = re.search(r'(\d{4})', text)
+            return int(m.group(1)) if m else None
+
+        def into_float(i):
+            try:
+                return float(i)
+            except ValueError:
+                return None
+
+        def numeric_attr(mine, their, type, process):
+            my_attrs = [process(attr.text) for attr in mine.attributes
+                        if attr.type == type]
+            their_attrs = [process(attr.text) for attr in their.attributes
+                           if attr.type == type]
+            print(my_attrs, their_attrs)
+
+            return next((True
+                         for x in my_attrs
+                         for y in their_attrs
+                         if x is not None and
+                         y is not None and
+                         abs(x - y) < 1), False)
+
+        def perfect_matches(candidates):
+            for candidate in candidates:
+                their = ExternalObject.query.get(candidate.into)
+
+                perfect_match = \
+                    numeric_attr(self, their,
+                                 ValueType.DATE, into_year) \
+                    or numeric_attr(self, their,
+                                    ValueType.DURATION, into_float)
+
+                if perfect_match:
+                    yield candidate
+
+        one, two = itertools.tee(objects)
+        pm = set(perfect_matches(two))
+
+        return set(one) - pm, pm
 
     @staticmethod
     def insert_dict(data, scrap):
