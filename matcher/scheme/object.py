@@ -971,9 +971,11 @@ class Person(db.Model, ExternalObjectMetaMixin):
             Not implemented
 
         """
-        role = Role(person=self.external_object, external_object=movie,
-                    role=role)
-        db.session.add(role)
+        if Role.query.filter(Role.person == self.external_object and
+                             Role.external_object == movie).first() is None:
+            role = Role(person=self.external_object, external_object=movie,
+                        role=role)
+            db.session.add(role)
 
     def add_meta(self, key, content):
         """Add a metadata to the object.
