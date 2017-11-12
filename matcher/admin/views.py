@@ -1,14 +1,14 @@
 from flask import url_for
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import rules
-from flask_admin.model.template import macro
+from flask_admin.model.template import macro, EndpointLinkRowAction
 from jinja2 import escape
 
 from ..scheme.object import ObjectLink
 from ..scheme.platform import Platform
 from ..scheme.value import Value, ValueType
 from .utils import CustomAdminConverter
-from .filters import ExternalObjectPlatformFilter
+from .filters import ExternalObjectPlatformFilter, ExternalObjectSimilarFilter
 
 
 class DefaultView(ModelView):
@@ -100,10 +100,18 @@ class ExternalObjectView(DefaultView):
         'links_list': macro('links_list'),
         'links': count_formatter
     }
+
+    column_extra_row_actions = [
+        EndpointLinkRowAction('glyphicon icon-search',
+                              'externalobject.index_view', id_arg='flt0_0')
+    ]
+
     inline_models = (
         (Value, dict(form_columns=('id', 'type', 'text'))),
         (ObjectLink, dict(form_columns=('id', 'platform', 'external_id'))))
+
     column_filters = [
+        ExternalObjectSimilarFilter(name='Similar'),
         'type',
         ExternalObjectPlatformFilter(
             column=Platform.country,
@@ -115,5 +123,5 @@ class ExternalObjectView(DefaultView):
             column=Platform.slug,
             name='Platform',
             options=[(p.slug, p.name) for p in Platform.query.all()]
-        )
+        ),
     ]

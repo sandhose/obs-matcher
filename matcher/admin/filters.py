@@ -19,3 +19,13 @@ class ExternalObjectPlatformFilter(BaseFilter):
 
     def operation(self):
         return 'is'
+
+
+class ExternalObjectSimilarFilter(BaseFilter):
+    def apply(self, query, value, alias=None):
+        similar, perfect = ExternalObject.query.get(int(value)).similar()
+        ids = [s.into for s in perfect.union(similar)] + [int(value)]
+        return query.filter(ExternalObject.id.in_(ids))
+
+    def operation(self):
+        return 'similar to'
