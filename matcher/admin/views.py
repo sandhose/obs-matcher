@@ -33,9 +33,14 @@ def link_formatter(route):
 
 def attribute_formatter(type):
     def formatter(view, context, model, name):
-        return next((attr.text for attr in model.attributes
-                     if attr.type == type), None)
+        attrs = [attr.text for attr in model.attributes
+                 if attr.type == type]
+        return " || ".join(attrs[:3])
     return formatter
+
+
+def count_formatter(view, context, model, name):
+    return len(getattr(model, name))
 
 
 class PlatformView(DefaultView):
@@ -84,15 +89,16 @@ class ExternalObjectView(DefaultView):
     can_view_details = True
 
     # TODO: Do awesome attribute view
-    column_details_list = ('id', 'type', 'attributes', 'links')
-    column_list = ('id', 'type', 'title', 'date', 'genres', 'duration')
+    column_details_list = ('id', 'type', 'attributes', 'links_list')
+    column_list = ('id', 'type', 'title', 'date', 'genres', 'duration', 'links')
     column_formatters = {
         'title': attribute_formatter(ValueType.TITLE),
         'date': attribute_formatter(ValueType.DATE),
         'genres': attribute_formatter(ValueType.GENRES),
         'duration': attribute_formatter(ValueType.DURATION),
         'attributes': macro('attributes_list'),
-        'links': macro('links_list')
+        'links_list': macro('links_list'),
+        'links': count_formatter
     }
     inline_models = (
         (Value, dict(form_columns=('id', 'type', 'text'))),

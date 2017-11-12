@@ -37,7 +37,15 @@
     <tbody>
       {% for link in model.links %}
         <tr>
-          <td>{{ link.external_object_id }}</td>
+          <td>
+            {% if link.platform.url %}
+              <a href="{{ link.url }}">
+                {{ link.external_id }}
+              </a>
+            {% else %}
+              {{ link.external_id }}
+            {% endif %}
+          </td>
           <td>
             <a href="{{ url_for('platform.details_view', id=link.platform.id) }}">
               {{ link.platform }}

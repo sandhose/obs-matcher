@@ -688,6 +688,10 @@ class ObjectLink(db.Model):
     work_meta = relationship('ObjectLinkWorkMeta')
     """:obj:`ObjectLinkWorkMeta`"""
 
+    @property
+    def url(self):
+        return self.platform.url.format(self.external_id)
+
     def __repr__(self):
         return '<ObjectLink ({}, {})>'.format(self.external_object,
                                               self.platform)
