@@ -1,8 +1,5 @@
 from flask_admin.model.filters import BaseFilter
 
-from ..scheme.object import ObjectLink, ExternalObject
-from ..scheme.platform import Platform
-
 
 class ExternalObjectPlatformFilter(BaseFilter):
     def __init__(self, column, name, options=None, data_type=None):
@@ -11,6 +8,9 @@ class ExternalObjectPlatformFilter(BaseFilter):
         self.column = column
 
     def apply(self, query, value, alias=None):
+        from ..scheme.object import ObjectLink, ExternalObject
+        from ..scheme.platform import Platform
+
         return query.\
             join(ObjectLink,
                  ExternalObject.id == ObjectLink.external_object_id).\
@@ -23,6 +23,8 @@ class ExternalObjectPlatformFilter(BaseFilter):
 
 class ExternalObjectSimilarFilter(BaseFilter):
     def apply(self, query, value, alias=None):
+        from ..scheme.object import ExternalObject
+
         similar, perfect = ExternalObject.query.get(int(value)).similar()
         ids = [s.into for s in perfect.union(similar)] + [int(value)]
         return query.filter(ExternalObject.id.in_(ids))
