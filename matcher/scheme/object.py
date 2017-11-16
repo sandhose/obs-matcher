@@ -449,22 +449,25 @@ class ExternalObject(db.Model, ResourceMixin):
             .group_by(ObjectLink.external_object_id)
 
         other_value = aliased(Value)
-        matches = db.session.query(other_value.external_object_id,
-                                   func.sum(other_value.score * Value.score))\
+        matches = db.session.query(
+            other_value.external_object_id,
+            func.sum(func.similarity(Value.text, other_value.text))
+        )\
             .join(Value, and_(
-                func.regexp_replace(Value.text, '[^\w]+', '').ilike(
-                    func.regexp_replace(other_value.text, '[^\w]+', '')),
-                Value.type == other_value.type,
-                Value.external_object == self
+                Value.type == ValueType.TITLE,
+                Value.external_object == self,
+                func.similarity(Value.text, other_value.text) > 0.8,
+                Value.text % other_value.text,
             ))\
             .join(other_value.external_object)\
-            .filter(~other_value.external_object_id.in_(exclude_list))\
+            .filter(~other_value.external_object_id.in_(list(exclude_list)))\
             .filter(ExternalObject.type == self.type)\
             .filter(other_value.type == ValueType.TITLE)\
             .group_by(other_value.external_object_id)
+
         objects = map(lambda v: MergeCandidate(obj=self.id,
                                                into=v[0],
-                                               score=int(v[1])), matches)
+                                               score=float(v[1])), matches)
 
         def into_year(text):
             m = re.search(r'(\d{4})', text)
