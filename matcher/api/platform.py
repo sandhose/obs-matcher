@@ -30,7 +30,7 @@ class PlatformGroupResource(CustomFlaskResource):
             raise restless.exceptions.NotFound()
 
     def create(self):
-        group = PlatformGroup(self.data['name'])
+        group = PlatformGroup(name=self.data['name'])
         if 'platforms' in self.data:
             for platform in self.data['platforms']:
                 pid = platform['id'] if isinstance(platform, dict) \
@@ -101,11 +101,12 @@ class PlatformResource(CustomFlaskResource):
 
             try:
                 self.data['group'] = PlatformGroup.query.filter(
-                    PlatformGroup.id == gid)
+                    PlatformGroup.id == gid).one()
             except sqlalchemy.orm.exc.NoResultFound:
                 raise restless.exceptions.NotFound()
 
         platform = Platform(**self.data)
+
         db.session.add(platform)
         db.session.commit()
         return platform
