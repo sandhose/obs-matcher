@@ -693,7 +693,8 @@ class ObjectLink(db.Model):
 
     @property
     def url(self):
-        return self.platform.url.format(self.external_id)
+        format = self.platform.url.get(str(self.external_object.type), None)
+        return None if format is None else format.format(self.external_id)
 
     def __repr__(self):
         return '<ObjectLink ({}, {})>'.format(self.external_object,

@@ -1,3 +1,4 @@
+from sqlalchemy.dialects.postgresql import JSONB
 from datetime import datetime
 from operator import attrgetter
 
@@ -61,7 +62,7 @@ class Platform(db.Model, ResourceMixin):
                          db.ForeignKey('platform_group.id'))
 
     # FIXME: way to map ExternalID -> URL
-    url = db.Column(db.Text)
+    url = db.Column(JSONB)
     """Base URL of this platform"""
 
     country = db.Column(db.String(2))

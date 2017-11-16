@@ -63,6 +63,7 @@ class ValueSource(db.Model):
     score_factor = db.Column(db.Integer,
                              nullable=False,
                              default=100)
+    comment = db.Column(db.Text)
 
     value = db.relationship('Value', back_populates='sources')
     platform = db.relationship('Platform')
