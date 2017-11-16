@@ -43,12 +43,15 @@ class NukeCommand(Command):
             "This will remove all data (excluding platforms). Are you sure?",
             default=False
         ):
-            with contextlib.closing(self.db.engine.connect()) as con:
-                trans = con.begin()
-                for table in reversed(self.db.metadata.sorted_tables):
-                    if table.name not in ['platform', 'platform_group']:
-                        con.execute(table.delete())
-                trans.commit()
+            for table in ['role', 'person', 'episode', 'season',
+                          'scrap_link', 'value_source', 'value', 'scrap',
+                          'object_link_work_meta', 'object_link',
+                          'external_object']:
+                self.db.session.execute('TRUNCATE TABLE {} '
+                                        'RESTART IDENTITY CASCADE'
+                                        .format(table))
+            self.db.session.commit()
+            self.db.session.close()
             print("Done.")
         else:
             print("Aborted.")
