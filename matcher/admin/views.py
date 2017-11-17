@@ -19,6 +19,22 @@ class PlatformGroupView(DefaultView):
     pass
 
 
+def links_formatter(route):
+    def formatter(view, context, model, name):
+        list = ''.join([
+            '<li><a href="{}">{}</a></li>'
+            .format(
+                url_for(route),
+                escape(item)
+            )
+            for item in getattr(model, name)
+        ])
+        return rules.Markup(
+            '<ul>' + list + '</ul>'
+        )
+    return formatter
+
+
 def link_formatter(route):
     def formatter(view, context, model, name):
         return rules.Markup(
@@ -77,8 +93,16 @@ class ScrapView(DefaultView):
 
 class ValueView(DefaultView):
     column_list = ('id', 'external_object', 'type', 'text', 'score')
+    column_details_list = ('id', 'external_object', 'type', 'text', 'score',
+                           'sources')
     column_filters = ['type', 'score', 'external_object']
     column_searchable_list = ['text']
+    can_view_details = True
+    can_edit = False
+    column_formatters = {
+        'external_object': link_formatter('externalobject.details_view'),
+        'sources': links_formatter('valuesource.details_view'),
+    }
 
 
 class ObjectLinkView(DefaultView):
