@@ -30,7 +30,10 @@ class PlatformGroupResource(CustomFlaskResource):
             raise restless.exceptions.NotFound()
 
     def create(self):
-        group = PlatformGroup(name=self.data['name'])
+        id = db.session.query(PlatformGroup.id)\
+            .filter(PlatformGroup.name == self.data['name'])\
+            .first()
+        group = db.session.merge(PlatformGroup(id=id, name=self.data['name']))
         if 'platforms' in self.data:
             for platform in self.data['platforms']:
                 pid = platform['id'] if isinstance(platform, dict) \
@@ -94,21 +97,33 @@ class PlatformResource(CustomFlaskResource):
             raise restless.exceptions.NotFound()
 
     def create(self):
+        # Create or update platform
         if 'group' in self.data:
             gid = self.data['group']['id'] \
                 if isinstance(self.data['group'], dict) \
                 else self.data['group']
 
             try:
-                self.data['group'] = PlatformGroup.query.filter(
-                    PlatformGroup.id == gid).one()
+                group = PlatformGroup.query\
+                    .filter(PlatformGroup.id == gid)\
+                    .one()
             except sqlalchemy.orm.exc.NoResultFound:
                 raise restless.exceptions.NotFound()
+            self.data['group'] = None
+        else:
+            group = None
 
-        platform = Platform(**self.data)
+        if 'slug' in self.data:
+            self.data['id'] = db.session\
+                .query(Platform.id)\
+                .filter(Platform.slug == self.data['slug'])\
+                .first()[0]
 
+        platform = db.session.merge(Platform(**self.data))
+        platform.group = group
         db.session.add(platform)
         db.session.commit()
+
         return platform
 
     def update(self, pk):
