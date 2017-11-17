@@ -185,6 +185,9 @@ class ScrapResource(CustomFlaskResource):
             status = ScrapStatus.from_name(self.data['status'])
             scrap.to_status(status)
 
+        if 'stats' in self.data:
+            scrap.stats = self.data['stats']
+
         db.session.commit()
 
         return scrap

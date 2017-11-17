@@ -165,6 +165,9 @@ class Scrap(db.Model, ResourceMixin):
                        default=ScrapStatus.SCHEDULED)
     """Current status of this job, see ScrapStatus"""
 
+    stats = db.Column(JSONB)
+    """Statistics from scrapy"""
+
     platform = db.relationship('Platform',
                                back_populates='scraps')
     """Platform concerned by this job"""
