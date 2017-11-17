@@ -117,7 +117,7 @@ class PlatformResource(CustomFlaskResource):
             self.data['id'] = db.session\
                 .query(Platform.id)\
                 .filter(Platform.slug == self.data['slug'])\
-                .first()[0]
+                .first()
 
         platform = db.session.merge(Platform(**self.data))
         platform.group = group
