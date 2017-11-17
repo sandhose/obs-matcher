@@ -48,7 +48,7 @@ class PlatformView(DefaultView):
     column_list = ('id', 'group', 'name', 'slug', 'url', 'country')
     column_searchable_list = ['name', 'slug', 'country']
     column_filters = ['country', 'group']
-    column_editable_list = ['country', 'name', 'slug', 'group', 'url']
+    column_editable_list = ['country', 'name', 'slug', 'group']
     form_columns = ('group', 'name', 'slug', 'url', 'country', 'max_rating',
                     'base_score')
 
@@ -116,12 +116,17 @@ class ExternalObjectView(DefaultView):
         ExternalObjectPlatformFilter(
             column=Platform.country,
             name='Country',
-            options=[(c, str(c).upper())
-                     for c in set((p.country for p in Platform.query.all()))]
+            options=lambda: (
+                (c, str(c).upper())
+                for c in set((p.country for p in Platform.query.all()))
+            )
         ),
         ExternalObjectPlatformFilter(
             column=Platform.slug,
             name='Platform',
-            options=[(p.slug, p.name) for p in Platform.query.all()]
+            options=lambda: (
+                (p.slug, p.name)
+                for p in Platform.query.all()
+            )
         ),
     ]

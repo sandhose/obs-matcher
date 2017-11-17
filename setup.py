@@ -42,7 +42,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'matcher=matcher.__main__:run',
+            'matcher=matcher.app:cli',
         ],
     },
 )

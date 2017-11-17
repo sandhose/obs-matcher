@@ -1,21 +1,19 @@
 import sys
-import contextlib
+import click
 from operator import itemgetter
 
 from flask import url_for
-from flask_script import Command, Option, prompt_bool
 
 
-class RoutesCommand(Command):
-    """List registered routes"""
+# TODO: this is ugly
+def setup_cli(app):
 
-    def __init__(self, app):
-        self.app = app
-
-    def run(self):
+    # FIXME: doesn't work
+    @app.cli.command()
+    def routes():
         from urllib.parse import unquote
         output = []
-        for rule in self.app.url_map.iter_rules():
+        for rule in app.url_map.iter_rules():
 
             options = {}
             for arg in rule.arguments:
@@ -29,42 +27,32 @@ class RoutesCommand(Command):
 
         # Sort output by url not name
         for (line, _) in sorted(output, key=itemgetter(1)):
-            print(line)
+            click.echo(line)
 
-
-class NukeCommand(Command):
-    """Nuke the database (except the platform table)"""
-
-    def __init__(self, db):
-        self.db = db
-
-    def run(self):
-        if prompt_bool(
-            "This will remove all data (excluding platforms). Are you sure?",
-            default=False
-        ):
+    @app.cli.command()
+    @click.option('--force',
+                  prompt="This will distroy everything in the "
+                         "database, except the platforms. Are you sure?",
+                  is_flag=True)
+    def nuke(force=False):
+        from .app import db
+        if force:
             for table in ['role', 'person', 'episode', 'season',
                           'scrap_link', 'value_source', 'value', 'scrap',
                           'object_link_work_meta', 'object_link',
                           'external_object']:
-                self.db.session.execute('TRUNCATE TABLE {} '
-                                        'RESTART IDENTITY CASCADE'
-                                        .format(table))
-            self.db.session.commit()
-            self.db.session.close()
-            print("Done.")
+                sql = 'TRUNCATE TABLE {} RESTART IDENTITY CASCADE'.format(table)
+                click.echo(sql)
+                db.session.execute(sql)
+            db.session.commit()
+            db.session.close()
+            click.echo("Done.")
         else:
-            print("Aborted.")
+            click.echo("Aborted.")
 
-
-class MatchCommand(Command):
-    """Run the matcher for a given scrap"""
-
-    option_list = (
-        Option('--scrap', '-s', dest='scrap'),
-    )
-
-    def run(self, scrap=None):
+    @app.cli.command()
+    @click.option('--scrap', '-s', type=int)
+    def match(scrap=None):
         from .scheme.platform import Scrap
         if scrap is None:
             scrap = Scrap.query.order_by(Scrap.id.desc()).first()
@@ -72,7 +60,7 @@ class MatchCommand(Command):
             scrap = Scrap.query.filter(Scrap.id == scrap).first()
 
         if scrap is None:
-            print("Scrap not found")
+            click.echo("Scrap not found")
             sys.exit(1)
 
         scrap.match_objects()
