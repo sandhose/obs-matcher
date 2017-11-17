@@ -37,31 +37,33 @@ class ObjectResource(CustomFlaskResource):
         return ExternalObject.query.filter(ExternalObject.id == pk).one()
 
     def create(self):
-        scrap_id = request.headers.get('x-scrap-id', None)
-        if scrap_id is None:
-            raise restless.exceptions.BadRequest('Missing `x-scrap-id` header')
-
+        # FIXME: proper exception handling
         try:
-            scrap = Scrap.query.filter(Scrap.id == scrap_id).one()
-        except NoResultFound:
-            raise restless.exceptions.NotFound('Scrap not found')
+            scrap_id = request.headers.get('x-scrap-id', None)
+            if scrap_id is None:
+                raise restless.exceptions.\
+                    BadRequest('Missing `x-scrap-id` header')
 
-        data = ExternalObject.normalize_dict(self.data)
+            try:
+                scrap = Scrap.query.filter(Scrap.id == scrap_id).one()
+            except NoResultFound:
+                raise restless.exceptions.NotFound('Scrap not found')
 
-        if data['type'] is None:
-            raise restless.exceptions.BadRequest('Field "type" is required')
+            data = ExternalObject.normalize_dict(self.data)
 
-        if data['relation'] is not None:
-            raise restless.exceptions.BadRequest(
-                'Field "relation" is not allowed on the root object')
+            if data['type'] is None:
+                raise restless.exceptions.BadRequest('Field "type" is required')
 
-        try:
-            obj = ExternalObject.insert_dict(data, scrap)
-        except:
-            tb = traceback.format_exc()
+            if data['relation'] is not None:
+                raise restless.exceptions.BadRequest(
+                    'Field "relation" is not allowed on the root object')
+
+                obj = ExternalObject.insert_dict(data, scrap)
+        except Exception as e:
+            # Print the traceback and re-raise
+            traceback.print_exc()
+            raise e
         else:
-            tb = "No error"
-        finally:
-            print(tb)
+            print("No error, inserted {}".format(obj.id))
 
         return obj

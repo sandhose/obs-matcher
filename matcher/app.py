@@ -47,9 +47,10 @@ def create_app(info=None):
             directory=os.path.join(os.path.dirname(__file__),
                                    'migrations'))
 
+    setup_cli(app)
     with app.app_context():
-        setup_cli(app)
         setup_routes(app)
+
     return app
 
 
