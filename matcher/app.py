@@ -36,11 +36,12 @@ def setup_routes(app):
 
 
 def create_app(info=None):
-    app = Flask('matcher')
+    app = Flask('matcher', instance_relative_config=True)
 
     # Load config using environment variable
     env = os.environ.get('OBS_ENV', 'development')
     app.config.from_object('matcher.config.{}Config'.format(env.title()))
+    app.config.from_pyfile('application.cfg', silent=True)
     db.init_app(app)
 
     Migrate(app=app, db=db,
