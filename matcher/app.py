@@ -1,4 +1,5 @@
 import contextlib
+import logging
 import os
 
 from alembic.migration import MigrationContext
@@ -6,10 +7,12 @@ from flask import Flask, render_template, url_for
 from flask.cli import FlaskGroup
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from raven.contrib.flask import Sentry
 
 from .commands import setup_cli
 
 db = SQLAlchemy()
+sentry = Sentry()
 
 
 def setup_routes(app):
@@ -42,6 +45,7 @@ def create_app(info=None):
     env = os.environ.get('OBS_ENV', 'development')
     app.config.from_object('matcher.config.{}Config'.format(env.title()))
     app.config.from_pyfile('application.cfg', silent=True)
+    sentry.init_app(app, logging=True, level=logging.ERROR)
     db.init_app(app)
 
     Migrate(app=app, db=db,

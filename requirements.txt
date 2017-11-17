@@ -1,13 +1,13 @@
 alembic_autogenerate_enums==0.0.2
+flake8==3.5.0
 Flask-Admin==1.5.0
 Flask-Migrate==2.0.4
-Flask-Script==2.0.5
 Flask-SQLAlchemy==2.2
 Flask==0.12.2
-flake8==3.5.0
 psycopg2==2.7.3
+raven[flask]==6.3.0
 restless==2.1.1
 slugify==0.0.1
-SQLAlchemy==1.1.12
 Sphinx==1.6.5
 sphinxcontrib-napoleon==0.6.1
+SQLAlchemy==1.1.12
