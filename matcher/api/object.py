@@ -1,4 +1,3 @@
-import traceback
 import restless.exceptions
 from flask import request
 from restless.preparers import (CollectionSubPreparer, FieldsPreparer,
@@ -37,33 +36,25 @@ class ObjectResource(CustomFlaskResource):
         return ExternalObject.query.filter(ExternalObject.id == pk).one()
 
     def create(self):
-        # FIXME: proper exception handling
+        scrap_id = request.headers.get('x-scrap-id', None)
+        if scrap_id is None:
+            raise restless.exceptions.\
+                BadRequest('Missing `x-scrap-id` header')
+
         try:
-            scrap_id = request.headers.get('x-scrap-id', None)
-            if scrap_id is None:
-                raise restless.exceptions.\
-                    BadRequest('Missing `x-scrap-id` header')
+            scrap = Scrap.query.filter(Scrap.id == scrap_id).one()
+        except NoResultFound:
+            raise restless.exceptions.NotFound('Scrap not found')
 
-            try:
-                scrap = Scrap.query.filter(Scrap.id == scrap_id).one()
-            except NoResultFound:
-                raise restless.exceptions.NotFound('Scrap not found')
+        data = ExternalObject.normalize_dict(self.data)
 
-            data = ExternalObject.normalize_dict(self.data)
+        if data['type'] is None:
+            raise restless.exceptions.BadRequest('Field "type" is required')
 
-            if data['type'] is None:
-                raise restless.exceptions.BadRequest('Field "type" is required')
+        if data['relation'] is not None:
+            raise restless.exceptions.BadRequest(
+                'Field "relation" is not allowed on the root object')
 
-            if data['relation'] is not None:
-                raise restless.exceptions.BadRequest(
-                    'Field "relation" is not allowed on the root object')
-
-                obj = ExternalObject.insert_dict(data, scrap)
-        except Exception as e:
-            # Print the traceback and re-raise
-            traceback.print_exc()
-            raise e
-        else:
-            print("No error, inserted {}".format(obj.id))
+        obj = ExternalObject.insert_dict(data, scrap)
 
         return obj
