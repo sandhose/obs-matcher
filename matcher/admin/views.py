@@ -31,10 +31,10 @@ def link_formatter(route):
     return formatter
 
 
-def attribute_formatter(type):
+def attribute_formatter(*args):
     def formatter(view, context, model, name):
         attrs = [attr.text for attr in model.attributes
-                 if attr.type == type]
+                 if attr.type in args]
         return " || ".join(attrs[:3])
     return formatter
 
@@ -45,12 +45,15 @@ def count_formatter(view, context, model, name):
 
 class PlatformView(DefaultView):
     can_view_details = True
-    column_list = ('id', 'group', 'name', 'slug', 'url', 'country')
+    column_list = ('id', 'group', 'name', 'slug', 'country', 'links')
     column_searchable_list = ['name', 'slug', 'country']
     column_filters = ['country', 'group']
     column_editable_list = ['country', 'name', 'slug', 'group']
     form_columns = ('group', 'name', 'slug', 'url', 'country', 'max_rating',
                     'base_score')
+    column_formatters = {
+        'links': count_formatter
+    }
 
     form_rules = [
         rules.FieldSet([
@@ -87,12 +90,14 @@ class ObjectLinkView(DefaultView):
 
 class ExternalObjectView(DefaultView):
     can_view_details = True
+    can_export = True
+    export_types = ['csv', 'xls']
 
     # TODO: Do awesome attribute view
     column_details_list = ('id', 'type', 'attributes', 'links_list')
     column_list = ('id', 'type', 'title', 'date', 'genres', 'duration', 'links')
     column_formatters = {
-        'title': attribute_formatter(ValueType.TITLE),
+        'title': attribute_formatter(ValueType.TITLE, ValueType.NAME),
         'date': attribute_formatter(ValueType.DATE),
         'genres': attribute_formatter(ValueType.GENRES),
         'duration': attribute_formatter(ValueType.DURATION),
@@ -116,17 +121,17 @@ class ExternalObjectView(DefaultView):
         ExternalObjectPlatformFilter(
             column=Platform.country,
             name='Country',
-            options=lambda: (
+            options=lambda: [
                 (c, str(c).upper())
                 for c in set((p.country for p in Platform.query.all()))
-            )
+            ]
         ),
         ExternalObjectPlatformFilter(
             column=Platform.slug,
             name='Platform',
-            options=lambda: (
+            options=lambda: [
                 (p.slug, p.name)
                 for p in Platform.query.all()
-            )
+            ]
         ),
     ]
