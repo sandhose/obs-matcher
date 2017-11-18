@@ -13,7 +13,7 @@ import collections
 import itertools
 import math
 import re
-from operator import attrgetter
+from operator import attrgetter, itemgetter
 
 from sqlalchemy import (Boolean, Column, Enum, ForeignKey, Integer,
                         PrimaryKeyConstraint, Sequence, Table, Text, and_,
@@ -110,6 +110,14 @@ external_object_meta_map = {}
 """Maps ExternalObjectTypes to ExternalObjectMetaMixin classes."""
 
 
+def deduplicate(items, f=lambda x: x):
+    seen = set()
+    for item in items:
+        if not f(item) in seen:
+            seen.add(f(item))
+            yield item
+
+
 def _normalize_attribute(type, values):
     if not isinstance(values, list):
         values = [values]
@@ -118,6 +126,11 @@ def _normalize_attribute(type, values):
         if isinstance(value, (str, int, float)):
             value = {'text': str(value), 'score_factor': 1}
         yield {'type': type, **value}
+
+        # Try a formatted version of the attribute
+        fmt = ValueType.from_name(type).fmt(value['text'])
+        if fmt is not None:
+            yield {'type': type, **value, 'text': fmt}
 
 
 def _normalize_link(link):
@@ -230,7 +243,7 @@ class ExternalObject(db.Model, ResourceMixin):
             raise UnknownAttribute(attribute['type'])
 
         if 'score_factor' in attribute:
-            score_factor = attribute['score_factor']
+            score_factor = attribute['score_factor'] * 100
         else:
             score_factor = 100
 
@@ -648,6 +661,8 @@ class ExternalObject(db.Model, ResourceMixin):
             data['attributes'] = list(itertools.chain.from_iterable(
                 [_normalize_attribute(t, a)
                  for t, a in raw['attributes'].items()]))
+            data['attributes'] = deduplicate(data['attributes'],
+                                             itemgetter('text'))
 
         if 'links' in raw and raw['links'] is not None:
             data['links'] = list(map(_normalize_link, raw['links']))

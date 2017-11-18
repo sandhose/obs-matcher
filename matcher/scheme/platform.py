@@ -250,7 +250,11 @@ class Scrap(db.Model, ResourceMixin):
                     it.write("SIMILAR {} {} {}".format(obj, into, score))
                 candidates |= set(s)
 
-        print(sorted(candidates, key=attrgetter('score')))
+        candidates = sorted(candidates, key=attrgetter('score'), reverse=True)
+
+        for candidate in candidates:
+            print('{score:6.2f}: {obj:6d} -> {into:6d}'
+                  .format(**candidate._asdict()))
 
     def __repr__(self):
         return '<Scrap ({}, {})>'.format(self.platform, self.date)

@@ -44,9 +44,7 @@ class ExternalObjectSimilarFilter(BaseFilter):
         query = query.join(subquery,
                            subquery.c.into == ExternalObject.id)
 
-        if getattr(query, 'order_similar', False):
-            print('order_similar')
-            query = query.order_by(subquery.c.score)
+        # TODO: way to order_by similar.score
 
         return query
 

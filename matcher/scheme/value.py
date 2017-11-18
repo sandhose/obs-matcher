@@ -1,7 +1,11 @@
+import re
+from functools import partial
+
 from sqlalchemy import func, select
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from ..app import db
+from ..countries import lookup
 from .mixins import ResourceMixin
 from .platform import Platform
 from .utils import CustomEnum
@@ -14,6 +18,21 @@ class ValueType(CustomEnum):
     DURATION = 4
     NAME = 5
     COUNTRY = 6
+
+    def fmt(self, value):
+        def m(r, t):
+            result = re.match(r, t)
+            return result.group(1) if result is not None else None
+
+        duration_regex = r'^[^\d]*(\d+(?:.\d*)?)[^\d]*$'
+        date_regex = r'(\d{4})'
+        fmt_map = {
+            ValueType.DURATION: partial(m, duration_regex),
+            ValueType.COUNTRY: lookup,
+            ValueType.DATE: partial(m, date_regex)
+        }
+
+        return fmt_map.get(self, lambda _: None)(value)
 
 
 class Value(db.Model, ResourceMixin):
