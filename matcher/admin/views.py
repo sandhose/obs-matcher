@@ -112,6 +112,7 @@ class ObjectLinkView(DefaultView):
         'external_object': link_formatter('externalobject.details_view'),
         'platform': link_formatter('platform.edit_view')
     }
+    column_searchable_list = ['external_id']
 
 
 class ExternalObjectView(DefaultView):
