@@ -1,4 +1,9 @@
 from flask_admin.model.filters import BaseFilter
+from sqlalchemy import select, func
+from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.types import Integer, Float
+from sqlalchemy.sql import column
+import json
 
 
 class ExternalObjectPlatformFilter(BaseFilter):
@@ -25,9 +30,25 @@ class ExternalObjectSimilarFilter(BaseFilter):
     def apply(self, query, value, alias=None):
         from ..scheme.object import ExternalObject
 
-        similar, perfect = ExternalObject.query.get(int(value)).similar()
-        ids = [s.into for s in perfect.union(similar)] + [int(value)]
-        return query.filter(ExternalObject.id.in_(ids))
+        similar = list(ExternalObject.query.get(int(value)).similar())
+        json_data = json.dumps([s._asdict() for s in similar])
+
+        c = column('data', JSON)
+        subquery = select([
+            c['into'].astext.cast(Integer).label('into'),
+            c['score'].astext.cast(Float).label('score')
+        ])\
+            .select_from(func.json_array_elements(json_data).alias('data'))\
+            .alias('similar')
+
+        query = query.join(subquery,
+                           subquery.c.into == ExternalObject.id)
+
+        if getattr(query, 'order_similar', False):
+            print('order_similar')
+            query = query.order_by(subquery.c.score)
+
+        return query
 
     def operation(self):
         return 'similar to'

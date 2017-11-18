@@ -9,24 +9,25 @@ which has a type (:obj:`ExternalObjectType`), links to
 :obj:`ExternalObjectMetaMixin`) or episode number.
 
 """
-import re
 import collections
 import itertools
+import math
+import re
 from operator import attrgetter
 
 from sqlalchemy import (Boolean, Column, Enum, ForeignKey, Integer,
-                        PrimaryKeyConstraint, Sequence, Table, Text, func,
-                        tuple_, and_)
+                        PrimaryKeyConstraint, Sequence, Table, Text, and_,
+                        func, tuple_)
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm import relationship, aliased
+from sqlalchemy.orm import aliased, relationship
 from sqlalchemy.orm.exc import NoResultFound
 
 from ..app import db
 from ..exceptions import (AmbiguousLinkError, ExternalIDMismatchError,
                           InvalidMetadata, InvalidMetadataValue,
-                          InvalidRelation, LinkNotFound,
+                          InvalidRelation, LinkNotFound, LinksOverlap,
                           ObjectTypeMismatchError, UnknownAttribute,
-                          UnknownRelation, LinksOverlap)
+                          UnknownRelation)
 from .mixins import ResourceMixin
 from .platform import Platform
 from .utils import CustomEnum
@@ -483,37 +484,49 @@ class ExternalObject(db.Model, ResourceMixin):
             except ValueError:
                 return None
 
-        def numeric_attr(mine, their, type, process):
-            my_attrs = [process(attr.text) for attr in mine.attributes
-                        if attr.type == type]
-            their_attrs = [process(attr.text) for attr in their.attributes
-                           if attr.type == type]
-            print(my_attrs, their_attrs)
+        def numeric_attr(mine, their, type, process=into_float):
+            my_attrs = set([process(attr.text) for attr in mine.attributes
+                            if attr.type == type])
+            their_attrs = set([process(attr.text) for attr in their.attributes
+                               if attr.type == type])
 
-            return next((True
-                         for x in my_attrs
-                         for y in their_attrs
-                         if x is not None and
-                         y is not None and
-                         abs(x - y) < 1), False)
+            return len([True
+                        for x in my_attrs
+                        for y in their_attrs
+                        if x is not None and
+                        y is not None and
+                        abs(x - y) < 1])
 
-        def perfect_matches(candidates):
-            for candidate in candidates:
-                their = ExternalObject.query.get(candidate.into)
+        def text_attr(mine, their, type, process=lambda n: n.lower()):
+            my_attrs = set([process(attr.text) for attr in mine.attributes
+                            if attr.type == type])
+            their_attrs = set([process(attr.text) for attr in their.attributes
+                               if attr.type == type])
 
-                perfect_match = \
-                    numeric_attr(self, their,
-                                 ValueType.DATE, into_year) \
-                    or numeric_attr(self, their,
-                                    ValueType.DURATION, into_float)
+            return len([True
+                        for x in my_attrs
+                        for y in their_attrs
+                        if x is not None and
+                        y is not None and
+                        x == y])
 
-                if perfect_match:
-                    yield candidate
+        criterias = [
+            lambda self, their: numeric_attr(self, their,
+                                             ValueType.DATE, into_year),
+            lambda self, their: numeric_attr(self, their,
+                                             ValueType.DURATION, into_float),
+            lambda self, their: text_attr(self, their, ValueType.COUNTRY),
+            lambda self, their: text_attr(self, their, ValueType.TITLE),
+        ]
 
-        one, two = itertools.tee(objects)
-        pm = set(perfect_matches(two))
-
-        return set(one) - pm, pm
+        for candidate in objects:
+            factor = 1
+            their = ExternalObject.query.get(candidate.into)
+            for criteria in criterias:
+                factor *= math.pow(2, math.log2(1 + criteria(self, their)))
+            yield MergeCandidate(obj=candidate.obj,
+                                 into=candidate.into,
+                                 score=candidate.score * factor)
 
     @staticmethod
     def insert_dict(data, scrap):

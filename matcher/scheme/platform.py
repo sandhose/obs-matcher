@@ -231,30 +231,25 @@ class Scrap(db.Model, ResourceMixin):
         """Try to match objects that where found in this scrap"""
 
         from concurrent.futures import ThreadPoolExecutor
-        from .object import ExternalObject
         from tqdm import tqdm
         from .. import app
 
         candidates = set()
-        perfect_candidates = set()
-        ids = [l.external_object_id for l in self.links]
+        objs = [l.external_object for l in self.links]
 
-        def execute(id):
+        def execute(obj):
             with app.app_context():
-                return ExternalObject.query.get(id).similar()
+                return obj.similar()
 
-        # FIXME; max workers
+        # FIXME: max workers
         with ThreadPoolExecutor(max_workers=8) as executor:
-            it = tqdm(executor.map(execute, ids), total=len(ids))
-            for similar, perfect in it:
-                for (obj, into, score) in perfect:
-                    it.write("PERFECT {} {} {}".format(obj, into, score))
-                for (obj, into, score) in similar:
+            it = tqdm(executor.map(execute, objs), total=len(objs))
+            for similar in it:
+                s = list(similar)
+                for (obj, into, score) in s:
                     it.write("SIMILAR {} {} {}".format(obj, into, score))
-                candidates |= similar
-                perfect_candidates |= perfect
+                candidates |= set(s)
 
-        print(sorted(perfect_candidates, key=attrgetter('score')))
         print(sorted(candidates, key=attrgetter('score')))
 
     def __repr__(self):

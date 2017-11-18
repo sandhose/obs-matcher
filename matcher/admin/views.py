@@ -3,6 +3,7 @@ from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import rules
 from flask_admin.model.template import macro, EndpointLinkRowAction
 from jinja2 import escape
+from sqlalchemy.sql import alias
 
 from ..scheme.object import ObjectLink
 from ..scheme.platform import Platform
