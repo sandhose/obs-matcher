@@ -1,3 +1,5 @@
+from operator import eq
+from functools import partial
 from flask import url_for
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import rules
@@ -39,12 +41,12 @@ def link_formatter(route):
     return formatter
 
 
-def attribute_formatter(*args):
+def attribute_formatter(f=lambda _: True, show_score=False):
     def formatter(view, context, model, name):
         m = context.resolve('attributes_link')
         attrs = [attr for attr in model.attributes
-                 if attr.type in args]
-        return m(attributes=attrs)
+                 if f(attr.type)]
+        return m(attributes=attrs, show_score=show_score)
     return formatter
 
 
@@ -145,12 +147,13 @@ class ExternalObjectView(DefaultView):
 
     column_details_list = ('id', 'type', 'attributes_list', 'links_list')
     column_formatters = {
-        'name': attribute_formatter(ValueType.NAME),
-        'title': attribute_formatter(ValueType.TITLE),
-        'date': attribute_formatter(ValueType.DATE),
-        'genres': attribute_formatter(ValueType.GENRES),
-        'country': attribute_formatter(ValueType.COUNTRY),
-        'duration': attribute_formatter(ValueType.DURATION),
+        'name': attribute_formatter(partial(eq, ValueType.NAME)),
+        'title': attribute_formatter(partial(eq, ValueType.TITLE)),
+        'date': attribute_formatter(partial(eq, ValueType.DATE)),
+        'genres': attribute_formatter(partial(eq, ValueType.GENRES)),
+        'country': attribute_formatter(partial(eq, ValueType.COUNTRY)),
+        'duration': attribute_formatter(partial(eq, ValueType.DURATION)),
+        'attributes': attribute_formatter(show_score=True),
         'attributes_list': macro('attributes_list'),
         'links_list': macro('links_list'),
         'links': count_formatter

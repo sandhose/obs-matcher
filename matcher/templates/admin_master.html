@@ -73,10 +73,14 @@
   </table>
 {% endmacro %}
 
-{% macro attributes_link(attributes) %}
-  {% for attribute in attributes %}
-  <a href="{{ url_for('value.details_view', id=attribute.id) }}">
-    {{ attribute.text }}
-  </a>
+{% macro attributes_link(attributes, show_score=False) %}
+  {% for attribute in attributes -%}
+    <a href="{{ url_for('value.details_view', id=attribute.id) }}">
+      {{- attribute.text -}}
+    </a>
+    {%- if show_score %}
+      ({{ attribute.score }})
+    {%- endif -%}
+    {{- "," if not loop.last }}
   {% endfor %}
 {% endmacro %}
