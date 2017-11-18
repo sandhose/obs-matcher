@@ -3,21 +3,12 @@ from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import rules
 from flask_admin.model.template import macro, EndpointLinkRowAction
 from jinja2 import escape
-from sqlalchemy.sql import alias
 
-from ..scheme.object import ObjectLink
+from ..scheme.object import ObjectLink, ExternalObject, ExternalObjectType
 from ..scheme.platform import Platform
 from ..scheme.value import Value, ValueType
 from .utils import CustomAdminConverter
 from .filters import ExternalObjectPlatformFilter, ExternalObjectSimilarFilter
-
-
-class DefaultView(ModelView):
-    model_form_converter = CustomAdminConverter
-
-
-class PlatformGroupView(DefaultView):
-    pass
 
 
 def links_formatter(route):
@@ -50,14 +41,27 @@ def link_formatter(route):
 
 def attribute_formatter(*args):
     def formatter(view, context, model, name):
-        attrs = [attr.text for attr in model.attributes
+        m = context.resolve('attributes_link')
+        attrs = [attr for attr in model.attributes
                  if attr.type in args]
-        return " || ".join(attrs[:3])
+        return m(attributes=attrs)
     return formatter
 
 
 def count_formatter(view, context, model, name):
     return len(getattr(model, name))
+
+
+class DefaultView(ModelView):
+    model_form_converter = CustomAdminConverter
+
+
+class PlatformGroupView(DefaultView):
+    column_list = ('id', 'name', 'platforms')
+    column_formatters = {
+        'platforms': count_formatter
+    }
+    pass
 
 
 class PlatformView(DefaultView):
@@ -103,40 +107,58 @@ class ValueView(DefaultView):
     can_view_details = True
     can_edit = False
     column_formatters = {
-        'external_object': link_formatter('externalobject.details_view'),
+        'external_object': link_formatter('allobject.details_view'),
         'sources': links_formatter('valuesource.details_view'),
+    }
+
+
+class ValueSourceView(DefaultView):
+    column_list = ('value', 'platform', 'score_factor')
+    column_details_list = ('value', 'platform', 'score_factor')
+    can_view_details = True
+    can_edit = False
+    column_formatters = {
+        'value': link_formatter('value.details_view'),
+        'platform': link_formatter('platform.details_view'),
     }
 
 
 class ObjectLinkView(DefaultView):
     column_formatters = {
-        'external_object': link_formatter('externalobject.details_view'),
+        'external_object': link_formatter('allobject.details_view'),
         'platform': link_formatter('platform.edit_view')
     }
     column_searchable_list = ['external_id']
 
 
 class ExternalObjectView(DefaultView):
+    def __init__(self, *args, **kwargs):
+        kwargs['category'] = 'External Objects'
+        kwargs['endpoint'] = kwargs['name'].lower() + 'object'
+        super(ExternalObjectView, self).__init__(ExternalObject, *args,
+                                                 **kwargs)
+
     can_view_details = True
     can_export = True
+    # TODO: Export formatters
     export_types = ['csv', 'xls']
 
-    # TODO: Do awesome attribute view
-    column_details_list = ('id', 'type', 'attributes', 'links_list')
-    column_list = ('id', 'type', 'title', 'date', 'genres', 'duration', 'links')
+    column_details_list = ('id', 'type', 'attributes_list', 'links_list')
     column_formatters = {
-        'title': attribute_formatter(ValueType.TITLE, ValueType.NAME),
+        'name': attribute_formatter(ValueType.NAME),
+        'title': attribute_formatter(ValueType.TITLE),
         'date': attribute_formatter(ValueType.DATE),
         'genres': attribute_formatter(ValueType.GENRES),
+        'country': attribute_formatter(ValueType.COUNTRY),
         'duration': attribute_formatter(ValueType.DURATION),
-        'attributes': macro('attributes_list'),
+        'attributes_list': macro('attributes_list'),
         'links_list': macro('links_list'),
         'links': count_formatter
     }
 
     column_extra_row_actions = [
         EndpointLinkRowAction('glyphicon icon-search',
-                              'externalobject.index_view', id_arg='flt0_0')
+                              'allobject.index_view', id_arg='flt0_0')
     ]
 
     inline_models = (
@@ -145,7 +167,6 @@ class ExternalObjectView(DefaultView):
 
     column_filters = [
         ExternalObjectSimilarFilter(name='Similar'),
-        'type',
         ExternalObjectPlatformFilter(
             column=Platform.country,
             name='Country',
@@ -163,3 +184,30 @@ class ExternalObjectView(DefaultView):
             ]
         ),
     ]
+
+    def get_query(self):
+        q = super(ExternalObjectView, self).get_query()
+        if hasattr(self, 'external_object_type'):
+            q = q.filter(ExternalObject.type == self.external_object_type)
+        return q
+
+    def get_count_query(self):
+        q = super(ExternalObjectView, self).get_count_query()
+        if hasattr(self, 'external_object_type'):
+            q = q.filter(ExternalObject.type == self.external_object_type)
+        return q
+
+
+class AllObjectView(ExternalObjectView):
+    column_list = ('id', 'type', 'attributes', 'links')
+    column_filters = ExternalObjectView.column_filters + ['type']
+
+
+class PersonObjectView(ExternalObjectView):
+    external_object_type = ExternalObjectType.PERSON
+    column_list = ('id', 'name', 'links')
+
+
+class MovieObjectView(ExternalObjectView):
+    external_object_type = ExternalObjectType.MOVIE
+    column_list = ('id', 'title', 'genres', 'duration', 'country', 'links')

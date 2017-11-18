@@ -14,7 +14,7 @@
         <tr>
           <td>{{ attribute.type|upper }}</td>
           <td>
-            <a href="{{ url_for('value.edit_view', id=attribute.id) }}">
+            <a href="{{ url_for('value.details_view', id=attribute.id) }}">
               {{ attribute.text }}
             </a>
           </td>
@@ -71,4 +71,12 @@
       {% endfor %}
     </tbody>
   </table>
+{% endmacro %}
+
+{% macro attributes_link(attributes) %}
+  {% for attribute in attributes %}
+  <a href="{{ url_for('value.details_view', id=attribute.id) }}">
+    {{ attribute.text }}
+  </a>
+  {% endfor %}
 {% endmacro %}
