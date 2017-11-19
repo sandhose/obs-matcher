@@ -15,7 +15,7 @@ def load_data(app):
     UPDATE_URL = 'https://raw.githubusercontent.com/mledoze/countries/' \
                  'master/dist/countries.json'
     try:
-        data += json.load(open(DATA_FILE))
+        data += json.load(open(str(DATA_FILE), 'r'))
     except OSError:
         r = requests.get(UPDATE_URL)
         assert r.status_code == 200
