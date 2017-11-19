@@ -10,7 +10,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for attribute in model.attributes %}
+      {% for attribute in model.attributes|sort(attribute='score')|sort(attribute='type.value') %}
         <tr>
           <td>{{ attribute.type|upper }}</td>
           <td>
