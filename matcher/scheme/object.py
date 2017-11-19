@@ -128,7 +128,7 @@ def _normalize_attribute(type, values):
         yield {'type': type, **value}
 
         # Try a formatted version of the attribute
-        fmt = ValueType.from_name(type).fmt(value['text'])
+        fmt = ValueType.from_name(type).fmt(str(value['text']))
         if fmt is not None:
             yield {'type': type, **value, 'text': fmt}
 

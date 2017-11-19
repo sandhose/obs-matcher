@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 
 import requests
@@ -20,6 +21,7 @@ def load_data(app):
         r = requests.get(UPDATE_URL)
         assert r.status_code == 200
         data += r.json()
+        os.makedirs(str(DATA_FILE.parent), exist_ok=True)
         with open(str(DATA_FILE), 'w') as handle:
             json.dump(data, handle)
     return data
