@@ -557,6 +557,11 @@ class ExternalObject(db.Model, ResourceMixin):
             the top level inserted object
 
         """
+        # Drop series (for now)
+        if data['type'] not in [ExternalObjectType.MOVIE,
+                                ExternalObjectType.PERSON]:
+            return None
+
         obj = ExternalObject.lookup_or_create(
             obj_type=data['type'],
             links=data['links'],

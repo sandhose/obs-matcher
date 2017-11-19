@@ -29,6 +29,9 @@ def load_data(app):
 
 def lookup(name):
     for country in data:
+        if name.lower() in [s.lower() for s in country['altSpellings']]:
+            return country['cca2']
+
         for translation in list(country['translations'].values()) \
                 + [country['name']]:
             for attr in ['official', 'common']:
