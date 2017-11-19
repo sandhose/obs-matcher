@@ -20,7 +20,7 @@ def load_data(app):
         r = requests.get(UPDATE_URL)
         assert r.status_code == 200
         data += r.json()
-        with open(DATA_FILE, 'w') as handle:
+        with open(str(DATA_FILE), 'w') as handle:
             json.dump(data, handle)
     return data
 
