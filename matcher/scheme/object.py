@@ -235,7 +235,7 @@ class ExternalObject(db.Model, ResourceMixin):
             where this attribute was found
 
         """
-        text = str(attribute['text'])
+        text = str(attribute['text']).strip()
         type = attribute['type']
         if not isinstance(type, ValueType):
             type = ValueType.from_name(type)

@@ -26,10 +26,12 @@ class ValueType(CustomEnum):
 
         duration_regex = r'^[^\d]*(\d+(?:.\d*)?)[^\d]*$'
         date_regex = r'(\d{4})'
+        parenthesis_regex = r'\([^)]*\)'
         fmt_map = {
             ValueType.DURATION: partial(m, duration_regex),
             ValueType.COUNTRY: lookup,
-            ValueType.DATE: partial(m, date_regex)
+            ValueType.DATE: partial(m, date_regex),
+            ValueType.TITLE: lambda t: re.sub(parenthesis_regex, '', t).strip()
         }
 
         return fmt_map.get(self, lambda _: None)(value)
