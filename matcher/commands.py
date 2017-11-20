@@ -52,12 +52,19 @@ def setup_cli(app):
 
     @app.cli.command()
     @click.option('--scrap', '-s', type=int)
-    def match(scrap=None):
-        from .scheme.platform import Scrap
-        if scrap is None:
-            scrap = Scrap.query.order_by(Scrap.id.desc()).first()
-        else:
+    @click.option('--platform', '-p')
+    def match(scrap=None, platform=None):
+        from .scheme.platform import Scrap, Platform
+
+        if platform is not None:
+            p = Platform.lookup(platform)
+            p.match_objects()
+            return
+
+        if scrap is not None:
             scrap = Scrap.query.filter(Scrap.id == scrap).first()
+        else:
+            scrap = Scrap.query.order_by(Scrap.id.desc()).first()
 
         if scrap is None:
             click.echo("Scrap not found")

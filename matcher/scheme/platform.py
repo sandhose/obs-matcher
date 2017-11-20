@@ -112,6 +112,13 @@ class Platform(db.Model, ResourceMixin):
 
         return q.one_or_none()
 
+    def match_objects(self):
+        """Try to match objects that where found in this platform"""
+        from ..scheme.object import ExternalObject
+
+        objs = [l.external_object for l in self.links]
+        ExternalObject.match_objects(objs)
+
 
 class ScrapStatus(CustomEnum):
     """Enum representing the current status of a given scrap"""
@@ -229,32 +236,10 @@ class Scrap(db.Model, ResourceMixin):
 
     def match_objects(self):
         """Try to match objects that where found in this scrap"""
+        from ..scheme.object import ExternalObject
 
-        from concurrent.futures import ThreadPoolExecutor
-        from tqdm import tqdm
-        from .. import app
-
-        candidates = set()
         objs = [l.external_object for l in self.links]
-
-        def execute(obj):
-            with app.app_context():
-                return obj.similar()
-
-        # FIXME: max workers
-        with ThreadPoolExecutor(max_workers=8) as executor:
-            it = tqdm(executor.map(execute, objs), total=len(objs))
-            for similar in it:
-                s = list(similar)
-                for (obj, into, score) in s:
-                    it.write("SIMILAR {} {} {}".format(obj, into, score))
-                candidates |= set(s)
-
-        candidates = sorted(candidates, key=attrgetter('score'), reverse=True)
-
-        for candidate in candidates:
-            print('{score:6.2f}: {obj:6d} -> {into:6d}'
-                  .format(**candidate._asdict()))
+        ExternalObject.match_objects(objs)
 
     def __repr__(self):
         return '<Scrap ({}, {})>'.format(self.platform, self.date)
