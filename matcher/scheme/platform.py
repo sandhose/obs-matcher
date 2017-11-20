@@ -40,6 +40,13 @@ def slug_default(context):
         return None
 
 
+class PlatformType(CustomEnum):
+    INFO = 1    # Platforms like IMDb
+    GLOBAL = 2  # Platforms for global IDs
+    TVOD = 3    # Renting VOD
+    SVOD = 4    # Subscription based VOD
+
+
 class Platform(db.Model, ResourceMixin):
     """Represents one platform"""
 
@@ -74,6 +81,10 @@ class Platform(db.Model, ResourceMixin):
     As ratings are integers, this should be scaled up to keep precision
     i.e. 47 could represent a score of 4.7/5 stars
     """
+
+    type = db.Column(db.Enum(PlatformType), nullable=False,
+                     default=PlatformType.INFO, server_default='INFO')
+
     base_score = db.Column(db.Integer, nullable=False, default=100)
 
     group = db.relationship('PlatformGroup',

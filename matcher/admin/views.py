@@ -6,6 +6,7 @@ from flask_admin.form import rules
 from flask_admin.model.template import macro, EndpointLinkRowAction
 from jinja2 import escape
 
+from ..app import db
 from ..scheme.object import ObjectLink, ExternalObject, ExternalObjectType
 from ..scheme.platform import Platform
 from ..scheme.value import Value, ValueType
@@ -69,12 +70,12 @@ class PlatformGroupView(DefaultView):
 class PlatformView(DefaultView):
     can_view_details = True
     can_export = True
-    column_list = ('id', 'group', 'name', 'slug', 'country', 'links')
+    column_list = ('id', 'type', 'group', 'name', 'slug', 'country', 'links')
     column_searchable_list = ['name', 'slug', 'country']
-    column_filters = ['country', 'group']
+    column_filters = ['type', 'country', 'group']
     column_editable_list = ['country', 'name', 'slug', 'group']
-    form_columns = ('group', 'name', 'slug', 'url', 'country', 'max_rating',
-                    'base_score')
+    form_columns = ('group', 'name', 'slug', 'url', 'country',
+                    'max_rating', 'base_score')
     column_formatters = {
         'links': count_formatter
     }
@@ -174,17 +175,17 @@ class ExternalObjectView(DefaultView):
         ExternalObjectPlatformFilter(
             column=Platform.country,
             name='Country',
-            options=lambda: [
+            options=[
                 (c, str(c).upper())
-                for c in set((p.country for p in Platform.query.all()))
+                for c in db.session.query(Platform.country).distinct()
             ]
         ),
         ExternalObjectPlatformFilter(
             column=Platform.slug,
             name='Platform',
-            options=lambda: [
+            options=[
                 (p.slug, p.name)
-                for p in Platform.query.all()
+                for p in db.session.query(Platform.slug, Platform.name)
             ]
         ),
     ]

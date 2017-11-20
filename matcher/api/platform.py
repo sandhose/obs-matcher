@@ -1,9 +1,10 @@
-import sqlalchemy.orm.exc
 import restless.exceptions
+import sqlalchemy.orm.exc
 from restless.preparers import CollectionSubPreparer, SubPreparer
 
 from ..app import db
-from ..scheme.platform import Platform, PlatformGroup, Scrap, ScrapStatus
+from ..scheme.platform import (Platform, PlatformGroup, PlatformType, Scrap,
+                               ScrapStatus)
 from .utils import AutoPreparer, CustomFlaskResource
 
 
@@ -112,6 +113,9 @@ class PlatformResource(CustomFlaskResource):
             self.data['group'] = None
         else:
             group = None
+
+        if 'type' in self.data:
+            self.data['type'] = PlatformType.from_name(self.data['type'])
 
         if 'slug' in self.data:
             self.data['id'] = db.session\
