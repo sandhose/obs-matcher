@@ -23,7 +23,7 @@ class ExternalObjectPlatformFilter(BaseFilter):
             filter(self.column == value)
 
     def operation(self):
-        return 'is'
+        return self.column.key
 
 
 class ExternalObjectSimilarFilter(BaseFilter):

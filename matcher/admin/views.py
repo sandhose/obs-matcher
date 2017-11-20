@@ -8,7 +8,7 @@ from jinja2 import escape
 
 from ..app import db
 from ..scheme.object import ObjectLink, ExternalObject, ExternalObjectType
-from ..scheme.platform import Platform
+from ..scheme.platform import Platform, PlatformType
 from ..scheme.value import Value, ValueType
 from .utils import CustomAdminConverter
 from .filters import ExternalObjectPlatformFilter, ExternalObjectSimilarFilter
@@ -74,7 +74,7 @@ class PlatformView(DefaultView):
     column_searchable_list = ['name', 'slug', 'country']
     column_filters = ['type', 'country', 'group']
     column_editable_list = ['country', 'name', 'slug', 'group']
-    form_columns = ('group', 'name', 'slug', 'url', 'country',
+    form_columns = ('type', 'group', 'name', 'slug', 'url', 'country',
                     'max_rating', 'base_score')
     column_formatters = {
         'links': count_formatter
@@ -82,6 +82,7 @@ class PlatformView(DefaultView):
 
     form_rules = [
         rules.FieldSet([
+            rules.Field('type'),
             rules.Field('group'),
             rules.Field('name'),
             rules.Field('country'),
@@ -174,11 +175,16 @@ class ExternalObjectView(DefaultView):
         ExternalObjectSimilarFilter(name='Similar'),
         ExternalObjectPlatformFilter(
             column=Platform.country,
-            name='Country',
+            name='Platform',
             options=[
-                (c, str(c).upper())
+                (c[0], str(c[0]).upper())
                 for c in db.session.query(Platform.country).distinct()
             ]
+        ),
+        ExternalObjectPlatformFilter(
+            column=Platform.type,
+            name='Platform',
+            options=[(t.name, t.name) for t in PlatformType]
         ),
         ExternalObjectPlatformFilter(
             column=Platform.slug,
