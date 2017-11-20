@@ -68,6 +68,7 @@ class PlatformGroupView(DefaultView):
 
 class PlatformView(DefaultView):
     can_view_details = True
+    can_export = True
     column_list = ('id', 'group', 'name', 'slug', 'country', 'links')
     column_searchable_list = ['name', 'slug', 'country']
     column_filters = ['country', 'group']
