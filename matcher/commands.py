@@ -53,12 +53,20 @@ def setup_cli(app):
     @app.cli.command()
     @click.option('--scrap', '-s', type=int)
     @click.option('--platform', '-p')
-    def match(scrap=None, platform=None):
+    @click.option('--offset', '-o', type=int)
+    @click.option('--limit', '-l', type=int)
+    def match(scrap=None, platform=None, offset=None, limit=None):
         from .scheme.platform import Scrap, Platform
+        from .scheme.object import ExternalObject
+
+        if offset is not None and limit is not None:
+            limit = offset + limit
 
         if platform is not None:
+
             p = Platform.lookup(platform)
-            p.match_objects()
+            objs = [l.external_object for l in p.links[offset:limit]]
+            ExternalObject.match_objects(objs)
             return
 
         if scrap is not None:
@@ -70,4 +78,5 @@ def setup_cli(app):
             click.echo("Scrap not found")
             sys.exit(1)
 
-        scrap.match_objects()
+        objs = [l.external_object for l in scrap.links[offset:limit]]
+        ExternalObject.match_objects(objs)

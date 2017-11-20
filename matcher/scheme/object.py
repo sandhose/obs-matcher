@@ -458,8 +458,6 @@ class ExternalObject(db.Model, ResourceMixin):
         from tqdm import tqdm
         from .. import app
 
-        candidates = set()
-
         def execute(obj):
             with app.app_context():
                 return obj.similar()
@@ -470,14 +468,13 @@ class ExternalObject(db.Model, ResourceMixin):
             for similar in it:
                 s = list(similar)
                 for (obj, into, score) in s:
-                    it.write("SIMILAR {} {} {}".format(obj, into, score))
-                candidates |= set(s)
+                    it.write("{}\t{}\t{}".format(obj, into, score))
 
-        candidates = sorted(candidates, key=attrgetter('score'), reverse=True)
+        # candidates = sorted(candidates, key=attrgetter('score'), reverse=True)
 
-        for candidate in candidates:
-            print('{score:6.2f}: {obj:6d} -> {into:6d}'
-                  .format(**candidate._asdict()))
+        # for candidate in candidates:
+        #     print('{score:6.2f}: {obj:6d} -> {into:6d}'
+        #           .format(**candidate._asdict()))
 
     def similar(self):
         """Find similar objects.
