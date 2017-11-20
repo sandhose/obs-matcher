@@ -123,8 +123,12 @@ def _normalize_attribute(type, values):
         values = [values]
 
     for value in values:
+        if value is None:
+            continue
+
         if isinstance(value, (str, int, float)):
             value = {'text': str(value), 'score_factor': 1}
+
         yield {'type': type, **value}
 
         # Try a formatted version of the attribute
