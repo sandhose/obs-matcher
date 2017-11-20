@@ -489,6 +489,7 @@ class ExternalObject(db.Model, ResourceMixin):
 
         """
 
+        db.session.execute('SELECT set_limit(0.6)')
         other_value = aliased(Value)
         matches = db.session.query(
             other_value.external_object_id,
@@ -497,7 +498,7 @@ class ExternalObject(db.Model, ResourceMixin):
             .join(Value, and_(
                 Value.type == ValueType.TITLE,
                 Value.external_object == self,
-                func.similarity(Value.text, other_value.text) > 0.8,
+                Value.text % other_value.text,
             ))\
             .join(other_value.external_object)\
             .filter(ExternalObject.type == self.type)\
