@@ -153,15 +153,14 @@ class ExternalObjectView(DefaultView):
     column_formatters = {
         'name': attribute_formatter(partial(eq, ValueType.NAME)),
         'title': attribute_formatter(partial(eq, ValueType.TITLE)),
-        'date': attribute_formatter(partial(eq, ValueType.DATE)),
+        'date': attribute_formatter(partial(eq, ValueType.DATE),
+                                    filter=lambda t: len(t) == 4),
         'genres': attribute_formatter(partial(eq, ValueType.GENRES)),
         'country': attribute_formatter(partial(eq, ValueType.COUNTRY),
                                        filter=lambda t: len(t) == 2),
         'duration': attribute_formatter(partial(eq, ValueType.DURATION),
                                         filter=lambda t: t.replace('.', '')
                                                           .isdigit()),
-        'year': attribute_formatter(partial(eq, ValueType.DATE),
-                                    filter=lambda t: len(t) == 4),
         'attributes': attribute_formatter(show_score=True),
         'attributes_list': macro('attributes_list'),
         'links_list': macro('links_list'),
