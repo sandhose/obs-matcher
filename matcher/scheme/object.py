@@ -13,6 +13,7 @@ import collections
 import itertools
 import math
 import re
+from tqdm import tqdm
 from operator import attrgetter, itemgetter
 
 from sqlalchemy import (Boolean, Column, Enum, ForeignKey, Integer,
@@ -432,6 +433,9 @@ class ExternalObject(db.Model, ResourceMixin):
                     our_source.value = their_attr
                     # their_attr.sources.append(our_source)
 
+        for role in list(Role.query.filter(Role.external_object == self)):
+            role.external_object = their
+
     def merge_and_delete(self, their, session):
         """Merge into another ExternalObject, and delete the old one.
 
@@ -455,7 +459,6 @@ class ExternalObject(db.Model, ResourceMixin):
     @classmethod
     def match_objects(cls, objects):
         from concurrent.futures import ThreadPoolExecutor
-        from tqdm import tqdm
         from .. import app
 
         def execute(obj):
@@ -475,6 +478,35 @@ class ExternalObject(db.Model, ResourceMixin):
         # for candidate in candidates:
         #     print('{score:6.2f}: {obj:6d} -> {into:6d}'
         #           .format(**candidate._asdict()))
+
+    @classmethod
+    def merge_candidates(cls, candidates):
+        merged = set()
+        excluded = set()
+
+        it = tqdm(candidates)
+        for candidate in it:
+            if candidate.obj in merged or candidate.into in excluded:
+                continue
+
+            src = cls.query.get(candidate.obj)
+            dest = cls.query.get(candidate.into)
+
+            # TODO: merge chains?
+            if src is None:
+                merged.add(candidate.obj)
+                continue
+
+            if dest is None:
+                merged.add(candidate.into)
+                continue
+
+            try:
+                src.merge_and_delete(dest, db.session)
+                db.session.commit()
+                it.write('Merged {} into {}'.format(src, dest))
+            except Exception as e:
+                it.write(str(e))
 
     def similar(self):
         """Find similar objects.

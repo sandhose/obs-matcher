@@ -1,6 +1,6 @@
 import sys
 import click
-from operator import itemgetter
+from operator import itemgetter, attrgetter
 
 from flask import url_for
 
@@ -80,3 +80,31 @@ def setup_cli(app):
 
         objs = [l.external_object for l in scrap.links[offset:limit]]
         ExternalObject.match_objects(objs)
+
+    @app.cli.command()
+    @click.option('--threshold', '-t', prompt=True, type=float)
+    @click.option('--invert', '-i', is_flag=True)
+    @click.argument('input', type=click.File('r'))
+    def merge(threshold, invert, input):
+        from .scheme.object import MergeCandidate, ExternalObject
+        lines = input.readlines()
+
+        candidates = []
+
+        for line in lines:
+            src, dest, score = line.split('\t')
+            if invert:
+                src, dest = dest, src
+
+            candidate = MergeCandidate(obj=int(src), into=int(dest),
+                                       score=float(score))
+            if candidate.score >= threshold:
+                candidates.append(candidate)
+
+        candidates = sorted(candidates, key=attrgetter('score'), reverse=True)
+
+        for c in candidates:
+            print(c)
+
+        if click.confirm('Merge?'):
+            ExternalObject.merge_candidates(candidates)
