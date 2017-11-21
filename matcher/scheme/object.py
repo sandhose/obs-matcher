@@ -30,7 +30,7 @@ from ..exceptions import (AmbiguousLinkError, ExternalIDMismatchError,
                           ObjectTypeMismatchError, UnknownAttribute,
                           UnknownRelation)
 from .mixins import ResourceMixin
-from .platform import Platform
+from .platform import Platform, PlatformType
 from .utils import CustomEnum
 from .value import Value, ValueSource, ValueType
 
@@ -405,7 +405,12 @@ class ExternalObject(db.Model, ResourceMixin):
         their_platforms = set(map(attrgetter('platform'), their.links))
 
         # The two objects should not have links to the same platform
-        if our_platforms & their_platforms:
+        if [p
+            for p in (our_platforms & their_platforms)
+            if [l
+                for l in p.links
+                if l.platform.type != PlatformType.GLOBAL
+                ]]:
             raise LinksOverlap(self, their)
 
         # First merge the links
