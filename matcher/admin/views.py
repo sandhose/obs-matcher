@@ -42,11 +42,12 @@ def link_formatter(route):
     return formatter
 
 
-def attribute_formatter(f=lambda _: True, show_score=False):
+def attribute_formatter(f=lambda _: True, show_score=False,
+                        filter=lambda _: True):
     def formatter(view, context, model, name):
         m = context.resolve('attributes_link')
         attrs = [attr for attr in model.attributes
-                 if f(attr.type)]
+                 if f(attr.type) and filter(attr.text)]
         return m(attributes=attrs, show_score=show_score)
     return formatter
 
@@ -154,8 +155,13 @@ class ExternalObjectView(DefaultView):
         'title': attribute_formatter(partial(eq, ValueType.TITLE)),
         'date': attribute_formatter(partial(eq, ValueType.DATE)),
         'genres': attribute_formatter(partial(eq, ValueType.GENRES)),
-        'country': attribute_formatter(partial(eq, ValueType.COUNTRY)),
-        'duration': attribute_formatter(partial(eq, ValueType.DURATION)),
+        'country': attribute_formatter(partial(eq, ValueType.COUNTRY),
+                                       filter=lambda t: len(t) == 2),
+        'duration': attribute_formatter(partial(eq, ValueType.DURATION),
+                                        filter=lambda t: t.replace('.', '')
+                                                          .isdigit()),
+        'year': attribute_formatter(partial(eq, ValueType.DATE),
+                                    filter=lambda t: len(t) == 4),
         'attributes': attribute_formatter(show_score=True),
         'attributes_list': macro('attributes_list'),
         'links_list': macro('links_list'),
@@ -221,4 +227,5 @@ class PersonObjectView(ExternalObjectView):
 
 class MovieObjectView(ExternalObjectView):
     external_object_type = ExternalObjectType.MOVIE
-    column_list = ('id', 'title', 'genres', 'duration', 'country', 'links')
+    column_list = ('id', 'title', 'date', 'genres', 'duration', 'country',
+                   'links')

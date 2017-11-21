@@ -75,7 +75,9 @@
 
 {% macro attributes_link(attributes, show_score=False) %}
   {% for attribute in attributes|sort(attribute='score', reverse=True)|sort(attribute='type.value')  -%}
-    <a href="{{ url_for('value.details_view', id=attribute.id) }}">
+    <a href="{{ url_for('value.details_view', id=attribute.id) }}"
+      {% if attribute.score > 100000 -%} style="font-weight: bold;" {% endif -%}
+    >
       {{- attribute.text -}}
     </a>
     {%- if show_score %}
