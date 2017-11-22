@@ -1,7 +1,7 @@
 import sys
-import click
-from operator import itemgetter, attrgetter
+from operator import attrgetter, itemgetter
 
+import click
 from flask import url_for
 
 
@@ -108,3 +108,66 @@ def setup_cli(app):
 
         if click.confirm('Merge?'):
             ExternalObject.merge_candidates(candidates)
+
+    @app.cli.command()
+    @click.option('--offset', '-o', type=int)
+    @click.option('--limit', '-l', type=int)
+    def export(offset=None, limit=None):
+        import csv
+        import sys
+        from .scheme.object import ExternalObject, ObjectLink, \
+            ExternalObjectType
+        from .scheme.platform import Platform
+        from .scheme.value import Value, ValueType
+        from .app import db
+
+        if offset is not None and limit is not None:
+            limit = offset + limit
+
+        fieldnames = ['id', 'imdb', 'titles', 'countries', 'date', 'duration']
+        writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames)
+
+        imdb = Platform.query.filter(Platform.slug == 'imdb').one()
+        for e in ExternalObject.query.\
+                filter(ExternalObject.type == ExternalObjectType.MOVIE).\
+                order_by(ExternalObject.id)[offset:limit]:
+            imdb_id = db.session.query(ObjectLink.external_id).\
+                filter(ObjectLink.platform == imdb).\
+                filter(ObjectLink.external_object == e).\
+                limit(1).\
+                scalar()
+
+            titles = db.session.query(Value.text).\
+                filter(Value.external_object == e).\
+                filter(Value.type == ValueType.TITLE).\
+                all()
+            titles = [t[0] for t in titles]
+
+            countries = db.session.query(Value.text).\
+                filter(Value.external_object == e).\
+                filter(Value.type == ValueType.COUNTRY).\
+                all()
+
+            countries = [c[0] for c in countries if len(c[0]) == 2]
+
+            duration = db.session.query(Value.text).\
+                filter(Value.external_object == e).\
+                filter(Value.type == ValueType.DURATION).\
+                limit(1).\
+                scalar()
+
+            dates = db.session.query(Value.text).\
+                filter(Value.external_object == e).\
+                filter(Value.type == ValueType.DATE).\
+                all()
+            date = next((d[0] for d in dates if len(d[0]) == 4), None)
+
+            for title in titles:
+                writer.writerow(dict(
+                    id=e.id,
+                    imdb=imdb_id or '',
+                    titles=title,
+                    countries=','.join(countries),
+                    date=date or '',
+                    duration=duration or '',
+                ))
