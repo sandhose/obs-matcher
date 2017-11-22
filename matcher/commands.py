@@ -53,19 +53,30 @@ def setup_cli(app):
     @app.cli.command()
     @click.option('--scrap', '-s', type=int)
     @click.option('--platform', '-p')
+    @click.option('--exclude', '-e')
     @click.option('--offset', '-o', type=int)
     @click.option('--limit', '-l', type=int)
-    def match(scrap=None, platform=None, offset=None, limit=None):
+    def match(scrap=None, platform=None, exclude=None, offset=None, limit=None):
         from .scheme.platform import Scrap, Platform
-        from .scheme.object import ExternalObject
+        from .scheme.object import ExternalObject, ObjectLink
+        from .app import db
 
         if offset is not None and limit is not None:
             limit = offset + limit
 
         if platform is not None:
-
             p = Platform.lookup(platform)
-            objs = [l.external_object for l in p.links[offset:limit]]
+
+            q = ObjectLink.query.filter(ObjectLink.platform == p)
+
+            if exclude:
+                e = Platform.lookup(exclude)
+                q = q.filter(~ObjectLink.id.in_(
+                    db.session.query(ObjectLink.id)
+                    .filter(ObjectLink.platform == e)
+                ))
+
+            objs = [l.external_object for l in q[offset:limit]]
             ExternalObject.match_objects(objs)
             return
 
