@@ -43,10 +43,12 @@ def link_formatter(route):
 
 
 def attribute_formatter(f=lambda _: True, show_score=False,
-                        filter=lambda _: True):
+                        filter=lambda _: True, limit=None):
     def formatter(view, context, model, name):
         attrs = [attr for attr in model.attributes
                  if f(attr.type) and filter(attr.text)]
+        if limit is not None:
+            attrs = attrs[:limit]
 
         if context is None:
             return ','.join((attr.text for attr in attrs))
@@ -159,12 +161,14 @@ class ExternalObjectView(DefaultView):
         'title': attribute_formatter(partial(eq, ValueType.TITLE)),
         'date': attribute_formatter(partial(eq, ValueType.DATE),
                                     filter=lambda t: len(t) == 4),
-        'genres': attribute_formatter(partial(eq, ValueType.GENRES)),
+        'genres': attribute_formatter(partial(eq, ValueType.GENRES),
+                                      limit=3),
         'country': attribute_formatter(partial(eq, ValueType.COUNTRY),
                                        filter=lambda t: len(t) == 2),
         'duration': attribute_formatter(partial(eq, ValueType.DURATION),
                                         filter=lambda t: t.replace('.', '')
-                                                          .isdigit()),
+                                                          .isdigit(),
+                                        limit=1),
         'attributes': attribute_formatter(show_score=True),
         'attributes_list': macro('attributes_list'),
         'links_list': macro('links_list'),
