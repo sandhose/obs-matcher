@@ -20,7 +20,7 @@ class ExternalObjectPlatformFilter(BaseFilter):
 
         if self.invert:
             return query.filter(
-                ObjectLink.query
+                ~ObjectLink.query
                 .join(ObjectLink.platform)
                 .filter(self.column == value)
                 .filter(ObjectLink.external_object_id == ExternalObject.id)
