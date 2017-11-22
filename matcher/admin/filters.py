@@ -7,23 +7,34 @@ import json
 
 
 class ExternalObjectPlatformFilter(BaseFilter):
-    def __init__(self, column, name, options=None, data_type=None):
+    def __init__(self, column, name, invert=False, options=None,
+                 data_type=None):
         super(ExternalObjectPlatformFilter, self).__init__(name, options,
                                                            data_type)
         self.column = column
+        self.invert = invert
 
     def apply(self, query, value, alias=None):
         from ..scheme.object import ObjectLink, ExternalObject
         from ..scheme.platform import Platform
 
-        return query.\
-            join(ObjectLink,
-                 ExternalObject.id == ObjectLink.external_object_id).\
-            join(Platform, ObjectLink.platform_id == Platform.id).\
-            filter(self.column == value)
+        if self.invert:
+            return query.filter(
+                ObjectLink.query
+                .join(ObjectLink.platform)
+                .filter(self.column == value)
+                .filter(ObjectLink.external_object_id == ExternalObject.id)
+                .exists()
+            )
+        else:
+            return query.\
+                join(ObjectLink,
+                     ExternalObject.id == ObjectLink.external_object_id).\
+                join(Platform, ObjectLink.platform_id == Platform.id).\
+                filter(self.column == value)
 
     def operation(self):
-        return self.column.key
+        return 'not ' + self.column.key if self.invert else self.column.key
 
 
 class ExternalObjectSimilarFilter(BaseFilter):

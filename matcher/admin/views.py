@@ -45,9 +45,13 @@ def link_formatter(route):
 def attribute_formatter(f=lambda _: True, show_score=False,
                         filter=lambda _: True):
     def formatter(view, context, model, name):
-        m = context.resolve('attributes_link')
         attrs = [attr for attr in model.attributes
                  if f(attr.type) and filter(attr.text)]
+
+        if context is None:
+            return ','.join((attr.text for attr in attrs))
+
+        m = context.resolve('attributes_link')
         return m(attributes=attrs, show_score=show_score)
     return formatter
 
@@ -193,6 +197,15 @@ class ExternalObjectView(DefaultView):
         ),
         ExternalObjectPlatformFilter(
             column=Platform.slug,
+            name='Platform',
+            options=[
+                (p.slug, p.name)
+                for p in db.session.query(Platform.slug, Platform.name)
+            ]
+        ),
+        ExternalObjectPlatformFilter(
+            column=Platform.slug,
+            invert=True,
             name='Platform',
             options=[
                 (p.slug, p.name)
