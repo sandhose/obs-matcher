@@ -71,8 +71,8 @@ def setup_cli(app):
 
             if exclude:
                 e = Platform.lookup(exclude)
-                q = q.filter(~ObjectLink.id.in_(
-                    db.session.query(ObjectLink.id)
+                q = q.filter(~ObjectLink.external_object_id.in_(
+                    db.session.query(ObjectLink.external_object_id)
                     .filter(ObjectLink.platform == e)
                 ))
 
