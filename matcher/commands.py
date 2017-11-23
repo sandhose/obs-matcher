@@ -181,7 +181,7 @@ def setup_cli(app):
         fieldnames = ['id', 'imdb', 'titles', 'countries', 'date', 'duration']
         writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames)
 
-        ignore = [Platform.lookup(i) for i in ignore]
+        ignore = [Platform.lookup(i).id for i in ignore]
 
         imdb = Platform.query.filter(Platform.slug == 'imdb').one()
         for e in ExternalObject.query.\
@@ -189,7 +189,7 @@ def setup_cli(app):
                 order_by(ExternalObject.id)[offset:limit]:
 
             if not ObjectLink.query.filter(ObjectLink.external_object == e).\
-               filter(~ObjectLink.platform.in_(ignore)).\
+               filter(~ObjectLink.platform_id.in_(ignore)).\
                exists():
                 continue
 
