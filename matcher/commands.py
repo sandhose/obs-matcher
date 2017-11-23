@@ -120,6 +120,48 @@ def setup_cli(app):
         if click.confirm('Merge?'):
             ExternalObject.merge_candidates(candidates)
 
+    @app.cli.command('import')
+    @click.option('--platform', '-p', prompt=True)
+    @click.argument('input', type=click.File('r'))
+    def import_ids(platform, input):
+        import csv
+        from tqdm import tqdm
+        from .app import db
+        from .scheme.object import ExternalObject, ObjectLink
+        from .scheme.platform import Platform
+
+        rows = csv.reader(input, delimiter=',')
+        p = Platform.lookup(platform)
+
+        it = tqdm(rows)
+        for row in it:
+            id = row[0]
+            external_id = row[1]
+
+            obj = ExternalObject.query.get(id)
+
+            if obj is None:
+                it.write('SKIP {} {}'.format(id, external_id))
+                continue
+
+            link = ObjectLink.query.\
+                filter(ObjectLink.external_id == external_id).first()
+            if link is None:
+                it.write('LINK {} {}'.format(id, external_id))
+                obj.links.append(ObjectLink(external_object=obj,
+                                            platform=p,
+                                            external_id=external_id))
+            elif link.external_object != obj:
+                it.write('MERGE {} {}'.format(id, external_id))
+                try:
+                    obj.merge_and_delete(link.external_object, db.session)
+                except Exception as e:
+                    it.write(str(e))
+            else:
+                it.write('ALREADY MERGED {} {}'.format(id, external_id))
+
+            db.session.commit()
+
     @app.cli.command()
     @click.option('--offset', '-o', type=int)
     @click.option('--limit', '-l', type=int)
