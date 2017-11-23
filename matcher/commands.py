@@ -58,38 +58,43 @@ def setup_cli(app):
     @click.option('--limit', '-l', type=int)
     def match(scrap=None, platform=None, exclude=None, offset=None, limit=None):
         from .scheme.platform import Scrap, Platform
-        from .scheme.object import ExternalObject, ObjectLink
+        from .scheme.object import ExternalObject, ExternalObjectType, \
+            ObjectLink, scrap_link
         from .app import db
 
         if offset is not None and limit is not None:
             limit = offset + limit
 
-        if platform is not None:
+        q = ObjectLink.query.\
+            join(ObjectLink.external_object).\
+            filter(ExternalObject.type == ExternalObjectType.MOVIE)
+
+        if platform:
             p = Platform.lookup(platform)
-
-            q = ObjectLink.query.filter(ObjectLink.platform == p)
-
-            if exclude:
-                e = Platform.lookup(exclude)
-                q = q.filter(~ObjectLink.external_object_id.in_(
-                    db.session.query(ObjectLink.external_object_id)
-                    .filter(ObjectLink.platform == e)
-                ))
-
-            objs = [l.external_object for l in q[offset:limit]]
-            ExternalObject.match_objects(objs)
-            return
-
-        if scrap is not None:
-            scrap = Scrap.query.filter(Scrap.id == scrap).first()
+            q = q.filter(ObjectLink.platform == p)
         else:
-            scrap = Scrap.query.order_by(Scrap.id.desc()).first()
+            if scrap is not None:
+                scrap = Scrap.query.filter(Scrap.id == scrap).first()
+            else:
+                scrap = Scrap.query.order_by(Scrap.id.desc()).first()
 
-        if scrap is None:
-            click.echo("Scrap not found")
-            sys.exit(1)
+            if scrap is None:
+                click.echo("Scrap not found")
+                sys.exit(1)
 
-        objs = [l.external_object for l in scrap.links[offset:limit]]
+            q = q.filter(ObjectLink.id.in_(
+                db.session.query(scrap_link.c.object_link_id).
+                filter(scrap_link.c.scrap_id == 1)
+            ))
+
+        if exclude:
+            e = Platform.lookup(exclude)
+            q = q.filter(~ObjectLink.external_object_id.in_(
+                db.session.query(ObjectLink.external_object_id)
+                .filter(ObjectLink.platform == e)
+            ))
+
+        objs = [l.external_object for l in q[offset:limit]]
         ExternalObject.match_objects(objs)
 
     @app.cli.command()

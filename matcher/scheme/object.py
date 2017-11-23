@@ -523,11 +523,6 @@ class ExternalObject(db.Model, ResourceMixin):
 
         """
 
-        platforms = [link.platform_id for link in self.links]
-        exclude_list = db.session.query(ObjectLink.external_object_id)\
-            .filter(ObjectLink.platform_id.in_(platforms))\
-            .group_by(ObjectLink.external_object_id)
-
         # FIXME: use other_value aliased name instead of value_1
         db.session.execute('SELECT set_limit(0.6)')
         other_value = aliased(Value)
@@ -542,15 +537,12 @@ class ExternalObject(db.Model, ResourceMixin):
             ))\
             .join(other_value.external_object)\
             .filter(ExternalObject.type == self.type)\
-            .filter('NOT value_1.id = ANY(ARRAY({}))'.format(str(
-                exclude_list.statement.compile(
-                    compile_kwargs={"literal_binds": True})))
-                    )\
             .filter(other_value.type == ValueType.TITLE)\
             .group_by(other_value.external_object_id)
 
         def links_overlap(a, b):
-            return set([l.platform for l in a]) & set([l.platform for l in b])
+            platforms = set([l.platform for l in a]) & set([l.platform for l in b])
+            return [p for p in platforms if p.type != PlatformType.GLOBAL]
 
         objects = [
             MergeCandidate(obj=self.id,
