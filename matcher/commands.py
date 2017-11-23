@@ -84,7 +84,7 @@ def setup_cli(app):
 
             q = q.filter(ObjectLink.id.in_(
                 db.session.query(scrap_link.c.object_link_id).
-                filter(scrap_link.c.scrap_id == 1)
+                filter(scrap_link.c.scrap_id == scrap.id)
             ))
 
         if exclude:
