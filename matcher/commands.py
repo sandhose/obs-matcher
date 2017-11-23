@@ -165,7 +165,8 @@ def setup_cli(app):
     @app.cli.command()
     @click.option('--offset', '-o', type=int)
     @click.option('--limit', '-l', type=int)
-    def export(offset=None, limit=None):
+    @click.option('--ignore', '-i', type=int, multiple=True)
+    def export(offset=None, limit=None, ignore=[]):
         import csv
         import sys
         from .scheme.object import ExternalObject, ObjectLink, \
@@ -180,10 +181,18 @@ def setup_cli(app):
         fieldnames = ['id', 'imdb', 'titles', 'countries', 'date', 'duration']
         writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames)
 
+        ignore = [Platform.lookup(i) for i in ignore]
+
         imdb = Platform.query.filter(Platform.slug == 'imdb').one()
         for e in ExternalObject.query.\
                 filter(ExternalObject.type == ExternalObjectType.MOVIE).\
                 order_by(ExternalObject.id)[offset:limit]:
+
+            if not ObjectLink.query.filter(ObjectLink.external_object == e).\
+               filter(~ObjectLink.platform.in_(ignore)).\
+               exists():
+                continue
+
             imdb_id = db.session.query(ObjectLink.external_id).\
                 filter(ObjectLink.platform == imdb).\
                 filter(ObjectLink.external_object == e).\
