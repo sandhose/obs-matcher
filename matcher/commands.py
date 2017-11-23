@@ -188,9 +188,10 @@ def setup_cli(app):
                 filter(ExternalObject.type == ExternalObjectType.MOVIE).\
                 order_by(ExternalObject.id)[offset:limit]:
 
-            if not ObjectLink.query.filter(ObjectLink.external_object == e).\
+            if ObjectLink.query.\
+               filter(ObjectLink.external_object == e).\
                filter(~ObjectLink.platform_id.in_(ignore)).\
-               exists():
+               count() == 0:
                 continue
 
             imdb_id = db.session.query(ObjectLink.external_id).\
