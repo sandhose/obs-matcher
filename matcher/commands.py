@@ -165,7 +165,7 @@ def setup_cli(app):
     @app.cli.command()
     @click.option('--offset', '-o', type=int)
     @click.option('--limit', '-l', type=int)
-    @click.option('--ignore', '-i', type=int, multiple=True)
+    @click.option('--ignore', '-i', multiple=True)
     def export(offset=None, limit=None, ignore=[]):
         import csv
         import sys
