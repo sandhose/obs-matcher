@@ -151,34 +151,39 @@ def setup_cli(app):
             titles = db.session.query(Value.text).\
                 filter(Value.external_object == e).\
                 filter(Value.type == ValueType.TITLE).\
+                order_by(Value.score.desc()).\
                 all()
-            titles = [t[0] for t in titles]
+            title = next((t[0] for t in titles), None)
 
             countries = db.session.query(Value.text).\
                 filter(Value.external_object == e).\
                 filter(Value.type == ValueType.COUNTRY).\
+                order_by(Value.score.desc()).\
                 all()
 
             countries = [c[0] for c in countries if len(c[0]) == 2]
 
-            duration = db.session.query(Value.text).\
+            durations = db.session.query(Value.text).\
                 filter(Value.external_object == e).\
                 filter(Value.type == ValueType.DURATION).\
-                limit(1).\
-                scalar()
+                order_by(Value.score.desc()).\
+                all()
+
+            duration = next((d[0] for d in durations
+                             if d[0].replace('.', '').isdigit()), None)
 
             dates = db.session.query(Value.text).\
                 filter(Value.external_object == e).\
                 filter(Value.type == ValueType.DATE).\
+                order_by(Value.score.desc()).\
                 all()
             date = next((d[0] for d in dates if len(d[0]) == 4), None)
 
-            for title in titles:
-                writer.writerow(dict(
-                    id=e.id,
-                    imdb=imdb_id or '',
-                    titles=title,
-                    countries=','.join(countries),
-                    date=date or '',
-                    duration=duration or '',
-                ))
+            writer.writerow(dict(
+                id=e.id,
+                imdb=imdb_id or '',
+                titles=title,
+                countries=','.join(countries),
+                date=date or '',
+                duration=duration or '',
+            ))
