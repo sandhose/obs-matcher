@@ -434,8 +434,12 @@ class ExternalObject(db.Model, ResourceMixin):
                 # moving because the platforms on their side are *in theory*
                 # not the same as ours.
                 # We might wanna check for this.
-                for our_source in our_attr.sources:
-                    our_source.value = their_attr
+                for our_source in list(our_attr.sources):
+                    if [s for s in their_attr.sources
+                            if s.platform == our_source.platform]:
+                        db.session.delete(our_source)
+                    else:
+                        our_source.value = their_attr
                     # their_attr.sources.append(our_source)
 
         for role in list(Role.query.filter(Role.external_object == self)):
