@@ -174,6 +174,7 @@ def setup_cli(app):
     def export(offset=None, limit=None, ignore=[]):
         import csv
         import sys
+        from tqdm import tqdm
         from .scheme.object import ExternalObject, ObjectLink, \
             ExternalObjectType
         from .scheme.platform import Platform
@@ -183,22 +184,21 @@ def setup_cli(app):
         if offset is not None and limit is not None:
             limit = offset + limit
 
+        ignore = [Platform.lookup(i).id for i in ignore]
+        include_list = db.session.query(ObjectLink.external_object_id).\
+            filter(~ObjectLink.platform_id.in_(ignore))
+
+        it = ExternalObject.query.\
+            filter(ExternalObject.type == ExternalObjectType.MOVIE).\
+            filter(ExternalObject.id.in_(include_list)).\
+            order_by(ExternalObject.id)[offset:limit]
+        it = tqdm(it)
+
         fieldnames = ['id', 'imdb', 'titles', 'countries', 'date', 'duration']
         writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames)
 
-        ignore = [Platform.lookup(i).id for i in ignore]
-
         imdb = Platform.query.filter(Platform.slug == 'imdb').one()
-        for e in ExternalObject.query.\
-                filter(ExternalObject.type == ExternalObjectType.MOVIE).\
-                order_by(ExternalObject.id)[offset:limit]:
-
-            if ObjectLink.query.\
-               filter(ObjectLink.external_object == e).\
-               filter(~ObjectLink.platform_id.in_(ignore)).\
-               count() == 0:
-                continue
-
+        for e in it:
             imdb_id = db.session.query(ObjectLink.external_id).\
                 filter(ObjectLink.platform == imdb).\
                 filter(ObjectLink.external_object == e).\
