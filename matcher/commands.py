@@ -176,7 +176,7 @@ def setup_cli(app):
         import sys
         from tqdm import tqdm
         from .scheme.object import ExternalObject, ObjectLink, \
-            ExternalObjectType
+            ExternalObjectType, Role, RoleType
         from .scheme.platform import Platform
         from .scheme.value import Value, ValueType
         from .app import db
@@ -194,7 +194,8 @@ def setup_cli(app):
             order_by(ExternalObject.id)[offset:limit]
         it = tqdm(it)
 
-        fieldnames = ['id', 'imdb', 'titles', 'countries', 'date', 'duration']
+        fieldnames = ['id', 'imdb', 'titles', 'countries', 'date', 'genres',
+                      'duration', 'directors', 'links']
         writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames)
 
         imdb = Platform.query.filter(Platform.slug == 'imdb').one()
@@ -210,7 +211,7 @@ def setup_cli(app):
                 filter(Value.type == ValueType.TITLE).\
                 order_by(Value.score.desc()).\
                 all()
-            title = next((t[0] for t in titles), None)
+            titles = [t[0] for t in titles]
 
             countries = db.session.query(Value.text).\
                 filter(Value.external_object == e).\
@@ -219,6 +220,13 @@ def setup_cli(app):
                 all()
 
             countries = [c[0] for c in countries if len(c[0]) == 2]
+
+            genres = db.session.query(Value.text).\
+                filter(Value.external_object == e).\
+                filter(Value.type == ValueType.GENRES).\
+                order_by(Value.score.desc()).\
+                all()
+            genres = [g[0] for g in genres]
 
             durations = db.session.query(Value.text).\
                 filter(Value.external_object == e).\
@@ -236,11 +244,24 @@ def setup_cli(app):
                 all()
             date = next((d[0] for d in dates if len(d[0]) == 4), None)
 
+            directors = db.session.query(Value.text).\
+                join(Role, Role.person_id == Value.external_object_id).\
+                filter(Role.external_object_id == e.id).\
+                filter(Role.role == RoleType.DIRECTOR).\
+                filter(Value.type == ValueType.NAME)
+
+            directors = set([d[0].title() for d in directors])
+
+            links = len(e.links)
+
             writer.writerow(dict(
                 id=e.id,
                 imdb=imdb_id or '',
-                titles=title,
+                titles='|||'.join(titles),
+                genres=','.join(genres),
                 countries=','.join(countries),
                 date=date or '',
                 duration=duration or '',
+                directors=','.join(directors),
+                links=links,
             ))
