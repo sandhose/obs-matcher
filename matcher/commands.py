@@ -170,36 +170,74 @@ def setup_cli(app):
     @app.cli.command()
     @click.option('--offset', '-o', type=int)
     @click.option('--limit', '-l', type=int)
+    @click.option('--platform', '-p', multiple=True)
+    @click.option('--type', '-t')
     @click.option('--ignore', '-i', multiple=True)
-    def export(offset=None, limit=None, ignore=[]):
+    @click.option('--progress/--no-progress', default=True)
+    @click.option('--explode/--no-explode', default=False)
+    @click.option('--with-country/--no-with-country', default=False)
+    def export(offset=None, limit=None, platform=[], type=None, ignore=[],
+               progress=True, explode=False, with_country=False):
         import csv
         import sys
         from tqdm import tqdm
         from .scheme.object import ExternalObject, ObjectLink, \
             ExternalObjectType, Role, RoleType
-        from .scheme.platform import Platform
+        from .scheme.platform import Platform, PlatformType
         from .scheme.value import Value, ValueType
         from .app import db
 
         if offset is not None and limit is not None:
             limit = offset + limit
 
+        include_list = db.session.query(ObjectLink.external_object_id)
         ignore = [Platform.lookup(i).id for i in ignore]
-        include_list = db.session.query(ObjectLink.external_object_id).\
-            filter(~ObjectLink.platform_id.in_(ignore))
+        platform = [Platform.lookup(i).id for i in platform]
+
+        if type:
+            platform = Platform.query.\
+                filter(Platform.type == PlatformType.from_name(type))
+            platform = [p.id for p in platform]
+
+        if platform:
+            include_list = include_list.\
+                filter(ObjectLink.platform_id.in_(platform))
+
+        if ignore:
+            include_list = include_list.\
+                filter(~ObjectLink.platform_id.in_(ignore))
 
         it = ExternalObject.query.\
             filter(ExternalObject.type == ExternalObjectType.MOVIE).\
             filter(ExternalObject.id.in_(include_list)).\
             order_by(ExternalObject.id)[offset:limit]
-        it = tqdm(it)
 
-        fieldnames = ['id', 'imdb', 'titles', 'countries', 'date', 'genres',
-                      'duration', 'directors', 'links']
+        if progress:
+            it = tqdm(it)
+
+        fieldnames = ['id', 'imdb', 'titles', 'date', 'genres',
+                      'duration', 'directors', 'links',
+                      'country1', 'country2', 'country3', 'countrymore']
+
+        if explode:
+            fieldnames += ['platform', 'external_id']
         writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames)
+        writer.writeheader()
 
         imdb = Platform.query.filter(Platform.slug == 'imdb').one()
         for e in it:
+            countries = db.session.query(Value.text).\
+                filter(Value.external_object == e).\
+                filter(Value.type == ValueType.COUNTRY).\
+                order_by(Value.score.desc()).\
+                all()
+
+            countries = [c[0] for c in countries if len(c[0]) == 2]
+            [c1, c2, c3, *cmore] = countries + ([None] * 4)
+
+            if not c1 and with_country:
+                continue
+
             imdb_id = db.session.query(ObjectLink.external_id).\
                 filter(ObjectLink.platform == imdb).\
                 filter(ObjectLink.external_object == e).\
@@ -212,14 +250,6 @@ def setup_cli(app):
                 order_by(Value.score.desc()).\
                 all()
             titles = [t[0] for t in titles]
-
-            countries = db.session.query(Value.text).\
-                filter(Value.external_object == e).\
-                filter(Value.type == ValueType.COUNTRY).\
-                order_by(Value.score.desc()).\
-                all()
-
-            countries = [c[0] for c in countries if len(c[0]) == 2]
 
             genres = db.session.query(Value.text).\
                 filter(Value.external_object == e).\
@@ -254,14 +284,29 @@ def setup_cli(app):
 
             links = len(e.links)
 
-            writer.writerow(dict(
+            data = dict(
                 id=e.id,
                 imdb=imdb_id or '',
                 titles='|||'.join(titles),
                 genres=','.join(genres),
-                countries=','.join(countries),
                 date=date or '',
                 duration=duration or '',
                 directors=','.join(directors),
                 links=links,
-            ))
+                country1=c1,
+                country2=c2,
+                country3=c3,
+                countrymore=','.join([c for c in cmore if c]),
+            )
+
+            if explode:
+                for link in e.links:
+                    if link.platform_id in platform \
+                            and link.platform_id not in ignore:
+                        writer.writerow({
+                            'platform': link.platform.slug,
+                            'external_id': link.external_id,
+                            **data
+                        })
+            else:
+                writer.writerow(data)
