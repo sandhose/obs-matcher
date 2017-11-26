@@ -75,6 +75,7 @@ class PlatformGroupView(DefaultView):
 
 
 class PlatformView(DefaultView):
+    column_default_sort = 'id'
     can_view_details = True
     can_export = True
     column_list = ('id', 'type', 'group', 'name', 'slug', 'country', 'links')
