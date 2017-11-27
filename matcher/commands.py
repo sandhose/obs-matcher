@@ -184,7 +184,7 @@ def setup_cli(app):
         rows = csv.reader(input, delimiter=',')
 
         if has_header:
-            rows = rows[1:]
+            rows.__next__()
 
         p = Platform.lookup(platform)
 
