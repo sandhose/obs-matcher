@@ -135,7 +135,13 @@ def setup_cli(app):
         from .scheme.object import ExternalObject, ObjectLink
         from .scheme.platform import Platform
 
+        has_header = csv.Sniffer().has_header(input.read(1024))
+        input.seek(0)
         rows = csv.reader(input, delimiter=',')
+
+        if has_header:
+            rows.__next__()
+
         p = Platform.lookup(platform)
 
         it = tqdm(rows)
