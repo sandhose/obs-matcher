@@ -167,6 +167,13 @@ def setup_cli(app):
 
             db.session.commit()
 
+    @app.cli.command('import-attribute')
+    @click.argument('attribute')
+    @click.argument('input', type=click.File('r'))
+    def import_attribute(attribute, input):
+        # TODO
+        pass
+
     @app.cli.command()
     @click.option('--offset', '-o', type=int)
     @click.option('--limit', '-l', type=int)
@@ -182,26 +189,34 @@ def setup_cli(app):
         import sys
         from tqdm import tqdm
         from .scheme.object import ExternalObject, ObjectLink, \
-            ExternalObjectType, Role, RoleType
+            ExternalObjectType
         from .scheme.platform import Platform, PlatformType
         from .scheme.value import Value, ValueType
         from .app import db
+
+        EUR28 = ['DE', 'AT', 'BE', 'BG', 'CY', 'HR', 'DK', 'ES', 'EE', 'FI',
+                 'FR', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'MT', 'LU', 'NL',
+                 'PL', 'PT', 'CZ', 'RO', 'GB', 'SK', 'SI', 'SE']
+        EUROBS = ['AL', 'AM', 'AT', 'BA', 'BE', 'BG', 'CH', 'CY', 'CZ', 'DE',
+                  'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GE', 'GR', 'HR', 'HU',
+                  'IE', 'IS', 'IT', 'LI', 'LT', 'LU', 'LV', 'ME', 'MK', 'MT',
+                  'NL', 'NO', 'PL', 'PT', 'RO', 'RU', 'SE', 'SI', 'SK', 'TR']
 
         if offset is not None and limit is not None:
             limit = offset + limit
 
         include_list = db.session.query(ObjectLink.external_object_id)
         ignore = [Platform.lookup(i).id for i in ignore]
-        platform = [Platform.lookup(i).id for i in platform]
+        platform = [Platform.lookup(i) for i in platform]
 
         if type:
             platform = Platform.query.\
                 filter(Platform.type == PlatformType.from_name(type))
-            platform = [p.id for p in platform]
+        platform_ids = [p.id for p in platform]
 
-        if platform:
+        if platform_ids:
             include_list = include_list.\
-                filter(ObjectLink.platform_id.in_(platform))
+                filter(ObjectLink.platform_id.in_(platform_ids))
 
         if ignore:
             include_list = include_list.\
@@ -215,16 +230,21 @@ def setup_cli(app):
         if progress:
             it = tqdm(it)
 
-        fieldnames = ['id', 'imdb', 'titles', 'date', 'genres',
-                      'duration', 'directors', 'links',
-                      'country1', 'country2', 'country3', 'countrymore']
+        fieldnames = ['IMDb', 'LUMIERE', 'TMDB', 'Year', 'Films total',
+                      'Geo coverage', 'Countries', 'Total European',
+                      'National European', 'Non-National European OBS',
+                      'EU 28', 'EU 28 Co-prod', 'European OBS Co-prod',
+                      'Total Non-European', 'US', 'Other Non-European',
+                      'Non-European Co-productions', 'US Co-prod', 'Title',
+                      'SVOD', 'TVOD', 'Platform Country', 'Scrap ID']
 
-        if explode:
-            fieldnames += ['platform', 'external_id']
         writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames)
         writer.writeheader()
 
         imdb = Platform.query.filter(Platform.slug == 'imdb').one()
+        tmdb = Platform.query.filter(Platform.slug == 'tmdb').one()
+        lumiere = Platform.query.filter(Platform.slug == 'lumiere').one()
+
         for e in it:
             countries = db.session.query(Value.text).\
                 filter(Value.external_object == e).\
@@ -238,34 +258,20 @@ def setup_cli(app):
             if not c1 and with_country:
                 continue
 
-            imdb_id = db.session.query(ObjectLink.external_id).\
-                filter(ObjectLink.platform == imdb).\
-                filter(ObjectLink.external_object == e).\
-                limit(1).\
-                scalar()
+            def pl_id(platform):
+                return next((l.external_id for l in e.links
+                             if l.platform == platform), None)
+
+            imdb_id = pl_id(imdb)
+            tmdb_id = pl_id(tmdb)
+            lumiere_id = pl_id(lumiere)
 
             titles = db.session.query(Value.text).\
                 filter(Value.external_object == e).\
                 filter(Value.type == ValueType.TITLE).\
                 order_by(Value.score.desc()).\
                 all()
-            titles = [t[0] for t in titles]
-
-            genres = db.session.query(Value.text).\
-                filter(Value.external_object == e).\
-                filter(Value.type == ValueType.GENRES).\
-                order_by(Value.score.desc()).\
-                all()
-            genres = [g[0] for g in genres]
-
-            durations = db.session.query(Value.text).\
-                filter(Value.external_object == e).\
-                filter(Value.type == ValueType.DURATION).\
-                order_by(Value.score.desc()).\
-                all()
-
-            duration = next((d[0] for d in durations
-                             if d[0].replace('.', '').isdigit()), None)
+            title = next((t[0] for t in titles), None)
 
             dates = db.session.query(Value.text).\
                 filter(Value.external_object == e).\
@@ -274,39 +280,60 @@ def setup_cli(app):
                 all()
             date = next((d[0] for d in dates if len(d[0]) == 4), None)
 
-            directors = db.session.query(Value.text).\
-                join(Role, Role.person_id == Value.external_object_id).\
-                filter(Role.external_object_id == e.id).\
-                filter(Role.role == RoleType.DIRECTOR).\
-                filter(Value.type == ValueType.NAME)
+            coprod = len(countries) > 1
 
-            directors = set([d[0].title() for d in directors])
+            real_links = [link for link in e.links
+                          if link.platform_id in platform_ids and
+                          link.platform_id not in ignore]
 
-            links = len(e.links)
-
-            data = dict(
-                id=e.id,
-                imdb=imdb_id or '',
-                titles='|||'.join(titles),
-                genres=','.join(genres),
-                date=date or '',
-                duration=duration or '',
-                directors=','.join(directors),
-                links=links,
-                country1=c1,
-                country2=c2,
-                country3=c3,
-                countrymore=','.join([c for c in cmore if c]),
-            )
+            data = {
+                'IMDb': imdb_id,
+                'LUMIERE': lumiere_id,
+                'TMDB': tmdb_id,
+                'Year': date,
+                'Films total': len(real_links),
+                'Geo coverage': 1 if len(countries) > 0 else 0,
+                'Countries': ','.join(countries),
+                'Total European': 1 if c1 in EUROBS else 0,
+                'National European': 0,
+                'Non-National European OBS': 0,
+                'EU 28': 1 if c1 in EUR28 else 0,
+                'EU 28 Co-prod': 1 if c1 in EUR28 and coprod else 0,
+                'European OBS Co-prod': 1 if c1 in EUROBS and coprod else 0,
+                'Total Non-European': 1 if c1 not in EUROBS else 0,
+                'US': 1 if c1 is 'US' else 0,
+                'Other Non-European': 1 if c1 not in EUROBS + ['US'] else 0,
+                'Non-European Co-productions': 1 if (c1 not in EUROBS and
+                                                     c1 is not 'US' and
+                                                     coprod) else 0,
+                'US Co-prod': 1 if c1 is 'US' and coprod else 0,
+                'Title': title,
+                'SVOD': next((1 for p in platform for l in e.links
+                              if p.type == PlatformType.SVOD and
+                              l.platform == p), 0),
+                'TVOD': next((1 for p in platform for l in e.links
+                              if p.type == PlatformType.TVOD and
+                              l.platform == p), 0),
+                'Platform Country': next((p.country
+                                          for p in platform
+                                          for l in e.links
+                                          if p.type == PlatformType.TVOD and
+                                          l.platform == p), None),
+                'Scrap ID': e.id
+            }
 
             if explode:
-                for link in e.links:
-                    if link.platform_id in platform \
-                            and link.platform_id not in ignore:
-                        writer.writerow({
-                            'platform': link.platform.slug,
-                            'external_id': link.external_id,
-                            **data
-                        })
+                for link in real_links:
+                    c = link.platform.country
+                    type = link.platform.type
+                    writer.writerow({
+                        **data,
+                        'National European': 1 if c is c1 else 0,
+                        'Non-National European OBS': 1 if (c is not c1 and
+                                                           c1 in EUROBS) else 0,
+                        'SVOD': 1 if type is PlatformType.SVOD else 0,
+                        'TVOD': 1 if type is PlatformType.TVOD else 0,
+                        'Platform Country': c,
+                    })
             else:
                 writer.writerow(data)
