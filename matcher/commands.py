@@ -151,7 +151,7 @@ def setup_cli(app):
 
             obj = ExternalObject.query.get(id)
 
-            if obj is None:
+            if obj is None or not external_id:
                 it.write('SKIP {} {}'.format(id, external_id))
                 continue
 
