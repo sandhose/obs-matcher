@@ -167,12 +167,46 @@ def setup_cli(app):
 
             db.session.commit()
 
-    @app.cli.command('import-attribute')
-    @click.argument('attribute')
+    @app.cli.command('import-attributes')
+    @click.option('--attribute', '-a', multiple=True, type=(int, str))
+    @click.option('--platform', '-p', prompt=True)
     @click.argument('input', type=click.File('r'))
-    def import_attribute(attribute, input):
-        # TODO
-        pass
+    def import_attribute(attribute, platform, input):
+        import csv
+        from tqdm import tqdm
+        from .app import db
+        from .scheme.platform import Platform
+        from .scheme.object import ExternalObject
+        from .scheme.value import ValueType
+
+        has_header = csv.Sniffer().has_header(input.read(1024))
+        input.seek(0)
+        rows = csv.reader(input, delimiter=',')
+
+        if has_header:
+            rows = rows[1:]
+
+        p = Platform.lookup(platform)
+
+        it = tqdm(rows)
+        for row in it:
+            id = row[0]
+            obj = ExternalObject.query.get(id)
+
+            if obj is None:
+                it.write('SKIP {}'.format(id))
+                continue
+
+            for index, type in attribute:
+                type = ValueType.from_name(type)
+                values = [t for t in row[index].split(',') if t]
+                for value in values:
+                    obj.add_attribute({
+                        'type': type,
+                        'text': value
+                    }, p)
+
+            db.session.commit()
 
     @app.cli.command()
     @click.option('--offset', '-o', type=int)
