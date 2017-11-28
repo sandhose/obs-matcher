@@ -322,6 +322,12 @@ def setup_cli(app):
 
             coprod = len(countries) > 1
 
+            platform_country = next((p.country
+                                          for p in platform
+                                          for l in e.links
+                                          if p.type == PlatformType.TVOD and
+                                          l.platform == p), None)
+
             real_links = [link for link in e.links
                           if link.platform_id in platform_ids and
                           link.platform_id not in ignore]
@@ -335,8 +341,8 @@ def setup_cli(app):
                 'Geo coverage': 1 if len(countries) > 0 else 0,
                 'Countries': ','.join(countries),
                 'Total European': 1 if c1 in EUROBS else 0,
-                'National European': 0,
-                'Non-National European OBS': 0,
+                'National European': 1 if c1 == platform_country else 0,
+                'Non-National European OBS': 1 if c1 in EUROBS and not c1 == platform_country else 0 ,
                 'EU 28': 1 if c1 in EUR28 else 0,
                 'EU 28 Co-prod': 1 if c1 in EUR28 and coprod else 0,
                 'European OBS Co-prod': 1 if c1 in EUROBS and coprod else 0,
@@ -354,11 +360,7 @@ def setup_cli(app):
                 'TVOD': next((1 for p in platform for l in e.links
                               if p.type == PlatformType.TVOD and
                               l.platform == p), 0),
-                'Platform Country': next((p.country
-                                          for p in platform
-                                          for l in e.links
-                                          if p.type == PlatformType.TVOD and
-                                          l.platform == p), None),
+                'Platform Country': platform_country,
                 'Scrap ID': e.id
             }
 
