@@ -271,11 +271,12 @@ def setup_cli(app):
             it = tqdm(it)
 
         fieldnames = ['IMDb', 'LUMIERE', 'TMDB', 'Year', 'Films total',
-                      'Geo coverage', 'Countries', 'Total European',
-                      'National European', 'Non-National European OBS',
-                      'EU 28', 'EU 28 Co-prod', 'European OBS Co-prod',
-                      'Total Non-European', 'US', 'Other Non-European',
-                      'Non-European Co-productions', 'US Co-prod', 'Title',
+                      'Geo coverage', 'Countries', 'Total European OBS',
+                      '100% national productions', 'National co-productions',
+                      'Non-National European OBS', 'EU 28',
+                      'EU 28 co-productions', 'European OBS co-productions',
+                      'International', 'US', 'Other International',
+                      'International co-productions', 'US co-productions', 'Title',
                       'SVOD', 'TVOD', 'Platform Country', 'Scrap ID']
 
         writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames)
