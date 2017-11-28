@@ -363,6 +363,7 @@ def setup_cli(app):
                               if p.type == PlatformType.TVOD and
                               l.platform == p), 0),
                 'Platform Country': platform_country,
+                'Platform Name': Platform.name,
                 'Scrap ID': e.id
             }
 
