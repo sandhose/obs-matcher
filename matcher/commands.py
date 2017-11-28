@@ -219,12 +219,13 @@ def setup_cli(app):
     @click.option('--limit', '-l', type=int)
     @click.option('--platform', '-p', multiple=True)
     @click.option('--type', '-t')
+    @click.option('--name', '-n')
     @click.option('--ignore', '-i', multiple=True)
     @click.option('--progress/--no-progress', default=True)
     @click.option('--explode/--no-explode', default=False)
     @click.option('--with-country/--no-with-country', default=False)
     def export(offset=None, limit=None, platform=[], type=None, ignore=[],
-               progress=True, explode=False, with_country=False):
+               progress=True, explode=False, with_country=False, name=None):
         import csv
         import sys
         from tqdm import tqdm
@@ -276,8 +277,9 @@ def setup_cli(app):
                       'Non-National European OBS', 'EU 28',
                       'EU 28 co-productions', 'European OBS co-productions',
                       'International', 'US', 'Other International',
-                      'International co-productions', 'US co-productions', 'Title',
-                      'SVOD', 'TVOD', 'Platform Country', 'Scrap ID']
+                      'International co-productions', 'US co-productions',
+                      'Title', 'SVOD', 'TVOD', 'Platform Country',
+                      'Platform Name', 'Scrap ID']
 
         writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames)
         writer.writeheader()
@@ -323,12 +325,6 @@ def setup_cli(app):
 
             coprod = len(countries) > 1
 
-            platform_country = next((p.country
-                                          for p in platform
-                                          for l in e.links
-                                          if p.type == PlatformType.TVOD and
-                                          l.platform == p), None)
-
             real_links = [link for link in e.links
                           if link.platform_id in platform_ids and
                           link.platform_id not in ignore]
@@ -342,9 +338,9 @@ def setup_cli(app):
                 'Geo coverage': 1 if len(countries) > 0 else 0,
                 'Countries': ','.join(countries),
                 'Total European OBS': 1 if c1 in EUROBS else 0,
-                '100% national productions': 1 if (c1 is platform_country and not coprod) else 0,
-                'National co-productions': 1 if c1 is platform_country and coprod else 0,
-                'Non-National European OBS': 1 if c1 in EUROBS and c1 is not platform_country else 0 ,
+                '100% national productions': 0,
+                'National co-productions': 0,
+                'Non-National European OBS': 0,
                 'EU 28': 1 if c1 in EUR28 else 0,
                 'EU 28 co-productions': 1 if c1 in EUR28 and coprod else 0,
                 'European OBS co-productions': 1 if c1 in EUROBS and coprod else 0,
@@ -352,8 +348,8 @@ def setup_cli(app):
                 'US': 1 if c1 is 'US' else 0,
                 'Other International': 1 if c1 not in EUROBS + ['US'] else 0,
                 'International co-productions': 1 if (c1 not in EUROBS and
-                                                     c1 is not 'US' and
-                                                     coprod) else 0,
+                                                      c1 is not 'US' and
+                                                      coprod) else 0,
                 'US co-productions': 1 if c1 is 'US' and coprod else 0,
                 'Title': title,
                 'SVOD': next((1 for p in platform for l in e.links
@@ -362,8 +358,8 @@ def setup_cli(app):
                 'TVOD': next((1 for p in platform for l in e.links
                               if p.type == PlatformType.TVOD and
                               l.platform == p), 0),
-                'Platform Country': platform_country,
-                'Platform Name': Platform.name,
+                'Platform Country': '',
+                'Platform Name': name,
                 'Scrap ID': e.id
             }
 
@@ -374,12 +370,13 @@ def setup_cli(app):
                     writer.writerow({
                         **data,
                         '100% national productions': 1 if c is c1 and not coprod else 0,
-                        'National co-productions': 1 if c is platform_country and coprod else 0,
+                        'National co-productions': 1 if c is c1 and coprod else 0,
                         'Non-National European OBS': 1 if (c is not c1 and
                                                            c1 in EUROBS) else 0,
                         'SVOD': 1 if type is PlatformType.SVOD else 0,
                         'TVOD': 1 if type is PlatformType.TVOD else 0,
                         'Platform Country': c,
+                        'Platform Name': link.platform.name
                     })
             else:
                 writer.writerow(data)
