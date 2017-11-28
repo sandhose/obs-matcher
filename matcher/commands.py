@@ -377,6 +377,7 @@ def setup_cli(app):
                     type = link.platform.type
                     writer.writerow({
                         **data,
+                        'Films total': 1,
                         '100% national productions': 1 if c == c1 and not coprod else 0,
                         'National co-productions': 1 if c == c1 and coprod else 0,
                         'Non-National European OBS': 1 if (c != c1 and
