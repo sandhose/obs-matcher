@@ -340,6 +340,7 @@ def setup_cli(app):
             matching_country = next((l.platform.country for l in real_links
                                      if l.platform.country == c1), '')
 
+            # TODO: Clean up this mess
             data = {
                 'IMDb': imdb_id,
                 'LUMIERE': lumiere_id,
@@ -348,18 +349,18 @@ def setup_cli(app):
                 'Films total': len(real_links),
                 'Geo coverage': 1 if len(countries) > 0 else 0,
                 'Countries': ','.join(countries),
-                'Total European OBS': 1 if c1 in EUROBS else 0,
-                '100% national productions': 1 if matching_country == c1 and not coprod else 0,
-                'National co-productions': 1 if matching_country == c1 and coprod else 0,
-                'Non-National European OBS': 1 if matching_country != c1 and c1 in EUROBS else 0,
-                'EU 28': 1 if c1 in EUR28 else 0,
-                'EU 28 co-productions': 1 if c1 in EUR28 and coprod else 0,
-                'European OBS co-productions': 1 if c1 in EUROBS and coprod else 0,
-                'International': 1 if c1 not in EUROBS else 0,
-                'US': 1 if c1 == 'US' else 0,
-                'Other International': 1 if c1 not in EUROBS + ['US'] else 0,
-                'International co-productions': 1 if c1 not in EUROBS and c1 != 'US' and coprod else 0,
-                'US co-productions': 1 if c1 == 'US' and coprod else 0,
+                'Total European OBS': 1 if c1 and c1 in EUROBS else 0,
+                '100% national productions': 1 if c1 and matching_country == c1 and not coprod else 0,
+                'National co-productions': 1 if c1 and matching_country == c1 and coprod else 0,
+                'Non-National European OBS': 1 if c1 and matching_country != c1 and c1 in EUROBS else 0,
+                'EU 28': 1 if c1 and c1 in EUR28 else 0,
+                'EU 28 co-productions': 1 if c1 and c1 in EUR28 and coprod else 0,
+                'European OBS co-productions': 1 if c1 and c1 in EUROBS and coprod else 0,
+                'International': 1 if c1 and c1 not in EUROBS else 0,
+                'US': 1 if c1 and c1 == 'US' else 0,
+                'Other International': 1 if c1 and c1 not in EUROBS + ['US'] else 0,
+                'International co-productions': 1 if c1 and c1 not in EUROBS and c1 != 'US' and coprod else 0,
+                'US co-productions': 1 if c1 and c1 == 'US' and coprod else 0,
                 'Title': title,
                 'SVOD': next((1 for p in platform for l in e.links
                               if p.type == PlatformType.SVOD and l.platform == p), 0),
@@ -379,10 +380,10 @@ def setup_cli(app):
                     writer.writerow({
                         **data,
                         'Films total': 1,
-                        '100% national productions': 1 if c == c1 and not coprod else 0,
-                        'National co-productions': 1 if c == c1 and coprod else 0,
-                        'Non-National European OBS': 1 if (c != c1 and
-                                                           c1 in EUROBS) else 0,
+                        '100% national productions': 1 if c1 and c == c1 and not coprod else 0,
+                        'National co-productions': 1 if c1 and c == c1 and coprod else 0,
+                        'Non-National European OBS': 1 if c1 and (c != c1 and
+                                                                  c1 in EUROBS) else 0,
                         'SVOD': 1 if type is PlatformType.SVOD else 0,
                         'TVOD': 1 if type is PlatformType.TVOD else 0,
                         'Platform Country': c,
