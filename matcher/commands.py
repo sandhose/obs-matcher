@@ -337,6 +337,9 @@ def setup_cli(app):
                           if link.platform_id in platform_ids and
                           link.platform_id not in ignore]
 
+            matching_country = next((l.platform.country for l in real_links
+                                     if l.platform.country == c1), '')
+
             data = {
                 'IMDb': imdb_id,
                 'LUMIERE': lumiere_id,
@@ -346,27 +349,25 @@ def setup_cli(app):
                 'Geo coverage': 1 if len(countries) > 0 else 0,
                 'Countries': ','.join(countries),
                 'Total European OBS': 1 if c1 in EUROBS else 0,
-                '100% national productions': 0,
-                'National co-productions': 0,
-                'Non-National European OBS': 0,
+                '100% national productions': 1 if matching_country == c1 and not coprod else 0,
+                'National co-productions': 1 if matching_country == c1 and coprod else 0,
+                'Non-National European OBS': 1 if matching_country != c1 and c1 in EUROBS else 0,
                 'EU 28': 1 if c1 in EUR28 else 0,
                 'EU 28 co-productions': 1 if c1 in EUR28 and coprod else 0,
                 'European OBS co-productions': 1 if c1 in EUROBS and coprod else 0,
                 'International': 1 if c1 not in EUROBS else 0,
                 'US': 1 if c1 == 'US' else 0,
                 'Other International': 1 if c1 not in EUROBS + ['US'] else 0,
-                'International co-productions': 1 if (c1 not in EUROBS and
-                                                      c1 != 'US' and
-                                                      coprod) else 0,
+                'International co-productions': 1 if c1 not in EUROBS and c1 != 'US' and coprod else 0,
                 'US co-productions': 1 if c1 == 'US' and coprod else 0,
                 'Title': title,
                 'SVOD': next((1 for p in platform for l in e.links
-                              if p.type == PlatformType.SVOD and
-                              l.platform == p), 0),
+                              if p.type == PlatformType.SVOD and l.platform == p), 0),
                 'TVOD': next((1 for p in platform for l in e.links
                               if p.type == PlatformType.TVOD and
                               l.platform == p), 0),
-                'Platform Country': '',
+                'Platform Country': ','.join([link.platform.country
+                                              for link in real_links]),
                 'Platform Name': name,
                 'Scrap ID': e.id
             }
