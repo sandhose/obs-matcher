@@ -221,11 +221,13 @@ def setup_cli(app):
     @click.option('--type', '-t')
     @click.option('--name', '-n')
     @click.option('--ignore', '-i', multiple=True)
+    @click.option('--exclude', '-e', type=click.File('r'))
     @click.option('--progress/--no-progress', default=True)
     @click.option('--explode/--no-explode', default=False)
     @click.option('--with-country/--no-with-country', default=False)
     def export(offset=None, limit=None, platform=[], type=None, ignore=[],
-               progress=True, explode=False, with_country=False, name=None):
+               progress=True, explode=False, with_country=False, name=None,
+               exclude=None):
         import csv
         import sys
         from tqdm import tqdm
@@ -263,10 +265,16 @@ def setup_cli(app):
             include_list = include_list.\
                 filter(~ObjectLink.platform_id.in_(ignore))
 
-        it = ExternalObject.query.\
+        query = ExternalObject.query.\
             filter(ExternalObject.type == ExternalObjectType.MOVIE).\
             filter(ExternalObject.id.in_(include_list)).\
-            order_by(ExternalObject.id)[offset:limit]
+            order_by(ExternalObject.id)
+
+        if exclude:
+            query = query.filter(~ExternalObject.id.
+                                 in_([int(line) for line in exclude]))
+
+        it = query[offset:limit]
 
         if progress:
             it = tqdm(it)
