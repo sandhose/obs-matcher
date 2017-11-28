@@ -342,9 +342,9 @@ def setup_cli(app):
                 'Geo coverage': 1 if len(countries) > 0 else 0,
                 'Countries': ','.join(countries),
                 'Total European OBS': 1 if c1 in EUROBS else 0,
-                '100% national productions': 1 if c1 is platform_country else 0,
+                '100% national productions': 1 if (c1 is platform_country and not coprod) else 0,
                 'National co-productions': 1 if c1 is platform_country and coprod else 0,
-                'Non-National European OBS': 1 if c1 in EUROBS and not c1 is platform_country else 0 ,
+                'Non-National European OBS': 1 if c1 in EUROBS and c1 is not platform_country else 0 ,
                 'EU 28': 1 if c1 in EUR28 else 0,
                 'EU 28 co-productions': 1 if c1 in EUR28 and coprod else 0,
                 'European OBS co-productions': 1 if c1 in EUROBS and coprod else 0,
@@ -372,7 +372,7 @@ def setup_cli(app):
                     type = link.platform.type
                     writer.writerow({
                         **data,
-                        '100% national productions': 1 if c is c1 else 0,
+                        '100% national productions': 1 if c is c1 and not coprod else 0,
                         'National co-productions': 1 if c is platform_country and coprod else 0,
                         'Non-National European OBS': 1 if (c is not c1 and
                                                            c1 in EUROBS) else 0,
