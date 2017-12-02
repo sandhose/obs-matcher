@@ -1,10 +1,58 @@
-import sys
 from operator import attrgetter
 
 import click
+from flask.cli import with_appcontext
+
+
+class PlatformParamType(click.ParamType):
+    name = 'platform'
+
+    @with_appcontext
+    def convert(self, value, param, ctx):
+        from .scheme.platform import Platform
+        p = Platform.lookup(value)
+
+        if p is None:
+            self.fail('unknown platform ' + value, param, ctx)
+
+        return p
+
+
+class PlatformTypeParamType(click.ParamType):
+    name = 'platform type'
+
+    def convert(self, value, param, ctx):
+        from .scheme.platform import PlatformType
+        p = PlatformType.from_name(value)
+
+        if p is None:
+            self.fail('unknown platform type ' + value, param, ctx)
+
+        return p
+
+
+class ScrapParamType(click.ParamType):
+    name = 'scrap id'
+
+    @with_appcontext
+    def convert(self, value, param, ctx):
+        from .scheme.platform import Scrap
+        try:
+            s = Scrap.query.get(int(value))
+            if s is None:
+                self.fail('scrap {} not found'.format(value), param, ctx)
+            return s
+        except ValueError:
+            self.fail('scrap id should be a number', param, ctx)
+
+
+PLATFORM = PlatformParamType()
+PLATFORM_TYPE = PlatformTypeParamType()
+SCRAP = ScrapParamType()
 
 
 @click.command()
+@with_appcontext
 @click.option('--force',
               prompt="This will distroy everything in the "
                      "database, except the platforms. Are you sure?",
@@ -28,14 +76,15 @@ def nuke(force=False):
 
 
 @click.command()
-@click.option('--scrap', '-s', type=int)
-@click.option('--platform', '-p')
-@click.option('--exclude', '-e')
+@with_appcontext
+@click.option('--scrap', '-s', type=SCRAP)
+@click.option('--platform', '-p', type=PLATFORM)
+@click.option('--exclude', '-e', type=PLATFORM)
 @click.option('--offset', '-o', type=int)
 @click.option('--limit', '-l', type=int)
 def match(scrap=None, platform=None, exclude=None, offset=None, limit=None):
     """Try to match ExternalObjects with each other"""
-    from .scheme.platform import Scrap, Platform
+    from .scheme.platform import Scrap
     from .scheme.object import ExternalObject, ExternalObjectType, \
         ObjectLink, scrap_link
     from .app import db
@@ -48,17 +97,10 @@ def match(scrap=None, platform=None, exclude=None, offset=None, limit=None):
         filter(ExternalObject.type == ExternalObjectType.MOVIE)
 
     if platform:
-        p = Platform.lookup(platform)
-        q = q.filter(ObjectLink.platform == p)
+        q = q.filter(ObjectLink.platform == platform)
     else:
-        if scrap is not None:
-            scrap = Scrap.query.filter(Scrap.id == scrap).first()
-        else:
-            scrap = Scrap.query.order_by(Scrap.id.desc()).first()
-
         if scrap is None:
-            click.echo("Scrap not found")
-            sys.exit(1)
+            scrap = Scrap.query.order_by(Scrap.id.desc()).one()
 
         q = q.filter(ObjectLink.id.in_(
             db.session.query(scrap_link.c.object_link_id).
@@ -66,10 +108,9 @@ def match(scrap=None, platform=None, exclude=None, offset=None, limit=None):
         ))
 
     if exclude:
-        e = Platform.lookup(exclude)
         q = q.filter(~ObjectLink.external_object_id.in_(
             db.session.query(ObjectLink.external_object_id)
-            .filter(ObjectLink.platform == e)
+            .filter(ObjectLink.platform == exclude)
         ))
 
     objs = [l.external_object for l in q[offset:limit]]
@@ -77,6 +118,7 @@ def match(scrap=None, platform=None, exclude=None, offset=None, limit=None):
 
 
 @click.command()
+@with_appcontext
 @click.option('--threshold', '-t', prompt=True, type=float)
 @click.option('--invert', '-i', is_flag=True)
 @click.argument('input', type=click.File('r'))
@@ -107,7 +149,8 @@ def merge(threshold, invert, input):
 
 
 @click.command('import')
-@click.option('--platform', '-p', prompt=True)
+@with_appcontext
+@click.option('--platform', '-p', prompt=True, type=PLATFORM)
 @click.argument('input', type=click.File('r'))
 def import_ids(platform, input):
     """Import links from a CSV file"""
@@ -115,7 +158,6 @@ def import_ids(platform, input):
     from tqdm import tqdm
     from .app import db
     from .scheme.object import ExternalObject, ObjectLink
-    from .scheme.platform import Platform
 
     has_header = csv.Sniffer().has_header(input.read(1024))
     input.seek(0)
@@ -123,8 +165,6 @@ def import_ids(platform, input):
 
     if has_header:
         rows.__next__()
-
-    p = Platform.lookup(platform)
 
     it = tqdm(rows)
     for row in it:
@@ -142,7 +182,7 @@ def import_ids(platform, input):
         if link is None:
             it.write('LINK {} {}'.format(id, external_id))
             obj.links.append(ObjectLink(external_object=obj,
-                                        platform=p,
+                                        platform=platform,
                                         external_id=external_id))
         elif link.external_object != obj:
             it.write('MERGE {} {}'.format(id, external_id))
@@ -157,15 +197,15 @@ def import_ids(platform, input):
 
 
 @click.command('import-attributes')
+@with_appcontext
 @click.option('--attribute', '-a', multiple=True, type=(int, str))
-@click.option('--platform', '-p', prompt=True)
+@click.option('--platform', '-p', prompt=True, type=PLATFORM)
 @click.argument('input', type=click.File('r'))
 def import_attribute(attribute, platform, input):
     """Import attributes from a CSV file"""
     import csv
     from tqdm import tqdm
     from .app import db
-    from .scheme.platform import Platform
     from .scheme.object import ExternalObject
     from .scheme.value import ValueType
 
@@ -175,8 +215,6 @@ def import_attribute(attribute, platform, input):
 
     if has_header:
         rows.__next__()
-
-    p = Platform.lookup(platform)
 
     it = tqdm(rows)
     for row in it:
@@ -194,18 +232,19 @@ def import_attribute(attribute, platform, input):
                 obj.add_attribute({
                     'type': type,
                     'text': value
-                }, p)
+                }, platform)
 
         db.session.commit()
 
 
 @click.command()
+@with_appcontext
 @click.option('--offset', '-o', type=int)
 @click.option('--limit', '-l', type=int)
-@click.option('--platform', '-p', multiple=True)
-@click.option('--type', '-t')
+@click.option('--platform', '-p', multiple=True, type=PLATFORM)
+@click.option('--type', '-t', type=PLATFORM_TYPE)
 @click.option('--name', '-n')
-@click.option('--ignore', '-i', multiple=True)
+@click.option('--ignore', '-i', multiple=True, type=PLATFORM)
 @click.option('--exclude', '-e', type=click.File('r'))
 @click.option('--progress/--no-progress', default=True)
 @click.option('--explode/--no-explode', default=False)
@@ -235,21 +274,21 @@ def export(offset=None, limit=None, platform=[], type=None, ignore=[],
         limit = offset + limit
 
     include_list = db.session.query(ObjectLink.external_object_id)
-    ignore = [Platform.lookup(i).id for i in ignore]
-    platform = [Platform.lookup(i) for i in platform]
 
     if type:
         platform = Platform.query.\
-            filter(Platform.type == PlatformType.from_name(type))
+            filter(Platform.type == type)
+
     platform_ids = [p.id for p in platform]
+    ignore_ids = [p.id for p in ignore]
 
     if platform_ids:
         include_list = include_list.\
             filter(ObjectLink.platform_id.in_(platform_ids))
 
-    if ignore:
+    if ignore_ids:
         include_list = include_list.\
-            filter(~ObjectLink.platform_id.in_(ignore))
+            filter(~ObjectLink.platform_id.in_(ignore_ids))
 
     query = ExternalObject.query.\
         filter(ExternalObject.type == ExternalObjectType.MOVIE).\
