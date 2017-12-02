@@ -4,6 +4,19 @@ import click
 from flask.cli import with_appcontext
 
 
+class ValueTypeParamType(click.ParamType):
+    name = 'type'
+
+    def convert(self, value, param, ctx):
+        from .scheme.value import ValueType
+        t = ValueType.from_name(value)
+
+        if t is None:
+            self.fail('unknown type ' + value, param, ctx)
+
+        return t
+
+
 class PlatformParamType(click.ParamType):
     name = 'platform'
 
@@ -19,7 +32,7 @@ class PlatformParamType(click.ParamType):
 
 
 class PlatformTypeParamType(click.ParamType):
-    name = 'platform type'
+    name = 'type'
 
     def convert(self, value, param, ctx):
         from .scheme.platform import PlatformType
@@ -49,30 +62,25 @@ class ScrapParamType(click.ParamType):
 PLATFORM = PlatformParamType()
 PLATFORM_TYPE = PlatformTypeParamType()
 SCRAP = ScrapParamType()
+VALUE_TYPE = ValueTypeParamType()
 
 
 @click.command()
 @with_appcontext
-@click.option('--force',
-              prompt="This will distroy everything in the "
-                     "database, except the platforms. Are you sure?",
-              is_flag=True)
-def nuke(force=False):
+@click.confirmation_option(prompt="This will distroy everything in the "
+                           "database, except the platforms. Are you sure?")
+def nuke():
     """Nuke the database"""
     from .app import db
-    if force:
-        for table in ['role', 'person', 'episode', 'season',
-                      'scrap_link', 'value_source', 'value', 'scrap',
-                      'object_link_work_meta', 'object_link',
-                      'external_object']:
-            sql = 'TRUNCATE TABLE {} RESTART IDENTITY CASCADE'.format(table)
-            click.echo(sql)
-            db.session.execute(sql)
-        db.session.commit()
-        db.session.close()
-        click.echo("Done.")
-    else:
-        click.echo("Aborted.")
+    for table in ['role', 'person', 'episode', 'season', 'scrap_link',
+                  'value_source', 'value', 'scrap', 'object_link_work_meta',
+                  'object_link', 'external_object']:
+        sql = 'TRUNCATE TABLE {} RESTART IDENTITY CASCADE'.format(table)
+        click.echo(sql)
+        db.session.execute(sql)
+    db.session.commit()
+    db.session.close()
+    click.echo("Done.")
 
 
 @click.command()
@@ -88,6 +96,8 @@ def match(scrap=None, platform=None, exclude=None, offset=None, limit=None):
     from .scheme.object import ExternalObject, ExternalObjectType, \
         ObjectLink, scrap_link
     from .app import db
+
+    db.session.add_all((x for x in [scrap, platform] if x))
 
     if offset is not None and limit is not None:
         limit = offset + limit
@@ -150,64 +160,21 @@ def merge(threshold, invert, input):
 
 @click.command('import')
 @with_appcontext
-@click.option('--platform', '-p', prompt=True, type=PLATFORM)
+@click.option('--external-id', '-e', 'external_ids', multiple=True,
+              type=(int, PLATFORM))
+@click.option('--attribute', '-a', 'attributes', multiple=True,
+              type=(int, VALUE_TYPE))
+@click.option('--platform', '-p', 'attr_platform', prompt=True, type=PLATFORM)
 @click.argument('input', type=click.File('r'))
-def import_ids(platform, input):
+def import_csv(external_ids, attributes, attr_platform, input):
     """Import links from a CSV file"""
     import csv
     from tqdm import tqdm
     from .app import db
     from .scheme.object import ExternalObject, ObjectLink
 
-    has_header = csv.Sniffer().has_header(input.read(1024))
-    input.seek(0)
-    rows = csv.reader(input, delimiter=',')
-
-    if has_header:
-        rows.__next__()
-
-    it = tqdm(rows)
-    for row in it:
-        id = row[0]
-        external_id = row[1]
-
-        obj = ExternalObject.query.get(id)
-
-        if obj is None or not external_id:
-            it.write('SKIP {} {}'.format(id, external_id))
-            continue
-
-        link = ObjectLink.query.\
-            filter(ObjectLink.external_id == external_id).first()
-        if link is None:
-            it.write('LINK {} {}'.format(id, external_id))
-            obj.links.append(ObjectLink(external_object=obj,
-                                        platform=platform,
-                                        external_id=external_id))
-        elif link.external_object != obj:
-            it.write('MERGE {} {}'.format(id, external_id))
-            try:
-                obj.merge_and_delete(link.external_object, db.session)
-            except Exception as e:
-                it.write(str(e))
-        else:
-            it.write('ALREADY MERGED {} {}'.format(id, external_id))
-
-        db.session.commit()
-
-
-@click.command('import-attributes')
-@with_appcontext
-@click.option('--attribute', '-a', multiple=True, type=(int, str))
-@click.option('--platform', '-p', prompt=True, type=PLATFORM)
-@click.argument('input', type=click.File('r'))
-def import_attribute(attribute, platform, input):
-    """Import attributes from a CSV file"""
-    import csv
-    from tqdm import tqdm
-    from .app import db
-    from .scheme.object import ExternalObject
-    from .scheme.value import ValueType
+    # attr_platform was loaded in another session
+    db.session.add_all([attr_platform])
 
     has_header = csv.Sniffer().has_header(input.read(1024))
     input.seek(0)
@@ -221,18 +188,44 @@ def import_attribute(attribute, platform, input):
         id = row[0]
         obj = ExternalObject.query.get(id)
 
-        if obj is None:
-            it.write('SKIP {}'.format(id))
+        if not obj:
+            it.write('SKIP ' + id)
             continue
 
-        for index, type in attribute:
-            type = ValueType.from_name(type)
+        for index, type in attributes:
             values = [t for t in row[index].split(',') if t]
             for value in values:
                 obj.add_attribute({
                     'type': type,
                     'text': value
-                }, platform)
+                }, attr_platform)
+
+        db.session.commit()
+
+        for index, platform in external_ids:
+            external_id = row[index]
+
+            if not external_id:
+                it.write('SKIP {} ({})'.format(id, platform.slug))
+                continue
+
+            link = ObjectLink.query.\
+                filter(ObjectLink.external_id == external_id).first()
+            if link is None:
+                it.write('LINK {} {} ({})'.format(id, external_id,
+                                                  platform.slug))
+                obj.links.append(ObjectLink(external_object=obj,
+                                            platform=platform,
+                                            external_id=external_id))
+            elif link.external_object != obj:
+                it.write('MERGE {} {}'.format(id, external_id))
+                try:
+                    link.external_object.merge_and_delete(obj, db.session)
+                except Exception as e:
+                    it.write(str(e))
+            else:
+                it.write('ALREADY MERGED {} {} ({})'.format(id, external_id,
+                                                            platform.slug))
 
         db.session.commit()
 
@@ -422,6 +415,5 @@ def setup_cli(app):
     app.cli.add_command(nuke)
     app.cli.add_command(match)
     app.cli.add_command(merge)
-    app.cli.add_command(import_ids)
-    app.cli.add_command(import_attribute)
+    app.cli.add_command(import_csv)
     app.cli.add_command(export)
