@@ -1,6 +1,5 @@
 from sqlalchemy.dialects.postgresql import JSONB
 from datetime import datetime
-from operator import attrgetter
 
 from slugify import slugify
 
