@@ -628,11 +628,6 @@ class ExternalObject(db.Model, ResourceMixin):
             the top level inserted object
 
         """
-        # Drop series (for now)
-        if data['type'] not in [ExternalObjectType.MOVIE,
-                                ExternalObjectType.PERSON]:
-            return None
-
         obj = ExternalObject.lookup_or_create(
             obj_type=data['type'],
             links=data['links'],
@@ -973,16 +968,19 @@ class Episode(db.Model, ExternalObjectMetaMixin):
     __tablename__ = 'episode'
     object_type = ExternalObjectType.EPISODE
 
-    season_id = Column(Integer,
-                       ForeignKey('external_object.id'))
+    serie_id = Column(Integer,
+                      ForeignKey('external_object.id'))
 
     # FIXME: how to handle special episodes?
-    number = Column(Integer)
+    episode = Column(Integer)
     """:obj:`int` : The episode number in the season"""
 
-    season = relationship('ExternalObject',
-                          foreign_keys=[season_id])
-    """:obj:`ExternalObject` : The season in which this episode is in"""
+    season = Column(Integer)
+    """:obj:`int` : The season number in the serie"""
+
+    serie = relationship('ExternalObject',
+                         foreign_keys=[serie_id])
+    """:obj:`ExternalObject` : The serie in which this episode is in"""
 
     def set_parent(self, parent):
         """Set the parent season.
@@ -991,56 +989,6 @@ class Episode(db.Model, ExternalObjectMetaMixin):
         ----------
         parent : ExternalObject
             the season that contains this :obj:`Episode`
-
-        Raises
-        ------
-        matcher.exceptions.InvalidRelation
-            when the parent's type isn't a :obj:`ExternalObjectType.SEASON`
-
-        """
-        if parent.type != ExternalObjectType.SEASON:
-            raise InvalidRelation("part of", parent, self)
-        self.season = parent
-
-    def add_meta(self, key, content):
-        """Add a metadata to the object.
-
-        See :func:`ExternalObjectMetaMixin.add_meta`
-
-        """
-        if key != "number":
-            raise InvalidMetadata(self.object_type, key)
-
-        try:
-            self.number = int(content)
-        except ValueError:
-            raise InvalidMetadataValue(key, content)
-
-
-class Season(db.Model, ExternalObjectMetaMixin):
-    """A season of a TV serie."""
-
-    __tablename__ = 'season'
-    object_type = ExternalObjectType.SEASON
-
-    serie_id = Column(Integer,
-                      ForeignKey('external_object.id'))
-
-    # FIXME: how to handle special episodes/seasons?
-    number = Column(Integer)
-    """int : The season number"""
-
-    serie = relationship('ExternalObject',
-                         foreign_keys=[serie_id])
-    """:obj:`ExternalObject` : The serie in which this episode is"""
-
-    def set_parent(self, parent):
-        """Set the parent serie.
-
-        Parameters
-        ----------
-        parent : ExternalObject
-            the serie that contains this :obj:`Season`
 
         Raises
         ------
@@ -1108,5 +1056,4 @@ class Person(db.Model, ExternalObjectMetaMixin):
 
 
 Episode.register()
-Season.register()
 Person.register()
