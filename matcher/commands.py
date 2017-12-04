@@ -72,9 +72,9 @@ VALUE_TYPE = ValueTypeParamType()
 def nuke():
     """Nuke the database"""
     from .app import db
-    for table in ['role', 'person', 'episode', 'season', 'scrap_link',
-                  'value_source', 'value', 'scrap', 'object_link_work_meta',
-                  'object_link', 'external_object']:
+    for table in ['role', 'person', 'episode', 'scrap_link', 'value_source',
+                  'value', 'scrap', 'object_link_work_meta', 'object_link',
+                  'external_object']:
         sql = 'TRUNCATE TABLE {} RESTART IDENTITY CASCADE'.format(table)
         click.echo(sql)
         db.session.execute(sql)
