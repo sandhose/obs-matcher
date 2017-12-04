@@ -37,7 +37,7 @@ Ctrl+D
 # Upgrade database i
 matcher db upgrade
 # Run server
-matcher runserver
+matcher run
 ```
 
 Usage
@@ -47,7 +47,7 @@ Usage
 # Initiate virtualenv
 source venv/bin/activate
 # Run local server
-matcher runserver
+matcher run
 # Delete object entries (not the platforms)
 matcher nuke
 ```
