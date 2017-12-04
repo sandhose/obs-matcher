@@ -1006,11 +1006,14 @@ class Episode(db.Model, ExternalObjectMetaMixin):
         See :func:`ExternalObjectMetaMixin.add_meta`
 
         """
-        if key != "number":
-            raise InvalidMetadata(self.object_type, key)
 
         try:
-            self.number = int(content)
+            if key == "episode":
+                self.episode = int(content)
+            elif key == "season":
+                self.season = int(content)
+            else:
+                raise InvalidMetadata(ExternalObjectType.EPISODE, key)
         except ValueError:
             raise InvalidMetadataValue(key, content)
 
