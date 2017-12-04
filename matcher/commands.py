@@ -167,7 +167,7 @@ def merge(threshold, invert, input):
 @click.option('--platform', '-p', 'attr_platform', prompt=True, type=PLATFORM)
 @click.argument('input', type=click.File('r'))
 def import_csv(external_ids, attributes, attr_platform, input):
-    """Import links from a CSV file"""
+    """Import data from a CSV file"""
     import csv
     from tqdm import tqdm
     from .app import db
@@ -351,9 +351,16 @@ def export(offset=None, limit=None, platform=[], type=None, ignore=[],
 
         coprod = len(countries) > 1
 
-        real_links = [link for link in e.links
-                      if link.platform_id in platform_ids and
-                      link.platform_id not in ignore]
+        def get_real_links(links):
+            seen = set()
+            for link in links:
+                if link.platform_id in platform_ids and \
+                   link.platform_id not in seen and \
+                   link.platform_id not in ignore:
+                    seen.add(link.platform_id)
+                    yield link
+
+        real_links = list(get_real_links(e.links))
 
         matching_country = next((l.platform.country for l in real_links
                                  if l.platform.country == c1), '')
