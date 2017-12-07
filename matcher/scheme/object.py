@@ -637,6 +637,10 @@ class ExternalObject(db.Model, ResourceMixin):
         for key, value in data['meta'].items():
             obj.add_meta(key, value)
 
+        # We need to save the object first to reload the links
+        db.session.add(obj)
+        db.session.commit()
+
         # This checks if we explicitly scrapped the given object by giving
         # attributes
         # FIXME: maybe have this explicitly set in the input dict
@@ -650,10 +654,6 @@ class ExternalObject(db.Model, ResourceMixin):
                 except UnknownAttribute as e:
                     # FIXME: do something with this exception
                     print(e)
-
-        # We need to save the object first to reload the links
-        db.session.add(obj)
-        db.session.commit()
 
         if has_attributes:
             # Find the link created for this platform and add the scrap to it
