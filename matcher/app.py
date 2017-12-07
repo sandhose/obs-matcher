@@ -42,8 +42,7 @@ def create_app(info=None):
     app = Flask('matcher', instance_relative_config=True)
 
     # Load config using environment variable
-    env = os.environ.get('OBS_ENV', 'development')
-    app.config.from_object('matcher.config.{}Config'.format(env.title()))
+    app.config.from_object('matcher.config.Config')
     app.config.from_pyfile('application.cfg', silent=True)
     sentry.init_app(app, logging=True, level=logging.ERROR)
     db.init_app(app)
