@@ -4,7 +4,6 @@ from restless.fl import FlaskResource
 from restless.preparers import FieldsPreparer, Preparer
 from restless.serializers import JSONSerializer, MoreTypesJSONEncoder
 
-from ..app import sentry
 from ..scheme.utils import CustomEnum
 
 
@@ -32,10 +31,7 @@ class CustomFlaskResource(FlaskResource):
 
     def handle_error(self, err):
         if not hasattr(err, 'status'):
-            try:
-                raise err
-            except Exception:
-                sentry.captureException()
+            raise err
 
         return self.build_error(err)
 
