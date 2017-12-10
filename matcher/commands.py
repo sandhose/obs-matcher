@@ -44,6 +44,19 @@ class PlatformTypeParamType(click.ParamType):
         return p
 
 
+class ExternalObjectParamType(click.ParamType):
+    name = 'type'
+
+    def convert(self, value, param, ctx):
+        from .scheme.object import ExternalObjectType
+        t = ExternalObjectType.from_name(value)
+
+        if t is None:
+            self.fail('unknown type ' + value, param, ctx)
+
+        return t
+
+
 class ScrapParamType(click.ParamType):
     name = 'scrap id'
 
@@ -63,6 +76,7 @@ PLATFORM = PlatformParamType()
 PLATFORM_TYPE = PlatformTypeParamType()
 SCRAP = ScrapParamType()
 VALUE_TYPE = ValueTypeParamType()
+EXTERNAL_OBJECT_TYPE = ExternalObjectParamType()
 
 
 @click.command()
@@ -88,9 +102,10 @@ def nuke():
 @click.option('--scrap', '-s', type=SCRAP)
 @click.option('--platform', '-p', type=PLATFORM)
 @click.option('--exclude', '-e', type=PLATFORM)
+@click.option('--type', '-t', type=EXTERNAL_OBJECT_TYPE)
 @click.option('--offset', '-o', type=int)
 @click.option('--limit', '-l', type=int)
-def match(scrap=None, platform=None, exclude=None, offset=None, limit=None):
+def match(scrap=None, platform=None, exclude=None, offset=None, type=None, limit=None):
     """Try to match ExternalObjects with each other"""
     from .scheme.platform import Scrap
     from .scheme.object import ExternalObject, ExternalObjectType, \
@@ -102,9 +117,12 @@ def match(scrap=None, platform=None, exclude=None, offset=None, limit=None):
     if offset is not None and limit is not None:
         limit = offset + limit
 
+    if type is None:
+        type = ExternalObjectType.MOVIE
+
     q = ObjectLink.query.\
         join(ObjectLink.external_object).\
-        filter(ExternalObject.type == ExternalObjectType.MOVIE)
+        filter(ExternalObject.type == type)
 
     if platform:
         q = q.filter(ObjectLink.platform == platform)
@@ -235,16 +253,17 @@ def import_csv(external_ids, attributes, attr_platform, input):
 @click.option('--offset', '-o', type=int)
 @click.option('--limit', '-l', type=int)
 @click.option('--platform', '-p', multiple=True, type=PLATFORM)
-@click.option('--type', '-t', type=PLATFORM_TYPE)
+@click.option('--group', '-g', type=PLATFORM_TYPE)
+@click.option('--type', '-t', type=EXTERNAL_OBJECT_TYPE)
 @click.option('--name', '-n')
 @click.option('--ignore', '-i', multiple=True, type=PLATFORM)
 @click.option('--exclude', '-e', type=click.File('r'))
 @click.option('--progress/--no-progress', default=True)
 @click.option('--explode/--no-explode', default=False)
 @click.option('--with-country/--no-with-country', default=False)
-def export(offset=None, limit=None, platform=[], type=None, ignore=[],
+def export(offset=None, limit=None, platform=[], group=None, ignore=[],
            progress=True, explode=False, with_country=False, name=None,
-           exclude=None):
+           exclude=None, type=None):
     """Export ExternalObjects to CSV"""
     import csv
     import sys
@@ -268,9 +287,9 @@ def export(offset=None, limit=None, platform=[], type=None, ignore=[],
 
     include_list = db.session.query(ObjectLink.external_object_id)
 
-    if type:
+    if group:
         platform = Platform.query.\
-            filter(Platform.type == type)
+            filter(Platform.type == group)
 
     platform_ids = [p.id for p in platform]
     ignore_ids = [p.id for p in ignore]
@@ -283,8 +302,11 @@ def export(offset=None, limit=None, platform=[], type=None, ignore=[],
         include_list = include_list.\
             filter(~ObjectLink.platform_id.in_(ignore_ids))
 
+    if type is None:
+        type = ExternalObjectType.MOVIE
+
     query = ExternalObject.query.\
-        filter(ExternalObject.type == ExternalObjectType.MOVIE).\
+        filter(ExternalObject.type == type).\
         filter(ExternalObject.id.in_(include_list)).\
         order_by(ExternalObject.id)
 

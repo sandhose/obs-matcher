@@ -445,6 +445,12 @@ class ExternalObject(db.Model, ResourceMixin):
         for role in list(Role.query.filter(Role.external_object == self)):
             role.external_object = their
 
+        for episode in list(Episode.query.filter(Episode.external_object == self)):
+            episode.external_object = their
+
+        for episode in list(Episode.query.filter(Episode.serie == self)):
+            episode.serie = their
+
     def merge_and_delete(self, their, session):
         """Merge into another ExternalObject, and delete the old one.
 
