@@ -13,7 +13,7 @@ import collections
 import itertools
 import math
 import re
-from tqdm import tqdm
+from multiprocessing import Lock
 from operator import attrgetter, itemgetter
 
 from sqlalchemy import (Boolean, Column, Enum, ForeignKey, Integer,
@@ -22,6 +22,7 @@ from sqlalchemy import (Boolean, Column, Enum, ForeignKey, Integer,
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import aliased, relationship
 from sqlalchemy.orm.exc import NoResultFound
+from tqdm import tqdm
 
 from ..app import db
 from ..exceptions import (AmbiguousLinkError, ExternalIDMismatchError,
@@ -33,6 +34,10 @@ from .mixins import ResourceMixin
 from .platform import Platform, PlatformType
 from .utils import CustomEnum
 from .value import Value, ValueSource, ValueType
+
+lookup_lock = Lock()
+links_lock = Lock()
+role_lock = Lock()
 
 
 class ExternalObjectType(CustomEnum):
@@ -336,7 +341,7 @@ class ExternalObject(db.Model, ResourceMixin):
                 raise ExternalIDMismatchError(existing_link, external_id)
 
     @staticmethod
-    def lookup_or_create(obj_type, links, session=None):
+    def lookup_or_create(obj_type, links, session):
         """Lookup for an object from its links.
 
         Parameters
@@ -352,21 +357,16 @@ class ExternalObject(db.Model, ResourceMixin):
         Non-existent links will be added to the object.
 
         """
-        try:
-            external_object = ExternalObject.lookup_from_links(links)
-        except AmbiguousLinkError as err:
-            if session is None:
-                # FIXME: custom exception
-                raise Exception('Can\'t merge without session')
-            else:
+        with lookup_lock, session.begin_nested():
+            try:
+                external_object = ExternalObject.lookup_from_links(links)
+            except AmbiguousLinkError as err:
                 external_object = err.resolve(session)
-                # We need to commit before continuing
-                # FIXME: do we?
-                session.commit()
 
-        if external_object is None:
-            # There's no existing links, we shall create a new object
-            external_object = ExternalObject(type=obj_type)
+            if external_object is None:
+                # There's no existing links, we shall create a new object
+                external_object = ExternalObject(type=obj_type)
+                session.add(external_object)
 
         # Check of obj_type matches
         if external_object.type is not obj_type:
@@ -657,13 +657,13 @@ class ExternalObject(db.Model, ResourceMixin):
 
         if has_attributes:
             # Find the link created for this platform and add the scrap to it
-            link = next((link for link in obj.links
-                         if link.platform == scrap.platform), None)
-            if link is not None:
-                link.scraps.append(scrap)
-            else:
-                raise LinkNotFound(links=obj.links, platform=scrap.platform)
-            db.session.commit()
+            with links_lock, db.session.begin_nested():
+                link = ObjectLink.query.filter(ObjectLink.external_object == obj and
+                                               ObjectLink.platform == scrap.platform).first()
+                if link is not None:
+                    link.scraps.append(scrap)
+                else:
+                    raise LinkNotFound(links=obj.links, platform=scrap.platform)
 
         # Chech for related objects
         if data['related'] is not None:
@@ -1038,11 +1038,12 @@ class Person(db.Model, ExternalObjectMetaMixin):
             Not implemented
 
         """
-        if Role.query.filter(Role.person == self.external_object and
-                             Role.external_object == movie).first() is None:
-            role = Role(person=self.external_object, external_object=movie,
-                        role=role)
-            db.session.add(role)
+        with role_lock, db.session.begin_nested():
+            if Role.query.filter(Role.person == self.external_object and
+                                 Role.external_object == movie).first() is None:
+                role = Role(person=self.external_object, external_object=movie,
+                            role=role)
+                db.session.add(role)
 
     def add_meta(self, key, content):
         """Add a metadata to the object.
