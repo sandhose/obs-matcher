@@ -378,7 +378,7 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
             for link in links:
                 if link.platform_id in platform_ids and \
                    link.platform_id not in seen and \
-                   link.platform_id not in ignore:
+                   link.platform_id not in ignore_ids:
                     seen.add(link.platform_id)
                     yield link
 
