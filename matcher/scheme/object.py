@@ -38,6 +38,7 @@ from .value import Value, ValueSource, ValueType
 lookup_lock = Lock()
 links_lock = Lock()
 role_lock = Lock()
+attributes_lock = Lock()
 
 
 class ExternalObjectType(CustomEnum):
@@ -641,7 +642,8 @@ class ExternalObject(db.Model, ResourceMixin):
         )
 
         for key, value in data['meta'].items():
-            obj.add_meta(key, value)
+            if value is not None:
+                obj.add_meta(key, value)
 
         # We need to save the object first to reload the links
         db.session.add(obj)
@@ -653,13 +655,14 @@ class ExternalObject(db.Model, ResourceMixin):
         has_attributes = False
 
         if data['attributes'] is not None:
-            for attribute in data['attributes']:
-                has_attributes = True
-                try:
-                    obj.add_attribute(attribute, scrap.platform)
-                except UnknownAttribute as e:
-                    # FIXME: do something with this exception
-                    print(e)
+            with attributes_lock, db.session.begin_nested():
+                for attribute in data['attributes']:
+                    has_attributes = True
+                    try:
+                        obj.add_attribute(attribute, scrap.platform)
+                    except UnknownAttribute as e:
+                        # FIXME: do something with this exception
+                        print(e)
 
         if has_attributes:
             # Find the link created for this platform and add the scrap to it
