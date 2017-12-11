@@ -7,11 +7,11 @@ from flask_admin.model.template import macro, EndpointLinkRowAction
 from jinja2 import escape
 
 from ..app import db
-from ..scheme.object import ObjectLink, ExternalObject, ExternalObjectType
+from ..scheme.object import ObjectLink, ExternalObject, ExternalObjectType, Episode
 from ..scheme.platform import Platform, PlatformType
 from ..scheme.value import Value, ValueType
 from .utils import CustomAdminConverter
-from .filters import ExternalObjectPlatformFilter, ExternalObjectSimilarFilter
+from .filters import ExternalObjectPlatformFilter, ExternalObjectSimilarFilter, SerieFilter
 
 
 def links_formatter(route):
@@ -40,6 +40,32 @@ def link_formatter(route):
             )
         )
     return formatter
+
+
+def serie_formatter(view, context, model, name):
+    serie = model.related_object.serie
+    if serie is not None:
+        return rules.Markup(
+            '<a href="{}">{}</a>'
+            .format(
+                url_for('series.details_view', id=serie.id),
+                escape(repr(serie))
+            )
+        )
+
+
+def meta_formatter(attr):
+    def formatter(view, context, model, name):
+        return rules.Markup(str(getattr(model.related_object, attr)))
+    return formatter
+
+
+def episodes_formatter(view, context, model, name):
+    count = Episode.query.filter(Episode.serie == model).count()
+    return rules.Markup('<a href="{}">{}</a>'.format(
+        url_for('episodes.index_view', flt1_5=model.id),
+        count)
+    )
 
 
 def attribute_formatter(f=lambda _: True, show_score=False,
@@ -120,7 +146,7 @@ class ValueView(DefaultView):
     can_view_details = True
     can_edit = False
     column_formatters = {
-        'external_object': link_formatter('allobject.details_view'),
+        'external_object': link_formatter('allobjects.details_view'),
         'sources': links_formatter('valuesource.details_view'),
     }
 
@@ -138,7 +164,7 @@ class ValueSourceView(DefaultView):
 
 class ObjectLinkView(DefaultView):
     column_formatters = {
-        'external_object': link_formatter('allobject.details_view'),
+        'external_object': link_formatter('allobjects.details_view'),
         'platform': link_formatter('platform.edit_view')
     }
     column_searchable_list = ['external_id']
@@ -147,7 +173,7 @@ class ObjectLinkView(DefaultView):
 class ExternalObjectView(DefaultView):
     def __init__(self, *args, **kwargs):
         kwargs['category'] = 'External Objects'
-        kwargs['endpoint'] = kwargs['name'].lower() + 'object'
+        kwargs['endpoint'] = kwargs['name'].lower().replace(' ', '')
         super(ExternalObjectView, self).__init__(ExternalObject, *args,
                                                  **kwargs)
 
@@ -170,6 +196,10 @@ class ExternalObjectView(DefaultView):
                                         filter=lambda t: t.replace('.', '')
                                                           .isdigit(),
                                         limit=1),
+        'serie': serie_formatter,
+        'season': meta_formatter('season'),
+        'episode': meta_formatter('episode'),
+        'episodes': episodes_formatter,
         'attributes': attribute_formatter(show_score=True),
         'attributes_list': macro('attributes_list'),
         'links_list': macro('links_list'),
@@ -178,7 +208,7 @@ class ExternalObjectView(DefaultView):
 
     column_extra_row_actions = [
         EndpointLinkRowAction('glyphicon icon-search',
-                              'allobject.index_view', id_arg='flt0_0')
+                              'allobjects.index_view', id_arg='flt0_0')
     ]
 
     inline_models = (
@@ -237,12 +267,27 @@ class AllObjectView(ExternalObjectView):
     column_filters = ExternalObjectView.column_filters + ['type']
 
 
-class PersonObjectView(ExternalObjectView):
+class PersonView(ExternalObjectView):
     external_object_type = ExternalObjectType.PERSON
     column_list = ('id', 'name', 'links')
 
 
-class MovieObjectView(ExternalObjectView):
+class MovieView(ExternalObjectView):
     external_object_type = ExternalObjectType.MOVIE
     column_list = ('id', 'title', 'date', 'genres', 'duration', 'country',
                    'links')
+
+
+class SerieView(ExternalObjectView):
+    external_object_type = ExternalObjectType.SERIE
+    column_list = ('id', 'title', 'date', 'genres', 'country', 'episodes',
+                   'links')
+
+
+class EpisodeView(ExternalObjectView):
+    external_object_type = ExternalObjectType.EPISODE
+    column_list = ('id', 'title', 'date', 'serie', 'season', 'episode',
+                   'country', 'links')
+    column_filters = ExternalObjectView.column_filters + [
+        SerieFilter(name='Episode')
+    ]

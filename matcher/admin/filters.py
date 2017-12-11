@@ -61,3 +61,18 @@ class ExternalObjectSimilarFilter(BaseFilter):
 
     def operation(self):
         return 'similar to'
+
+
+class SerieFilter(BaseFilter):
+    def apply(self, query, value, alias=None):
+        from ..app import db
+        from ..scheme.object import Episode, ExternalObject
+
+        episodes = db.session.query(Episode.external_object_id).\
+            filter(Episode.serie_id == int(value))
+        query = query.filter(ExternalObject.id.in_(episodes))
+
+        return query
+
+    def operation(self):
+        return 'in serie'

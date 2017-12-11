@@ -4,9 +4,10 @@ from ..app import db
 from ..scheme.object import ObjectLink
 from ..scheme.platform import Platform, PlatformGroup, Scrap
 from ..scheme.value import Value, ValueSource
-from .views import (AllObjectView, MovieObjectView, ObjectLinkView,
-                    PersonObjectView, PlatformGroupView, PlatformView,
-                    ScrapView, ValueSourceView, ValueView)
+from .views import (AllObjectView, EpisodeView, MovieView,
+                    ObjectLinkView, PersonView, PlatformGroupView,
+                    PlatformView, ScrapView, SerieView, ValueSourceView,
+                    ValueView)
 
 
 def setup_admin(app):
@@ -21,8 +22,10 @@ def setup_admin(app):
         ValueSourceView(ValueSource, db.session, name='Source',
                         category='Values'),
         ObjectLinkView(ObjectLink, db.session),
-        AllObjectView(db.session, name='All'),
-        PersonObjectView(db.session, name='Persons'),
-        MovieObjectView(db.session, name='Movies'),
+        AllObjectView(db.session, name='All objects'),
+        PersonView(db.session, name='Persons'),
+        MovieView(db.session, name='Movies'),
+        SerieView(db.session, name='Series'),
+        EpisodeView(db.session, name='Episodes'),
     )
     admin.init_app(app, endpoint='admin', url='/admin')
