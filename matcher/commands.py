@@ -260,9 +260,10 @@ def import_csv(external_ids, attributes, attr_platform, input):
 @click.option('--progress/--no-progress', default=True)
 @click.option('--explode/--no-explode', default=False)
 @click.option('--with-country/--no-with-country', default=False)
+@click.option('--count-countries/--no-count-countries', default=False)
 def export(offset=None, limit=None, platform=[], group=None, ignore=[],
            progress=True, explode=False, with_country=False, name=None,
-           exclude=None, type=None):
+           exclude=None, type=None, count_countries=False):
     """Export ExternalObjects to CSV"""
     import csv
     import sys
@@ -394,7 +395,7 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
             'LUMIERE': lumiere_id,
             'TMDB': tmdb_id,
             'Year': date,
-            'Films total': len(links_countries),
+            'Films total': len(links_countries) if count_countries else len(real_links),
             'Geo coverage': 1 if len(countries) > 0 else 0,
             'Countries': ','.join(countries),
             'Total European OBS': 1 if c1 and c1 in EUROBS else 0,
