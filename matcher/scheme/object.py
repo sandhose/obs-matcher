@@ -13,7 +13,6 @@ import collections
 import itertools
 import math
 import re
-from multiprocessing import Lock
 from operator import attrgetter, itemgetter
 
 from sqlalchemy import (Boolean, Column, Enum, ForeignKey, Integer,
@@ -21,7 +20,6 @@ from sqlalchemy import (Boolean, Column, Enum, ForeignKey, Integer,
                         func, tuple_)
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import aliased, relationship
-from sqlalchemy.orm.exc import NoResultFound
 from tqdm import tqdm
 
 from ..app import db
@@ -34,11 +32,12 @@ from .mixins import ResourceMixin
 from .platform import Platform, PlatformType
 from .utils import CustomEnum
 from .value import Value, ValueSource, ValueType
+from ..utils import Lock
 
-lookup_lock = Lock()
-links_lock = Lock()
-role_lock = Lock()
-attributes_lock = Lock()
+lookup_lock = Lock('lookup')
+links_lock = Lock('links')
+role_lock = Lock('role')
+attributes_lock = Lock('attribute')
 
 
 class ExternalObjectType(CustomEnum):
@@ -369,12 +368,12 @@ class ExternalObject(db.Model, ResourceMixin):
                 external_object = ExternalObject(type=obj_type)
                 session.add(external_object)
 
-        # Check of obj_type matches
-        if external_object.type is not obj_type:
-            raise ObjectTypeMismatchError(external_object.type, obj_type)
+            # Check of obj_type matches
+            if external_object.type is not obj_type:
+                raise ObjectTypeMismatchError(external_object.type, obj_type)
 
-        # Let's create the missing links
-        external_object.add_missing_links(links)
+            # Let's create the missing links
+            external_object.add_missing_links(links)
 
         # We've added the links, we can safely return the external_object
         return external_object
@@ -930,15 +929,7 @@ class ExternalObjectMetaMixin(object):
         The metadata object is created and added to the session if non-existent
 
         """
-        try:
-            obj = db.session.query(cls)\
-                .filter(cls.external_object == external_object)\
-                .one()
-        except NoResultFound:
-            obj = cls(external_object=external_object)
-            db.session.add(obj)
-
-        return obj
+        return db.session.merge(cls(external_object_id=external_object.id))
 
     @classmethod
     def register(cls):
@@ -1050,9 +1041,9 @@ class Person(db.Model, ExternalObjectMetaMixin):
         with role_lock, db.session.begin_nested():
             if Role.query.filter(Role.person == self.external_object and
                                  Role.external_object == movie).first() is None:
-                role = Role(person=self.external_object, external_object=movie,
-                            role=role)
-                db.session.add(role)
+                db.session.merge(Role(person=self.external_object,
+                                      external_object=movie,
+                                      role=role))
 
     def add_meta(self, key, content):
         """Add a metadata to the object.
