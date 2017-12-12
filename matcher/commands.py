@@ -169,8 +169,7 @@ def merge(threshold, invert, input):
 
     candidates = sorted(candidates, key=attrgetter('score'), reverse=True)
 
-    for c in candidates:
-        print(c)
+    click.echo_via_pager('\n'.join([repr(c) for c in candidates]))
 
     if click.confirm('Merge?'):
         ExternalObject.merge_candidates(candidates)
@@ -384,6 +383,8 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
 
         real_links = list(get_real_links(e.links))
 
+        links_countries = set([link.platform.country for link in real_links])
+
         matching_country = next((l.platform.country for l in real_links
                                  if l.platform.country == c1), '')
 
@@ -393,7 +394,7 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
             'LUMIERE': lumiere_id,
             'TMDB': tmdb_id,
             'Year': date,
-            'Films total': len(real_links),
+            'Films total': len(links_countries),
             'Geo coverage': 1 if len(countries) > 0 else 0,
             'Countries': ','.join(countries),
             'Total European OBS': 1 if c1 and c1 in EUROBS else 0,
@@ -414,8 +415,7 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
             'TVOD': next((1 for p in platform for l in e.links
                           if p.type == PlatformType.TVOD and
                           l.platform == p), 0),
-            'Platform Country': ','.join([link.platform.country
-                                          for link in real_links]),
+            'Platform Country': ','.join(links_countries),
             'Platform Name': name,
             'Scrap ID': e.id
         }
