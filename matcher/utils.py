@@ -1,8 +1,6 @@
 import fcntl
 import contextlib
 
-f = open('/tmp/testlock', 'w')
-
 
 class Lock():
     def __init__(self, name):
