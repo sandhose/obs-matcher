@@ -503,7 +503,7 @@ class ExternalObject(db.Model, ResourceMixin):
         excluded = set()
 
         it = tqdm(candidates)
-        for candidate in candidates:
+        for candidate in it:
             if candidate.obj in merged or candidate.into in excluded:
                 continue
 
