@@ -446,7 +446,10 @@ class ExternalObject(db.Model, ResourceMixin):
             role.external_object = their
 
         for episode in list(Episode.query.filter(Episode.external_object == self)):
-            episode.external_object = their
+            if Episode.query.filter(Episode.external_object_id == their.id).first() is not None:
+                db.session.delete(episode)
+            else:
+                episode.external_object = their
 
         for episode in list(Episode.query.filter(Episode.serie == self)):
             episode.serie = their
@@ -500,7 +503,7 @@ class ExternalObject(db.Model, ResourceMixin):
         excluded = set()
 
         it = tqdm(candidates)
-        for candidate in it:
+        for candidate in candidates:
             if candidate.obj in merged or candidate.into in excluded:
                 continue
 
@@ -521,7 +524,7 @@ class ExternalObject(db.Model, ResourceMixin):
                 db.session.commit()
                 it.write('Merged {} into {}'.format(src, dest))
             except Exception as e:
-                it.write(str(e))
+                it.write(repr(e))
 
     def similar(self):
         """Find similar objects.
@@ -666,7 +669,7 @@ class ExternalObject(db.Model, ResourceMixin):
         if has_attributes:
             # Find the link created for this platform and add the scrap to it
             with links_lock, db.session.begin_nested():
-                link = ObjectLink.query.filter(ObjectLink.external_object == obj and
+                link = ObjectLink.query.filter(ObjectLink.external_object == obj,
                                                ObjectLink.platform == scrap.platform).first()
                 if link is not None:
                     link.scraps.append(scrap)
