@@ -1,5 +1,4 @@
 import fcntl
-import contextlib
 
 
 class Lock():
@@ -20,12 +19,3 @@ class Lock():
 
     def __exit__(self, *args):
         fcntl.lockf(self.fd, fcntl.LOCK_UN)
-
-
-@contextlib.contextmanager
-def applock(app, name):
-    fcntl.lockf(f, fcntl.LOCK_EX)
-
-    yield
-
-    fcntl.lockf(f, fcntl.LOCK_UN)

@@ -247,6 +247,35 @@ def import_csv(external_ids, attributes, attr_platform, input):
         db.session.commit()
 
 
+@click.command('merge-episodes')
+@with_appcontext
+def merge_episodes():
+    """Merge episodes that are in the same serie"""
+    from sqlalchemy import and_
+    from sqlalchemy.orm import aliased
+    from .scheme.object import Episode
+    from .app import db
+
+    candidates = set()
+    other = aliased(Episode)
+
+    query = db.session.query(Episode.external_object_id, other.external_object_id).\
+        join((other, and_(
+            Episode.episode == other.episode,
+            Episode.season == other.season,
+            Episode.serie_id == other.serie_id,
+            Episode.external_object_id != other.external_object_id
+        ))).\
+        filter(Episode.episode is not None and Episode.season is not None)
+
+    candidates = frozenset([
+        frozenset([q[0], q[1]]) for q in query
+    ])
+
+    for (i, j) in candidates:
+        print("{}\t{}\t5.0".format(i, j))
+
+
 @click.command()
 @with_appcontext
 @click.option('--offset', '-o', type=int)
@@ -445,5 +474,6 @@ def setup_cli(app):
     app.cli.add_command(nuke)
     app.cli.add_command(match)
     app.cli.add_command(merge)
+    app.cli.add_command(merge_episodes)
     app.cli.add_command(import_csv)
     app.cli.add_command(export)
