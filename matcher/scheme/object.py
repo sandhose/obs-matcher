@@ -415,7 +415,10 @@ class ExternalObject(db.Model, ResourceMixin):
 
         # First merge the links
         for link in list(self.links):
-            link.external_object = their
+            link.external_object_id = their.id
+            db.session.add(link)
+
+        db.session.commit()
 
         # Then merge the attributes
         for our_attr in self.attributes:
