@@ -149,8 +149,9 @@ def match(scrap=None, platform=None, exclude=None, offset=None, type=None, limit
 @with_appcontext
 @click.option('--threshold', '-t', prompt=True, type=float)
 @click.option('--invert', '-i', is_flag=True)
+@click.option('--interactive/--non-interactive', '-i/-I', default=True)
 @click.argument('input', type=click.File('r'))
-def merge(threshold, invert, input):
+def merge(threshold, invert, interactive, input):
     """Merge candidates above a given threshold"""
     from .scheme.object import MergeCandidate, ExternalObject
     lines = input.readlines()
@@ -169,9 +170,10 @@ def merge(threshold, invert, input):
 
     candidates = sorted(candidates, key=attrgetter('score'), reverse=True)
 
-    click.echo_via_pager('\n'.join([repr(c) for c in candidates]))
+    if interactive:
+        click.echo_via_pager('\n'.join([repr(c) for c in candidates]))
 
-    if click.confirm('Merge?'):
+    if not interactive or click.confirm('Merge?'):
         ExternalObject.merge_candidates(candidates)
 
 
