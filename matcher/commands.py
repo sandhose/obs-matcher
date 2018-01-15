@@ -354,7 +354,7 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
     if progress:
         it = tqdm(it)
 
-    fieldnames = ['IMDb', 'LUMIERE', 'TMDB', 'Year', 'Films total',
+    fieldnames = ['IMDb', 'LUMIERE', 'TMDB', 'Year', 'Total count',
                   'Geo coverage', 'Countries', 'Total European OBS',
                   '100% national productions', 'National co-productions',
                   'Non-National European OBS', 'EU 28',
@@ -424,13 +424,24 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
         matching_country = next((l.platform.country for l in real_links
                                  if l.platform.country == c1), '')
 
+        if type == ExternalObjectType.SERIE:
+            total_count = Episode.query.\
+                filter(Episode.serie == e).\
+                join(Episode.external_object).\
+                join(ExternalObject.links).\
+                filter(ObjectLink.platform.platform_id.in_(platform_ids)).\
+                group_by(Episode.episode, Episode.season).\
+                count()
+        else:
+            total_count = len(links_countries) if count_countries else len(real_links)
+
         # TODO: Clean up this mess
         data = {
             'IMDb': imdb_id,
             'LUMIERE': lumiere_id,
             'TMDB': tmdb_id,
             'Year': date,
-            'Films total': len(links_countries) if count_countries else len(real_links),
+            'Total count': total_count,
             'Geo coverage': 1 if len(countries) > 0 else 0,
             'Countries': ','.join(countries),
             'Total European OBS': 1 if c1 and c1 in EUROBS else 0,
@@ -458,11 +469,22 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
 
         if explode:
             for link in real_links:
+                if type == ExternalObjectType.SERIE:
+                    total_count = Episode.query.\
+                        filter(Episode.serie == e).\
+                        join(Episode.external_object).\
+                        join(ExternalObject.links).\
+                        filter(ObjectLink.platform.platform_id.in_(platform_ids)).\
+                        group_by(Episode.episode, Episode.season).\
+                        count()
+                else:
+                    total_count = 1
+
                 c = link.platform.country
                 type = link.platform.type
                 writer.writerow({
                     **data,
-                    'Films total': 1,
+                    'Total count': total_count,
                     '100% national productions': 1 if c1 and c == c1 and not coprod else 0,
                     'National co-productions': 1 if c1 and c == c1 and coprod else 0,
                     'Non-National European OBS': 1 if c1 and (c != c1 and
