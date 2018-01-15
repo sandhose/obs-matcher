@@ -67,6 +67,12 @@ class Platform(db.Model, ResourceMixin):
     group_id = db.Column(db.Integer,
                          db.ForeignKey('platform_group.id'))
 
+    """True if a single item can have multiple links within the platform"""
+    allow_links_overlap = db.Column(db.Boolean, nullable=False, server_default="FALSE")
+
+    """Automatically exclude this platform from exports"""
+    ignore_in_exports = db.Column(db.Boolean, nullable=False, server_default="FALSE")
+
     # FIXME: way to map ExternalID -> URL
     url = db.Column(JSONB)
     """Base URL of this platform"""

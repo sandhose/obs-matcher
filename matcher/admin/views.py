@@ -109,7 +109,8 @@ class PlatformView(DefaultView):
     column_filters = ['type', 'country', 'group']
     column_editable_list = ['country', 'name', 'slug', 'group']
     form_columns = ('type', 'group', 'name', 'slug', 'url', 'country',
-                    'max_rating', 'base_score')
+                    'max_rating', 'base_score', 'allow_links_overlap',
+                    'ignore_in_exports')
     column_formatters = {
         'links': count_formatter
     }
@@ -126,6 +127,8 @@ class PlatformView(DefaultView):
             rules.Field('slug'),
             rules.Field('max_rating'),
             rules.Field('base_score'),
+            rules.Field('allow_links_overlap'),
+            rules.Field('ignore_in_exports'),
         ], header="Technical info")
     ]
 

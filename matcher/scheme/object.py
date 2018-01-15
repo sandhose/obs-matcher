@@ -405,12 +405,8 @@ class ExternalObject(db.Model, ResourceMixin):
         their_platforms = set(map(attrgetter('platform'), their.links))
 
         # The two objects should not have links to the same platform
-        if [p
-            for p in (our_platforms & their_platforms)
-            if [l
-                for l in p.links
-                if l.platform.type != PlatformType.GLOBAL
-                ]]:
+        if [p for p in (our_platforms & their_platforms)
+                if [l for l in p.links if not l.platform.allow_links_overlap]]:
             raise LinksOverlap(self, their)
 
         # First merge the links

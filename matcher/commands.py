@@ -300,7 +300,7 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
     import sys
     from tqdm import tqdm
     from .scheme.object import ExternalObject, ObjectLink, \
-        ExternalObjectType
+        ExternalObjectType, Episode
     from .scheme.platform import Platform, PlatformType
     from .scheme.value import Value, ValueType
     from .app import db
@@ -324,6 +324,10 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
 
     platform_ids = [p.id for p in platform]
     ignore_ids = [p.id for p in ignore]
+
+    ignore_ids += db.session.query(Platform.id).\
+        filter(Platform.ignore_in_exports == True).\
+        all()
 
     if platform_ids:
         include_list = include_list.\
