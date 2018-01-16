@@ -425,11 +425,10 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
                                  if l.platform.country == c1), '')
 
         if type == ExternalObjectType.SERIE:
-            total_count = Episode.query.\
+            total_count = db.session.query(Episode.episode, Episode.season).\
                 filter(Episode.serie == e).\
-                join(Episode.external_object).\
-                join(ExternalObject.links).\
-                filter(ObjectLink.platform.platform_id.in_(platform_ids)).\
+                join(ObjectLink, ObjectLink.external_object_id == Episode.external_object_id).\
+                filter(ObjectLink.platform_id.in_(platform_ids)).\
                 group_by(Episode.episode, Episode.season).\
                 count()
         else:
@@ -470,12 +469,10 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
         if explode:
             for link in real_links:
                 if type == ExternalObjectType.SERIE:
-                    total_count = Episode.query.\
+                    total_count = db.session.query(Episode.episode, Episode.season).\
                         filter(Episode.serie == e).\
-                        join(Episode.external_object).\
-                        join(ExternalObject.links).\
-                        filter(ObjectLink.platform.platform_id.in_(platform_ids)).\
-                        group_by(Episode.episode, Episode.season).\
+                        join(ObjectLink, ObjectLink.external_object_id == Episode.external_object_id).\
+                        filter(ObjectLink.platform_id.in_(platform_ids)).\
                         count()
                 else:
                     total_count = 1
