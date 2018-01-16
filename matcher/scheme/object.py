@@ -554,7 +554,7 @@ class ExternalObject(db.Model, ResourceMixin):
 
         def links_overlap(a, b):
             platforms = set([l.platform for l in a]) & set([l.platform for l in b])
-            return [p for p in platforms if p.type != PlatformType.GLOBAL]
+            return [p for p in platforms if p.type != PlatformType.GLOBAL and not p.allow_links_overlap]
 
         objects = [
             MergeCandidate(obj=self.id,
