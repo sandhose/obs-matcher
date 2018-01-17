@@ -354,7 +354,7 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
     if progress:
         it = tqdm(it)
 
-    fieldnames = ['IMDb', 'LUMIERE', 'TMDB', 'Year', 'Total count',
+    fieldnames = ['IMDb', 'LUMIERE/TVDB', 'TMDB', 'Year', 'Total count',
                   'Geo coverage', 'Countries', 'Total European OBS',
                   '100% national productions', 'National co-productions',
                   'Non-National European OBS', 'EU 28',
@@ -369,7 +369,11 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
 
     imdb = Platform.query.filter(Platform.slug == 'imdb').one()
     tmdb = Platform.query.filter(Platform.slug == 'tmdb').one()
-    lumiere = Platform.query.filter(Platform.slug == 'lumiere').one()
+
+    if type == PlatformType.SERIE:
+        lumieretvdb = Platform.query.filter(Platform.slug == 'tvdb').one()
+    else:
+        lumieretvdb = Platform.query.filter(Platform.slug == 'lumiere').one()
 
     for e in it:
         countries = db.session.query(Value.text).\
@@ -390,7 +394,7 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
 
         imdb_id = pl_id(imdb)
         tmdb_id = pl_id(tmdb)
-        lumiere_id = pl_id(lumiere)
+        lumieretvdb_id = pl_id(lumieretvdb)
 
         titles = db.session.query(Value.text).\
             filter(Value.external_object == e).\
@@ -437,7 +441,7 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
         # TODO: Clean up this mess
         data = {
             'IMDb': imdb_id,
-            'LUMIERE': lumiere_id,
+            'LUMIERE/TVDB': lumieretvdb_id,
             'TMDB': tmdb_id,
             'Year': date,
             'Total count': total_count,
@@ -472,13 +476,13 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
                     total_count = db.session.query(Episode.episode, Episode.season).\
                         filter(Episode.serie == e).\
                         join(ObjectLink, ObjectLink.external_object_id == Episode.external_object_id).\
-                        filter(ObjectLink.platform_id.in_(platform_ids)).\
+                        filter(ObjectLink.platform_id == link.platform_id).\
                         count()
                 else:
                     total_count = 1
 
                 c = link.platform.country
-                type = link.platform.type
+                ptype = link.platform.type
                 writer.writerow({
                     **data,
                     'Total count': total_count,
@@ -486,8 +490,8 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
                     'National co-productions': 1 if c1 and c == c1 and coprod else 0,
                     'Non-National European OBS': 1 if c1 and (c != c1 and
                                                               c1 in EUROBS) else 0,
-                    'SVOD': 1 if type is PlatformType.SVOD else 0,
-                    'TVOD': 1 if type is PlatformType.TVOD else 0,
+                    'SVOD': 1 if ptype is PlatformType.SVOD else 0,
+                    'TVOD': 1 if ptype is PlatformType.TVOD else 0,
                     'Platform Country': c,
                     'Platform Name': link.platform.name
                 })
