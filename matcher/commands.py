@@ -370,7 +370,7 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
     imdb = Platform.query.filter(Platform.slug == 'imdb').one()
     tmdb = Platform.query.filter(Platform.slug == 'tmdb').one()
 
-    if type == PlatformType.SERIE:
+    if type == ExternalObjectType.SERIE:
         lumieretvdb = Platform.query.filter(Platform.slug == 'tvdb').one()
     else:
         lumieretvdb = Platform.query.filter(Platform.slug == 'lumiere').one()
