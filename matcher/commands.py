@@ -278,6 +278,45 @@ def merge_episodes():
         print("{}\t{}\t5.0".format(i, j))
 
 
+@click.command("fix-attributes")
+@with_appcontext
+def fix_attributes():
+    """Fix duplicate attributes"""
+    from sqlalchemy.sql.expression import func
+    from sqlalchemy.orm import aliased
+    from .scheme.value import Value, ValueType, ValueSource
+    from .app import db
+    from .countries import lookup
+    from tqdm import tqdm
+
+    v1 = aliased(Value)
+    v2 = aliased(Value)
+
+    values = list(
+        db.session.query(v1, v2).
+        filter(v1.external_object_id == v2.external_object_id).
+        filter(v1.type == v2.type).
+        filter(v1.text == v2.text).
+        filter(v1.id != v2.id)
+    )
+
+    done = set()
+
+    for (v1, v2) in tqdm(values):
+        if v1.id in done or v2.id in done:
+            continue
+
+        for s2 in v2.sources:
+            if not any(s1.platform == s2.platform for s1 in v1.sources):
+                v1.sources.append(ValueSource(platform=s2.platform,
+                                              score_factor=s2.score_factor))
+            db.session.delete(s2)
+        done.add(v2.id)
+
+        db.session.delete(v2)
+        db.session.commit()
+
+
 @click.command("fix-countries")
 @with_appcontext
 def fix_countries():
@@ -546,4 +585,5 @@ def setup_cli(app):
     app.cli.add_command(merge_episodes)
     app.cli.add_command(import_csv)
     app.cli.add_command(export)
+    app.cli.add_command(fix_attributes)
     app.cli.add_command(fix_countries)
