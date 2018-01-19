@@ -21,6 +21,7 @@ from sqlalchemy import (Boolean, Column, Enum, ForeignKey, Integer,
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import aliased, relationship
 from tqdm import tqdm
+from unidecode import unidecode
 
 from ..app import db
 from ..exceptions import (AmbiguousLinkError, ExternalIDMismatchError,
@@ -600,7 +601,7 @@ class ExternalObject(db.Model, ResourceMixin):
                         for y in their_attrs
                         if x is not None and
                         y is not None and
-                        x == y])
+                        unidecode(x).lower() == unidecode(y).lower()])
 
         criterias = [
             lambda self, their: numeric_attr(self, their,
