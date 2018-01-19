@@ -286,6 +286,7 @@ def fix_countries():
     from .scheme.value import Value, ValueType, ValueSource
     from .app import db
     from .countries import lookup
+    from tqdm import tqdm
 
     values = list(
         Value.query
@@ -300,17 +301,19 @@ def fix_countries():
 
     added = 0
 
-    for v in values:
+    for v in tqdm(values):
         new = lookup(v.text)
         if new is not None:
             added += 1
 
-            value = Value(type=ValueType.COUNTRY, text=new)
+            value = Value(type=ValueType.COUNTRY,
+                          text=new,
+                          external_object_id=v.external_object_id)
+
+            db.session.add(value)
 
             for source in v.sources:
                 value.sources.append(ValueSource(platform=source.platform, score_factor=source.score_factor))
-
-            db.session.add(Value)
     db.session.commit()
     print("Fixed {} countries out of {}".format(added, len(values)))
 
