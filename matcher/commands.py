@@ -278,6 +278,43 @@ def merge_episodes():
         print("{}\t{}\t5.0".format(i, j))
 
 
+@click.command("fix-countries")
+@with_appcontext
+def fix_countries():
+    """Fix countries attributes with no ISO codes"""
+    from sqlalchemy.sql.expression import func
+    from .scheme.value import Value, ValueType, ValueSource
+    from .app import db
+    from .countries import lookup
+
+    values = list(
+        Value.query
+        .filter(~Value.external_object_id.in_(
+            db.session.query(Value.external_object_id)
+            .filter(Value.type == ValueType.COUNTRY)
+            .filter(func.length(Value.text) == 2)
+        ))
+        .filter(Value.type == ValueType.COUNTRY)
+        .all()
+    )
+
+    added = 0
+
+    for v in values:
+        new = lookup(v.text)
+        if new is not None:
+            added += 1
+
+            value = Value(type=ValueType.COUNTRY, text=new)
+
+            for source in v.sources:
+                value.sources.append(ValueSource(platform=source.platform, score_factor=source.score_factor))
+
+            db.session.add(Value)
+    db.session.commit()
+    print("Fixed {} countries out of {}".format(added, len(values)))
+
+
 @click.command()
 @with_appcontext
 @click.option('--offset', '-o', type=int)
@@ -506,3 +543,4 @@ def setup_cli(app):
     app.cli.add_command(merge_episodes)
     app.cli.add_command(import_csv)
     app.cli.add_command(export)
+    app.cli.add_command(fix_countries)
