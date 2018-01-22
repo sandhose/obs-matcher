@@ -334,7 +334,7 @@ def fix_titles():
     added = 0
 
     for v in tqdm(values):
-        new = re.sub(r"\[.*\]", "", v.text)
+        new = re.sub(r"\[.*\]", "", v.text).strip()
 
         existing = Value.query.filter(Value.type == ValueType.TITLE,
                                       Value.text == new,
@@ -342,7 +342,7 @@ def fix_titles():
 
         if existing is None:
             added += 1
-            value = Value(type=ValueType.COUNTRY,
+            value = Value(type=ValueType.TITLE,
                           text=new,
                           external_object_id=v.external_object_id)
 
@@ -625,3 +625,4 @@ def setup_cli(app):
     app.cli.add_command(export)
     app.cli.add_command(fix_attributes)
     app.cli.add_command(fix_countries)
+    app.cli.add_command(fix_titles)
