@@ -282,11 +282,9 @@ def merge_episodes():
 @with_appcontext
 def fix_attributes():
     """Fix duplicate attributes"""
-    from sqlalchemy.sql.expression import func
     from sqlalchemy.orm import aliased
-    from .scheme.value import Value, ValueType, ValueSource
+    from .scheme.value import Value, ValueSource
     from .app import db
-    from .countries import lookup
     from tqdm import tqdm
 
     v1 = aliased(Value)
@@ -315,6 +313,46 @@ def fix_attributes():
 
         db.session.delete(v2)
         db.session.commit()
+
+
+@click.command("fix-titles")
+@with_appcontext
+def fix_titles():
+    """Fix countries attributes with no ISO codes"""
+    import re
+    from .scheme.value import Value, ValueType, ValueSource
+    from .app import db
+    from tqdm import tqdm
+
+    values = list(
+        Value.query
+        .filter(Value.text.like('%[%]'))
+        .filter(Value.type == ValueType.TITLE)
+        .all()
+    )
+
+    added = 0
+
+    for v in tqdm(values):
+        new = re.sub(r"\[.*\]", "", v.text)
+
+        existing = Value.query.filter(Value.type == ValueType.TITLE,
+                                      Value.text == new,
+                                      Value.external_object_id == v.external_object_id).first()
+
+        if existing is None:
+            added += 1
+            value = Value(type=ValueType.COUNTRY,
+                          text=new,
+                          external_object_id=v.external_object_id)
+
+            db.session.add(value)
+
+            for source in v.sources:
+                value.sources.append(ValueSource(platform=source.platform, score_factor=source.score_factor))
+
+    db.session.commit()
+    print("Fixed {} titles out of {}".format(added, len(values)))
 
 
 @click.command("fix-countries")
