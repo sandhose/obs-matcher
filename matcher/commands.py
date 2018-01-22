@@ -105,7 +105,8 @@ def nuke():
 @click.option('--type', '-t', type=EXTERNAL_OBJECT_TYPE)
 @click.option('--offset', '-o', type=int)
 @click.option('--limit', '-l', type=int)
-def match(scrap=None, platform=None, exclude=None, offset=None, type=None, limit=None):
+@click.option('--all/--not-all', '-a/-A', default=False)
+def match(scrap=None, platform=None, exclude=None, offset=None, type=None, limit=None, all=False):
     """Try to match ExternalObjects with each other"""
     from .scheme.platform import Scrap
     from .scheme.object import ExternalObject, ExternalObjectType, \
@@ -126,7 +127,7 @@ def match(scrap=None, platform=None, exclude=None, offset=None, type=None, limit
 
     if platform:
         q = q.filter(ObjectLink.platform == platform)
-    else:
+    elif not all:
         if scrap is None:
             scrap = Scrap.query.order_by(Scrap.id.desc()).one()
 
