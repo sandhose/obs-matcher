@@ -121,28 +121,30 @@ def match(scrap=None, platform=None, exclude=None, offset=None, type=None, limit
     if type is None:
         type = ExternalObjectType.MOVIE
 
-    q = ObjectLink.query.\
-        join(ObjectLink.external_object).\
+    q = ExternalObject.query.\
         filter(ExternalObject.type == type)
 
     if platform:
-        q = q.filter(ObjectLink.platform == platform)
+        q = q.filter(ExternalObject.id.in_(db.query(ObjectLink.external_object_id).
+                                           filter(ObjectLink.platform == platform)))
     elif not all:
         if scrap is None:
             scrap = Scrap.query.order_by(Scrap.id.desc()).one()
 
-        q = q.filter(ObjectLink.id.in_(
-            db.session.query(scrap_link.c.object_link_id).
+        q = q.filter(ExternalObject.id.in_(
+            db.session.query(ObjectLink.external_object_id).
+            select_from(scrap_link).
+            join(ObjectLink, ObjectLink.id == scrap_link.c.object_link_id).
             filter(scrap_link.c.scrap_id == scrap.id)
         ))
 
     if exclude:
-        q = q.filter(~ObjectLink.external_object_id.in_(
+        q = q.filter(~ExternalObject.id.in_(
             db.session.query(ObjectLink.external_object_id)
             .filter(ObjectLink.platform == exclude)
         ))
 
-    objs = [l.external_object for l in q[offset:limit]]
+    objs = q[offset:limit]
     ExternalObject.match_objects(objs)
 
 
