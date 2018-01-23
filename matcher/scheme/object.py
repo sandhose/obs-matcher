@@ -19,7 +19,7 @@ from sqlalchemy import (Boolean, Column, Enum, ForeignKey, Integer,
                         PrimaryKeyConstraint, Sequence, Table, Text, and_,
                         func, tuple_)
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm import aliased, relationship
+from sqlalchemy.orm import aliased, relationship, joinedload
 from tqdm import tqdm
 from unidecode import unidecode
 
@@ -210,6 +210,13 @@ class ExternalObject(db.Model, ResourceMixin):
             return None
 
         return cls.from_external_object(external_object=self)
+
+    @property
+    def episodes(self):
+        return Episode.query.filter(Episode.serie == self).\
+            options(joinedload('external_object')).\
+            order_by(Episode.season, Episode.episode).\
+            limit(10)
 
     def add_meta(self, key, content):
         """Add a metadata on the related_object.

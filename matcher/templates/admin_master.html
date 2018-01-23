@@ -86,3 +86,40 @@
     {{- "," if not loop.last }}
   {% endfor %}
 {% endmacro %}
+
+{% macro episode_details(model, column) %}
+  <a href="{{ url_for('series.details_view', id=model.related_object.serie_id) }}">
+    Season {{ model.related_object.season }} episode {{ model.related_object.episode }}
+  </a>
+{% endmacro %}
+
+{% macro episodes_list(model, column) %}
+  <p>
+    <a class="btn" href="{{ url_for('episodes.index_view', flt1_5=model.id) }}">View all</a>
+  </p>
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Links</th>
+        <th width="99%">Go</th>
+        <th>Season</th>
+        <th>Episode</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for episode in model.episodes %}
+        <tr>
+          <td>{{ episode.external_object.links|length }}</td>
+          <td>
+            <a href="{{ url_for('episodes.details_view', id=episode.external_object_id) }}">
+              {{ episode.external_object }}
+            </a>
+          </td>
+          <td>{{ episode.season }}</td>
+          <td>{{ episode.episode }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endmacro %}
+

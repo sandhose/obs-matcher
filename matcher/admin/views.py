@@ -202,7 +202,9 @@ class ExternalObjectView(DefaultView):
         'serie': serie_formatter,
         'season': meta_formatter('season'),
         'episode': meta_formatter('episode'),
+        'episode_details': macro('episode_details'),
         'episodes': episodes_formatter,
+        'episodes_list': macro('episodes_list'),
         'attributes': attribute_formatter(show_score=True),
         'attributes_list': macro('attributes_list'),
         'links_list': macro('links_list'),
@@ -283,6 +285,8 @@ class MovieView(ExternalObjectView):
 
 class SerieView(ExternalObjectView):
     external_object_type = ExternalObjectType.SERIE
+    column_details_list = ('id', 'type', 'attributes_list', 'links_list',
+                           'episodes_list')
     column_list = ('id', 'title', 'date', 'genres', 'country', 'episodes',
                    'links')
 
@@ -291,6 +295,8 @@ class EpisodeView(ExternalObjectView):
     external_object_type = ExternalObjectType.EPISODE
     column_list = ('id', 'title', 'date', 'serie', 'season', 'episode',
                    'country', 'links')
+    column_details_list = ('id', 'type', 'attributes_list', 'links_list',
+                           'episode_details')
     column_filters = ExternalObjectView.column_filters + [
         SerieFilter(name='Episode')
     ]
