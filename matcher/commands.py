@@ -231,8 +231,21 @@ def import_csv(external_ids, attributes, attr_platform, input):
                 it.write('SKIP {} ({})'.format(id, platform.slug))
                 continue
 
+            if not platform.allow_links_overlap:
+                existing = ObjectLink.query.\
+                    filter(ObjectLink.external_object == obj).\
+                    filter(ObjectLink.platform == platform).\
+                    first()
+
+                if existing is not None:
+                    db.session.delete(existing)
+                    db.session.commit()
+
             link = ObjectLink.query.\
-                filter(ObjectLink.external_id == external_id).first()
+                filter(ObjectLink.external_id == external_id).\
+                filter(ObjectLink.platform == platform).\
+                first()
+
             if link is None:
                 it.write('LINK {} {} ({})'.format(id, external_id,
                                                   platform.slug))
@@ -241,6 +254,7 @@ def import_csv(external_ids, attributes, attr_platform, input):
                                             external_id=external_id))
             elif link.external_object != obj:
                 it.write('MERGE {} {}'.format(id, external_id))
+
                 try:
                     link.external_object.merge_and_delete(obj, db.session)
                 except Exception as e:
