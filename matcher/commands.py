@@ -125,7 +125,7 @@ def match(scrap=None, platform=None, exclude=None, offset=None, type=None, limit
         filter(ExternalObject.type == type)
 
     if platform:
-        q = q.filter(ExternalObject.id.in_(db.query(ObjectLink.external_object_id).
+        q = q.filter(ExternalObject.id.in_(db.session.query(ObjectLink.external_object_id).
                                            filter(ObjectLink.platform == platform)))
     elif not all:
         if scrap is None:
