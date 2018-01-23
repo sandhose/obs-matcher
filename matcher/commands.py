@@ -237,7 +237,7 @@ def import_csv(external_ids, attributes, attr_platform, input):
                     filter(ObjectLink.platform == platform).\
                     first()
 
-                if existing is not None:
+                if existing is not None and existing.external_id != external_id:
                     db.session.delete(existing)
                     db.session.commit()
 
