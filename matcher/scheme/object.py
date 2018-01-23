@@ -620,6 +620,9 @@ class ExternalObject(db.Model, ResourceMixin):
         ]
 
         for candidate in objects:
+            if candidate.obj == candidate.into:
+                continue
+
             factor = 1
             their = ExternalObject.query.get(candidate.into)
             for criteria in criterias:
