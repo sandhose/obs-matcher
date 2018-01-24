@@ -611,9 +611,13 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
                         filter(Episode.serie == e).\
                         join(ObjectLink, ObjectLink.external_object_id == Episode.external_object_id).\
                         filter(ObjectLink.platform_id == link.platform_id).\
+                        group_by(ObjectLink.platform_id, ObjectLink.external_object_id).\
                         count()
                 else:
                     total_count = 1
+
+                if total_count == 0:
+                    continue
 
                 c = link.platform.country
                 ptype = link.platform.type
@@ -629,7 +633,7 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
                     'Platform Country': c,
                     'Platform Name': link.platform.name
                 })
-        else:
+        elif total_count > 0:
             writer.writerow(data)
 
 
