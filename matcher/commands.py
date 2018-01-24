@@ -498,6 +498,34 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
                   'Title', 'SVOD', 'TVOD', 'Platform Country',
                   'Platform Name', 'Scrap ID']
 
+    def generate_flags(total_count, countries, national_production):
+        [country, *_] = countries + [None]
+        coprod = len(countries) > 1
+
+        def flag(f):
+            return total_count if f else 0
+
+        def cflag(f):
+            return flag(country is not None and f)
+
+        return {
+            'Total count': total_count,
+            'Geo coverage': 1 if len(countries) > 0 else 0,
+            'Countries': ','.join(countries),
+            'Total European OBS': cflag(country in EUROBS),
+            '100% national productions': cflag(national_production and not coprod),
+            'National co-productions': cflag(national_production and coprod),
+            'Non-National European OBS': cflag(not national_production and country in EUROBS),
+            'EU 28': cflag(country in EUR28),
+            'EU 28 co-productions': cflag(country in EUR28 and coprod),
+            'European OBS co-productions': cflag(country in EUROBS and coprod),
+            'International': cflag(country not in EUROBS),
+            'US': cflag(country == 'US'),
+            'Other International': cflag(country not in (EUROBS + ['US'])),
+            'International co-productions': cflag(country not in (EUROBS + ['US']) and coprod),
+            'US co-productions': cflag(country == 'US' and coprod),
+        }
+
     writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames)
     writer.writeheader()
 
@@ -517,9 +545,9 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
             all()
 
         countries = [c[0] for c in countries if len(c[0]) == 2]
-        [c1, c2, c3, *cmore] = countries + ([None] * 4)
+        [country, *_] = countries + [None]
 
-        if not c1 and with_country:
+        if not country and with_country:
             continue
 
         def pl_id(platform):
@@ -544,8 +572,6 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
             all()
         date = next((d[0] for d in dates if len(d[0]) == 4), None)
 
-        coprod = len(countries) > 1
-
         def get_real_links(links):
             seen = set()
             for link in links:
@@ -559,8 +585,8 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
 
         links_countries = set([link.platform.country for link in real_links])
 
-        matching_country = next((l.platform.country for l in real_links
-                                 if l.platform.country == c1), '')
+        national_production = any(l.platform.country for l in real_links
+                                  if l.platform.country == country)
 
         if type == ExternalObjectType.SERIE:
             total_count = db.session.query(Episode.episode, Episode.season).\
@@ -572,33 +598,21 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
         else:
             total_count = len(links_countries) if count_countries else len(real_links)
 
+        if total_count == 0:
+            continue
+
         # TODO: Clean up this mess
         data = {
+            **generate_flags(total_count, countries, national_production),
             'IMDb': imdb_id,
             'LUMIERE/TVDB': lumieretvdb_id,
             'TMDB': tmdb_id,
             'Year': date,
-            'Total count': total_count,
-            'Geo coverage': 1 if len(countries) > 0 else 0,
-            'Countries': ','.join(countries),
-            'Total European OBS': total_count if c1 and c1 in EUROBS else 0,
-            '100% national productions': total_count if c1 and matching_country == c1 and not coprod else 0,
-            'National co-productions': total_count if c1 and matching_country == c1 and coprod else 0,
-            'Non-National European OBS': total_count if c1 and matching_country != c1 and c1 in EUROBS else 0,
-            'EU 28': total_count if c1 and c1 in EUR28 else 0,
-            'EU 28 co-productions': total_count if c1 and c1 in EUR28 and coprod else 0,
-            'European OBS co-productions': total_count if c1 and c1 in EUROBS and coprod else 0,
-            'International': total_count if c1 and c1 not in EUROBS else 0,
-            'US': total_count if c1 and c1 == 'US' else 0,
-            'Other International': total_count if c1 and c1 not in EUROBS + ['US'] else 0,
-            'International co-productions': total_count if c1 and c1 not in EUROBS and c1 != 'US' and coprod else 0,
-            'US co-productions': total_count if c1 and c1 == 'US' and coprod else 0,
             'Title': title,
-            'SVOD': next((1 for p in platform for l in e.links
+            'SVOD': next((total_count for p in platform for l in e.links
                           if p.type == PlatformType.SVOD and l.platform == p), 0),
-            'TVOD': next((1 for p in platform for l in e.links
-                          if p.type == PlatformType.TVOD and
-                          l.platform == p), 0),
+            'TVOD': next((total_count for p in platform for l in e.links
+                          if p.type == PlatformType.TVOD and l.platform == p), 0),
             'Platform Country': ','.join(links_countries),
             'Platform Name': name,
             'Scrap ID': e.id
@@ -619,21 +633,17 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
                 if total_count == 0:
                     continue
 
-                c = link.platform.country
-                ptype = link.platform.type
+                national_production = link.platform.country == country
                 writer.writerow({
                     **data,
+                    **generate_flags(total_count, countries, national_production),
                     'Total count': total_count,
-                    '100% national productions': total_count if c1 and c == c1 and not coprod else 0,
-                    'National co-productions': total_count if c1 and c == c1 and coprod else 0,
-                    'Non-National European OBS': total_count if c1 and (c != c1 and
-                                                              c1 in EUROBS) else 0,
-                    'SVOD': total_count if ptype is PlatformType.SVOD else 0,
-                    'TVOD': total_count if ptype is PlatformType.TVOD else 0,
-                    'Platform Country': c,
+                    'SVOD': total_count if link.platform.type is PlatformType.SVOD else 0,
+                    'TVOD': total_count if link.platform.type is PlatformType.TVOD else 0,
+                    'Platform Country': link.platform.country,
                     'Platform Name': link.platform.name
                 })
-        elif total_count > 0:
+        else:
             writer.writerow(data)
 
 
