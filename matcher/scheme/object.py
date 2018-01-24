@@ -278,9 +278,9 @@ class ExternalObject(db.Model, ResourceMixin):
             value = Value(type=type, text=text)
             self.attributes.append(value)
 
-        if not any(source.platform == platform for source in value.sources):
-            value.sources.append(ValueSource(
-                platform=platform, score_factor=score_factor))
+        db.session.merge(ValueSource(platform=platform,
+                                     value=value,
+                                     score_factor=score_factor))
 
     @staticmethod
     def lookup_from_links(links):
