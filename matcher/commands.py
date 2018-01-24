@@ -621,7 +621,7 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
         if explode:
             for link in real_links:
                 if type == ExternalObjectType.SERIE:
-                    total_count = db.session.query(Episode.episode, Episode.season).\
+                    total_count = db.session.query(ObjectLink.platform_id, ObjectLink.external_object_id).\
                         filter(Episode.serie == e).\
                         join(ObjectLink, ObjectLink.external_object_id == Episode.external_object_id).\
                         filter(ObjectLink.platform_id == link.platform_id).\
