@@ -278,8 +278,8 @@ class ExternalObject(db.Model, ResourceMixin):
             value = Value(type=type, text=text)
             self.attributes.append(value)
 
-        existing = next((source.platform == platform
-                         for source in value.sources), None)
+        existing = next((source for source in value.sources
+                         if source.platform == platform), None)
         if existing is None:
             existing = ValueSource(platform=platform)
             value.sources.append(existing)
