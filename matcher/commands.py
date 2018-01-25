@@ -194,15 +194,18 @@ def import_csv(external_ids, attributes, attr_platform, input):
     from tqdm import tqdm
     from .app import db
     from .scheme.object import ExternalObject, ObjectLink
+    from .scheme.value import ValueSource, Value
 
     # attr_platform was loaded in another session
     db.session.add_all([attr_platform])
+    db.session.add_all([platform for _, platform in external_ids])
 
     has_header = csv.Sniffer().has_header(input.read(1024))
     input.seek(0)
     rows = csv.reader(input, delimiter=',')
 
     if has_header:
+        print('SKIPPING HEADER')
         rows.__next__()
 
     it = tqdm(rows)
@@ -228,7 +231,7 @@ def import_csv(external_ids, attributes, attr_platform, input):
             external_id = row[index]
 
             if not external_id:
-                it.write('SKIP {} ({})'.format(id, platform.slug))
+                it.write('> SKIP {} ({})'.format(id, platform.slug))
                 continue
 
             if not platform.allow_links_overlap:
@@ -238,6 +241,23 @@ def import_csv(external_ids, attributes, attr_platform, input):
                     first()
 
                 if existing is not None and existing.external_id != external_id:
+                    it.write('> DEL old link {}'.format(existing.external_id))
+
+                    # Lookup for old attributes from this source and delete them
+                    ValueSource.query.\
+                        filter(ValueSource.id_platform == platform.id).\
+                        filter(ValueSource.id_value.in_(
+                            db.session.query(Value.id).
+                            filter(Value.external_object_id == obj.id)
+                        )).\
+                        delete(synchronize_session=False)
+
+                    # Remove attributes with no sources
+                    Value.query.\
+                        filter(Value.external_object_id == obj.id).\
+                        filter(~Value.sources.any()).\
+                        delete(synchronize_session=False)
+
                     db.session.delete(existing)
                     db.session.commit()
 
@@ -247,21 +267,21 @@ def import_csv(external_ids, attributes, attr_platform, input):
                 first()
 
             if link is None:
-                it.write('LINK {} {} ({})'.format(id, external_id,
-                                                  platform.slug))
+                it.write('> LINK {} {} ({})'.format(id, external_id,
+                                                    platform.slug))
                 obj.links.append(ObjectLink(external_object=obj,
                                             platform=platform,
                                             external_id=external_id))
             elif link.external_object != obj:
-                it.write('MERGE {} {}'.format(id, external_id))
+                it.write('> MERGE {} {}'.format(id, external_id))
 
                 try:
                     link.external_object.merge_and_delete(obj, db.session)
                 except Exception as e:
                     it.write(str(e))
             else:
-                it.write('ALREADY MERGED {} {} ({})'.format(id, external_id,
-                                                            platform.slug))
+                it.write('> ALREADY MERGED {} {} ({})'.format(id, external_id,
+                                                              platform.slug))
 
         db.session.commit()
 
