@@ -437,6 +437,7 @@ def fix_countries():
 @click.option('--offset', '-o', type=int)
 @click.option('--limit', '-l', type=int)
 @click.option('--platform', '-p', multiple=True, type=PLATFORM)
+@click.option('--cap', '-c', type=PLATFORM)
 @click.option('--group', '-g', type=PLATFORM_TYPE)
 @click.option('--type', '-t', type=EXTERNAL_OBJECT_TYPE)
 @click.option('--name', '-n')
@@ -446,9 +447,9 @@ def fix_countries():
 @click.option('--explode/--no-explode', default=False)
 @click.option('--with-country/--no-with-country', default=False)
 @click.option('--count-countries/--no-count-countries', default=False)
-def export(offset=None, limit=None, platform=[], group=None, ignore=[],
-           progress=True, explode=False, with_country=False, name=None,
-           exclude=None, type=None, count_countries=False):
+def export(offset=None, limit=None, platform=[], cap=None, group=None,
+           ignore=[], progress=True, explode=False, with_country=False,
+           name=None, exclude=None, type=None, count_countries=False):
     """Export ExternalObjects to CSV"""
     import csv
     import sys
@@ -615,6 +616,17 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
                 filter(ObjectLink.platform_id.in_(platform_ids)).\
                 group_by(Episode.episode, Episode.season).\
                 count()
+
+            if cap is not None:
+                capped_count = db.session.query(Episode.episode, Episode.season).\
+                    filter(Episode.serie == e).\
+                    join(ObjectLink, ObjectLink.external_object_id == Episode.external_object_id).\
+                    filter(ObjectLink.platform_id == cap.id).\
+                    group_by(Episode.episode, Episode.season).\
+                    count()
+
+                if capped_count > 0 and capped_count < total_count:
+                    total_count = capped_count
         else:
             total_count = len(links_countries) if count_countries else len(real_links)
 
@@ -648,6 +660,9 @@ def export(offset=None, limit=None, platform=[], group=None, ignore=[],
                         filter(ObjectLink.platform_id == link.platform_id).\
                         group_by(ObjectLink.platform_id, ObjectLink.external_object_id).\
                         count()
+
+                    if cap is not None and capped_count > 0 and capped_count < total_count:
+                        total_count = capped_count
                 else:
                     total_count = 1
 
