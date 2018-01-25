@@ -1,4 +1,7 @@
 import fcntl
+import os
+
+bypass = bool(os.environ.get('BYPASS_LOCKS', None))
 
 
 class Lock():
@@ -15,7 +18,9 @@ class Lock():
         return self._fd
 
     def __enter__(self):
-        fcntl.lockf(self.fd, fcntl.LOCK_EX)
+        if not bypass:
+            fcntl.lockf(self.fd, fcntl.LOCK_EX)
 
     def __exit__(self, *args):
-        fcntl.lockf(self.fd, fcntl.LOCK_UN)
+        if not bypass:
+            fcntl.lockf(self.fd, fcntl.LOCK_UN)
