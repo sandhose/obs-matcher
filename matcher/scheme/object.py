@@ -381,7 +381,7 @@ class ExternalObject(db.Model, ResourceMixin):
                 session.add(external_object)
 
             # Check of obj_type matches
-            if external_object.type is not obj_type:
+            if external_object.type is not obj_type and obj_type is not None:
                 raise ObjectTypeMismatchError(external_object.type, obj_type)
 
             # Let's create the missing links

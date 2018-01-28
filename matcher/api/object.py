@@ -48,7 +48,8 @@ class ObjectResource(CustomFlaskResource):
 
         data = ExternalObject.normalize_dict(self.data)
 
-        if data['type'] is None:
+        # FIXME: kinda ugly workaround
+        if data['type'] is None and self.data['type'] != 'any':
             raise restless.exceptions.BadRequest('Field "type" is required')
 
         if data['relation'] is not None:
