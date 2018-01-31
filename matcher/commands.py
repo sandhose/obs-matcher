@@ -200,6 +200,7 @@ def import_csv(external_ids, attributes, attr_platform, input):
     db.session.add_all([attr_platform])
     db.session.add_all([platform for _, platform in external_ids])
 
+    # FIXME: the sniffer can behave weirdly if the input stops inside quotes
     has_header = csv.Sniffer().has_header(input.read(1024))
     input.seek(0)
     rows = csv.reader(input, delimiter=',')
@@ -480,9 +481,9 @@ def export(offset=None, limit=None, platform=[], cap=None, group=None,
     platform_ids = [p.id for p in platform]
     ignore_ids = [p.id for p in ignore]
 
-    ignore_ids += db.session.query(Platform.id).\
-        filter(Platform.ignore_in_exports == True).\
-        all()
+    ignore_ids += [id for (id,) in db.session.query(Platform.id).
+                   filter(Platform.ignore_in_exports == True).
+                   all()]
 
     if platform_ids:
         include_list = include_list.\
