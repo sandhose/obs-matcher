@@ -1,5 +1,5 @@
 from restless.preparers import (CollectionSubPreparer, FieldsPreparer,
-                                SubPreparer)
+                                SubPreparer,)
 
 from ..scheme.value import Value
 from .utils import AutoPreparer, CustomFlaskResource

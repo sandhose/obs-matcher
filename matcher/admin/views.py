@@ -1,17 +1,20 @@
-from operator import eq
 from functools import partial
+from operator import eq
+
 from flask import url_for
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import rules
-from flask_admin.model.template import macro, EndpointLinkRowAction
+from flask_admin.model.template import EndpointLinkRowAction, macro
 from jinja2 import escape
 
 from ..app import db
-from ..scheme.object import ObjectLink, ExternalObject, ExternalObjectType, Episode
+from ..scheme.object import (Episode, ExternalObject, ExternalObjectType,
+                             ObjectLink,)
 from ..scheme.platform import Platform, PlatformType
 from ..scheme.value import Value, ValueType
+from .filters import (ExternalObjectPlatformFilter,
+                      ExternalObjectSimilarFilter, SerieFilter,)
 from .utils import CustomAdminConverter
-from .filters import ExternalObjectPlatformFilter, ExternalObjectSimilarFilter, SerieFilter
 
 
 def links_formatter(route):

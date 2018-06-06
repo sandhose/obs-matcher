@@ -1,8 +1,9 @@
-import restless.exceptions
 from flask import request
-from restless.preparers import (CollectionSubPreparer, FieldsPreparer,
-                                SubPreparer)
 from sqlalchemy.orm.exc import NoResultFound
+
+import restless.exceptions
+from restless.preparers import (CollectionSubPreparer, FieldsPreparer,
+                                SubPreparer,)
 
 from ..scheme.object import ExternalObject
 from ..scheme.platform import Scrap

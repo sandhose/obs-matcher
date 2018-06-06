@@ -1,9 +1,10 @@
-from flask_admin.model.filters import BaseFilter
-from sqlalchemy import select, func
-from sqlalchemy.dialects.postgresql import JSON
-from sqlalchemy.types import Integer, Float
-from sqlalchemy.sql import column
 import json
+
+from flask_admin.model.filters import BaseFilter
+from sqlalchemy import func, select
+from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.sql import column
+from sqlalchemy.types import Float, Integer
 
 
 class ExternalObjectPlatformFilter(BaseFilter):

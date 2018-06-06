@@ -1,10 +1,11 @@
-import restless.exceptions
 import sqlalchemy.orm.exc
+
+import restless.exceptions
 from restless.preparers import CollectionSubPreparer, SubPreparer
 
 from ..app import db
 from ..scheme.platform import (Platform, PlatformGroup, PlatformType, Scrap,
-                               ScrapStatus)
+                               ScrapStatus,)
 from .utils import AutoPreparer, CustomFlaskResource
 
 

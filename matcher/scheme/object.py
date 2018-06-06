@@ -17,7 +17,7 @@ from operator import attrgetter, itemgetter
 
 from sqlalchemy import (Boolean, Column, Enum, ForeignKey, Integer,
                         PrimaryKeyConstraint, Sequence, Table, Text, and_,
-                        func, tuple_)
+                        func, tuple_,)
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import aliased, joinedload, relationship
 from tqdm import tqdm
@@ -30,7 +30,7 @@ from ..exceptions import (AmbiguousLinkError, ExternalIDMismatchError,
                           InvalidMetadata, InvalidMetadataValue,
                           InvalidRelation, LinkNotFound, LinksOverlap,
                           ObjectTypeMismatchError, UnknownAttribute,
-                          UnknownRelation)
+                          UnknownRelation,)
 from ..utils import Lock
 from .mixins import ResourceMixin
 from .platform import Platform, PlatformType
