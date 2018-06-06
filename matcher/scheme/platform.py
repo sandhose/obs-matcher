@@ -1,28 +1,32 @@
-from sqlalchemy.dialects.postgresql import JSONB
 from datetime import datetime
+
+from sqlalchemy import (Boolean, Column, DateTime, Enum, ForeignKey, Integer,
+                        Sequence, String, Text,)
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import relationship
 
 from slugify import slugify
 
-from ..app import db
+from . import Base
 from .mixins import ResourceMixin
 from .utils import CustomEnum
 
 
-class PlatformGroup(db.Model, ResourceMixin):
+class PlatformGroup(Base, ResourceMixin):
     """A group of platform
 
     For example, the “Netflix” group would hold all it's country variations
     """
     __tablename__ = 'platform_group'
 
-    id = db.Column(db.Integer,
-                   db.Sequence('platform_group_id_seq'),
-                   primary_key=True)
-    name = db.Column(db.Text,
-                     nullable=False)
+    id = Column(Integer,
+                Sequence('platform_group_id_seq'),
+                primary_key=True)
+    name = Column(Text,
+                  nullable=False)
 
-    platforms = db.relationship('Platform',
-                                back_populates='group')
+    platforms = relationship('Platform',
+                             back_populates='group')
 
     def __repr__(self):
         return '<PlatformGroup "{}">'.format(self.name)
@@ -46,62 +50,62 @@ class PlatformType(CustomEnum):
     SVOD = 4    # Subscription based VOD
 
 
-class Platform(db.Model, ResourceMixin):
+class Platform(Base, ResourceMixin):
     """Represents one platform"""
 
     __tablename__ = 'platform'
 
-    id = db.Column(db.Integer,
-                   db.Sequence('platform_id_seq'),
-                   primary_key=True)
-    name = db.Column(db.Text,
-                     nullable=False)
+    id = Column(Integer,
+                Sequence('platform_id_seq'),
+                primary_key=True)
+    name = Column(Text,
+                  nullable=False)
     """A human readable name"""
 
     # FIXME: should be unique
-    slug = db.Column(db.Text,
-                     nullable=False,
-                     default=slug_default)
+    slug = Column(Text,
+                  nullable=False,
+                  default=slug_default)
     """A unique identifier"""
 
-    group_id = db.Column(db.Integer,
-                         db.ForeignKey('platform_group.id'))
+    group_id = Column(Integer,
+                      ForeignKey('platform_group.id'))
 
     """True if a single item can have multiple links within the platform"""
-    allow_links_overlap = db.Column(db.Boolean, nullable=False, server_default="FALSE")
+    allow_links_overlap = Column(Boolean, nullable=False, server_default="FALSE")
 
     """Automatically exclude this platform from exports"""
-    ignore_in_exports = db.Column(db.Boolean, nullable=False, server_default="FALSE")
+    ignore_in_exports = Column(Boolean, nullable=False, server_default="FALSE")
 
     # FIXME: way to map ExternalID -> URL
-    url = db.Column(JSONB)
+    url = Column(JSONB)
     """Base URL of this platform"""
 
-    country = db.Column(db.String(2))
+    country = Column(String(2))
     """ISO 3166-1 alpha-2 country code"""
 
-    max_rating = db.Column(db.Integer, default=10)
+    max_rating = Column(Integer, default=10)
     """The max rating for this platform
 
     As ratings are integers, this should be scaled up to keep precision
     i.e. 47 could represent a score of 4.7/5 stars
     """
 
-    type = db.Column(db.Enum(PlatformType), nullable=False,
-                     default=PlatformType.INFO, server_default='INFO')
+    type = Column(Enum(PlatformType), nullable=False,
+                  default=PlatformType.INFO, server_default='INFO')
 
-    base_score = db.Column(db.Integer, nullable=False, default=100)
+    base_score = Column(Integer, nullable=False, default=100)
 
-    group = db.relationship('PlatformGroup',
-                            back_populates='platforms')
+    group = relationship('PlatformGroup',
+                         back_populates='platforms')
     """The group in which this platform is"""
 
-    scraps = db.relationship('Scrap',
-                             back_populates='platform')
+    scraps = relationship('Scrap',
+                          back_populates='platform')
     """The scraps (to be) done for this platform"""
 
-    links = db.relationship('ObjectLink',
-                            back_populates='platform')
+    links = relationship('ObjectLink',
+                         back_populates='platform')
     """All known objects found on this platform"""
 
     def __repr__(self):
@@ -164,7 +168,7 @@ class ScrapType(CustomEnum):
     """Start a full site scrap"""
 
 
-class Scrap(db.Model, ResourceMixin):
+class Scrap(Base, ResourceMixin):
     """Represents one job
 
     This is used by the scheduler to run the scrapers on SCHEDULED jobs, and
@@ -173,31 +177,31 @@ class Scrap(db.Model, ResourceMixin):
 
     __tablename__ = 'scrap'
 
-    id = db.Column(db.Integer,
-                   db.Sequence('scrap_id_seq'),
-                   primary_key=True)
-    platform_id = db.Column(db.Integer,
-                            db.ForeignKey('platform.id'),
-                            nullable=False)
+    id = Column(Integer,
+                Sequence('scrap_id_seq'),
+                primary_key=True)
+    platform_id = Column(Integer,
+                         ForeignKey('platform.id'),
+                         nullable=False)
 
-    date = db.Column(db.DateTime)
+    date = Column(DateTime)
     """Date when the scrap was started"""
 
-    status = db.Column(db.Enum(ScrapStatus),
-                       nullable=False,
-                       default=ScrapStatus.SCHEDULED)
+    status = Column(Enum(ScrapStatus),
+                    nullable=False,
+                    default=ScrapStatus.SCHEDULED)
     """Current status of this job, see ScrapStatus"""
 
-    stats = db.Column(JSONB)
+    stats = Column(JSONB)
     """Statistics from scrapy"""
 
-    platform = db.relationship('Platform',
-                               back_populates='scraps')
+    platform = relationship('Platform',
+                            back_populates='scraps')
     """Platform concerned by this job"""
 
-    links = db.relationship('ObjectLink',
-                            secondary='scrap_link',
-                            back_populates='scraps')
+    links = relationship('ObjectLink',
+                         secondary='scrap_link',
+                         back_populates='scraps')
     """Objects (to be) fetched by this job"""
 
     def to_status(self, status):

@@ -19,21 +19,23 @@ from sqlalchemy import (Boolean, Column, Enum, ForeignKey, Integer,
                         PrimaryKeyConstraint, Sequence, Table, Text, and_,
                         func, tuple_)
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm import aliased, relationship, joinedload
+from sqlalchemy.orm import aliased, joinedload, relationship
 from tqdm import tqdm
+
 from unidecode import unidecode
 
+from . import Base
 from ..app import db
 from ..exceptions import (AmbiguousLinkError, ExternalIDMismatchError,
                           InvalidMetadata, InvalidMetadataValue,
                           InvalidRelation, LinkNotFound, LinksOverlap,
                           ObjectTypeMismatchError, UnknownAttribute,
                           UnknownRelation)
+from ..utils import Lock
 from .mixins import ResourceMixin
 from .platform import Platform, PlatformType
 from .utils import CustomEnum
 from .value import Value, ValueSource, ValueType
-from ..utils import Lock
 
 lookup_lock = Lock('lookup')
 links_lock = Lock('links')
@@ -62,7 +64,7 @@ class ExternalObjectType(CustomEnum):
 
 scrap_link = Table(
     'scrap_link',
-    db.metadata,
+    Base.metadata,
     Column('scrap_id',
            ForeignKey('scrap.id'),
            primary_key=True),
@@ -171,7 +173,7 @@ def _normalize_link(link):
 MergeCandidate = collections.namedtuple('MergeCandidate', 'obj into score')
 
 
-class ExternalObject(db.Model, ResourceMixin):
+class ExternalObject(Base, ResourceMixin):
     """An object imported from scraping."""
 
     __tablename__ = 'external_object'
@@ -779,7 +781,7 @@ class ExternalObject(db.Model, ResourceMixin):
         return '<ExternalObject {} {}>'.format(self.id, self.type)
 
 
-class ObjectLink(db.Model):
+class ObjectLink(Base):
     """Links an object to a platform, with it's ID on the platform."""
 
     __tablename__ = 'object_link'
@@ -829,7 +831,7 @@ class ObjectLink(db.Model):
                                               self.platform)
 
 
-class ObjectLinkWorkMeta(db.Model):
+class ObjectLinkWorkMeta(Base):
     """Metadatas associated with an object on a platform."""
 
     __tablename__ = 'object_link_work_meta'
@@ -871,7 +873,7 @@ class RoleType(CustomEnum):
     WRITER = 2
 
 
-class Role(db.Model):
+class Role(Base):
     """A role of a person on another object (movie/episode/serie…)."""
 
     __tablename__ = 'role'
@@ -979,7 +981,7 @@ class ExternalObjectMetaMixin(object):
         raise InvalidMetadata(self.object_type, key)
 
 
-class Episode(db.Model, ExternalObjectMetaMixin):
+class Episode(Base, ExternalObjectMetaMixin):
     """An episode of a TV serie."""
 
     __tablename__ = 'episode'
@@ -1035,7 +1037,7 @@ class Episode(db.Model, ExternalObjectMetaMixin):
             raise InvalidMetadataValue(key, content)
 
 
-class Person(db.Model, ExternalObjectMetaMixin):
+class Person(Base, ExternalObjectMetaMixin):
     """Represents a person."""
 
     __tablename__ = 'person'

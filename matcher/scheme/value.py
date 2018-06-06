@@ -1,10 +1,12 @@
 import re
 from functools import partial
 
-from sqlalchemy import func, select
+from sqlalchemy import (Column, Enum, ForeignKey, Integer, Sequence, Text,
+                        func, select,)
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import relationship
 
-from ..app import db
+from . import Base
 from ..countries import lookup
 from .mixins import ResourceMixin
 from .platform import Platform
@@ -37,23 +39,23 @@ class ValueType(CustomEnum):
         return fmt_map.get(self, lambda _: None)(value)
 
 
-class Value(db.Model, ResourceMixin):
+class Value(Base, ResourceMixin):
     __tablename__ = 'value'
 
-    id = db.Column(db.Integer,
-                   db.Sequence('value_id_seq'),
-                   primary_key=True)
-    type = db.Column(db.Enum(ValueType, name='value_type'), nullable=False)
-    external_object_id = db.Column(db.Integer,
-                                   db.ForeignKey('external_object.id'),
-                                   nullable=False)
-    text = db.Column(db.Text, nullable=False)
+    id = Column(Integer,
+                Sequence('value_id_seq'),
+                primary_key=True)
+    type = Column(Enum(ValueType, name='value_type'), nullable=False)
+    external_object_id = Column(Integer,
+                                ForeignKey('external_object.id'),
+                                nullable=False)
+    text = Column(Text, nullable=False)
 
-    external_object = db.relationship('ExternalObject',
-                                      back_populates='attributes')
-    sources = db.relationship('ValueSource',
-                              back_populates='value',
-                              cascade='all, delete-orphan')
+    external_object = relationship('ExternalObject',
+                                   back_populates='attributes')
+    sources = relationship('ValueSource',
+                           back_populates='value',
+                           cascade='all, delete-orphan')
 
     @hybrid_property
     def score(self):
@@ -72,22 +74,22 @@ class Value(db.Model, ResourceMixin):
         return '{}({}): {}'.format(self.type, self.score, self.text)
 
 
-class ValueSource(db.Model):
+class ValueSource(Base):
     __tablename__ = 'value_source'
 
-    id_value = db.Column(db.Integer,
-                         db.ForeignKey('value.id'),
+    id_value = Column(Integer,
+                      ForeignKey('value.id'),
+                      primary_key=True)
+    id_platform = Column(Integer,
+                         ForeignKey('platform.id'),
                          primary_key=True)
-    id_platform = db.Column(db.Integer,
-                            db.ForeignKey('platform.id'),
-                            primary_key=True)
-    score_factor = db.Column(db.Integer,
-                             nullable=False,
-                             default=100)
-    comment = db.Column(db.Text)
+    score_factor = Column(Integer,
+                          nullable=False,
+                          default=100)
+    comment = Column(Text)
 
-    value = db.relationship('Value', back_populates='sources')
-    platform = db.relationship('Platform')
+    value = relationship('Value', back_populates='sources')
+    platform = relationship('Platform')
 
     @hybrid_property
     def score(self):
