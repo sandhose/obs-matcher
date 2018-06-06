@@ -611,6 +611,7 @@ def export(offset=None, limit=None, platform=[], cap=None, group=None,
                                   if l.platform.country == country)
 
         if type == ExternalObjectType.SERIE:
+            # FIXME: should count_countries do something for series?
             total_count = db.session.query(Episode.episode, Episode.season).\
                 filter(Episode.serie == e).\
                 join(ObjectLink, ObjectLink.external_object_id == Episode.external_object_id).\
