@@ -1,10 +1,9 @@
 from datetime import datetime
 
 from sqlalchemy import (Boolean, Column, DateTime, Enum, ForeignKey, Integer,
-                        Sequence, String, Text, func, select,)
+                        Sequence, String, Text, column, func, select,)
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import column_property, relationship
 
 from slugify import slugify
 
@@ -109,16 +108,11 @@ class Platform(Base, ResourceMixin):
                          back_populates='platform')
     """All known objects found on this platform"""
 
-    @hybrid_property
-    def links_count(self):
-        return len(self.links)
-
-    @links_count.expression
-    def links_count(cls):
-        from .object import ObjectLink
-        return select([func.count(ObjectLink.external_object_id)]).\
-            where(ObjectLink.platform_id == cls.id).\
-            label('total_links')
+    links_count = column_property(
+        select([func.count('external_object_id')]).
+        select_from('object_link').
+        where(column('platform_id') == id)
+    )
 
     def __repr__(self):
         return '<Platform {!r}>'.format(self.name)

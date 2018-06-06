@@ -6,6 +6,7 @@ from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import rules
 from flask_admin.model.template import EndpointLinkRowAction, macro
 from jinja2 import escape
+from sqlalchemy.orm import joinedload
 
 from ..app import db
 from ..scheme.object import (Episode, ExternalObject, ExternalObjectType,
@@ -143,7 +144,7 @@ class ValueView(DefaultView):
     column_list = ('id', 'external_object', 'type', 'text', 'score')
     column_details_list = ('id', 'external_object', 'type', 'text', 'score',
                            'sources')
-    column_filters = ['type', 'score', 'external_object']
+    column_filters = ['type', 'score']  # , 'external_object']
     column_searchable_list = ['text']
     can_view_details = True
     can_edit = False
@@ -254,7 +255,8 @@ class ExternalObjectView(DefaultView):
     ]
 
     def get_query(self):
-        q = super(ExternalObjectView, self).get_query()
+        q = super(ExternalObjectView, self).get_query()\
+            .options(joinedload(ExternalObject.attributes).joinedload(Value.sources))
         if hasattr(self, 'external_object_type'):
             q = q.filter(ExternalObject.type == self.external_object_type)
         return q
