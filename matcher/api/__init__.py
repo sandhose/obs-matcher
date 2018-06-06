@@ -1,12 +1,12 @@
 from flask import Blueprint
 
-from ..scheme.platform import Platform, PlatformGroup, Scrap
 from ..scheme.object import ExternalObject
+from ..scheme.platform import Platform, PlatformGroup, Scrap
 from ..scheme.value import Value
+from .index import IndexView
+from .object import ObjectResource
 from .platform import PlatformGroupResource, PlatformResource, ScrapResource
 from .value import ValueResource
-from .object import ObjectResource
-from .index import IndexView
 
 api = Blueprint('api', __name__)
 

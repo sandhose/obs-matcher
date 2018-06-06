@@ -4,10 +4,9 @@ from ..app import db
 from ..scheme.object import ObjectLink
 from ..scheme.platform import Platform, PlatformGroup, Scrap
 from ..scheme.value import Value, ValueSource
-from .views import (AllObjectView, EpisodeView, MovieView,
-                    ObjectLinkView, PersonView, PlatformGroupView,
-                    PlatformView, ScrapView, SerieView, ValueSourceView,
-                    ValueView)
+from .views import (AllObjectView, EpisodeView, MovieView, ObjectLinkView,
+                    PersonView, PlatformGroupView, PlatformView, ScrapView,
+                    SerieView, ValueSourceView, ValueView,)
 
 
 def setup_admin(app):

@@ -2,9 +2,9 @@ import json
 import os
 from pathlib import Path
 
-from unidecode import unidecode
 import requests
 
+from unidecode import unidecode
 
 data = []
 
