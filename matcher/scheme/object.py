@@ -17,8 +17,9 @@ from operator import attrgetter, itemgetter
 
 from sqlalchemy import (Boolean, Column, Enum, ForeignKey, Integer,
                         PrimaryKeyConstraint, Sequence, Table, Text, and_,
-                        func, tuple_,)
+                        func, select, tuple_,)
 from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import aliased, joinedload, relationship
 from tqdm import tqdm
 
@@ -194,6 +195,17 @@ class ExternalObject(Base, ResourceMixin):
                               back_populates='external_object',
                               cascade='all, delete-orphan')
     """list of :obj:`.value.Value` : arbitrary attributes for this object"""
+
+    @hybrid_property
+    def links_count(self):
+        return len(self.links)
+
+    @links_count.expression
+    def links_count(cls):
+        from .object import ObjectLink
+        return select([func.count(ObjectLink.external_object_id)]).\
+            where(ObjectLink.external_object_id == cls.id).\
+            label('total_links')
 
     @property
     def related_object(self):

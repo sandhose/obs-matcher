@@ -100,23 +100,19 @@ class PlatformGroupView(DefaultView):
     column_formatters = {
         'platforms': count_formatter
     }
-    pass
 
 
 class PlatformView(DefaultView):
     column_default_sort = 'id'
     can_view_details = True
     can_export = True
-    column_list = ('id', 'type', 'group', 'name', 'slug', 'country', 'links')
+    column_list = ('id', 'type', 'group', 'name', 'slug', 'country', 'links_count')
     column_searchable_list = ['name', 'slug', 'country']
     column_filters = ['type', 'country', 'group']
     column_editable_list = ['country', 'name', 'slug', 'group']
     form_columns = ('type', 'group', 'name', 'slug', 'url', 'country',
                     'max_rating', 'base_score', 'allow_links_overlap',
                     'ignore_in_exports')
-    column_formatters = {
-        'links': count_formatter
-    }
 
     form_rules = [
         rules.FieldSet([
@@ -271,19 +267,19 @@ class ExternalObjectView(DefaultView):
 
 
 class AllObjectView(ExternalObjectView):
-    column_list = ('id', 'type', 'attributes', 'links')
+    column_list = ('id', 'type', 'attributes', 'links_count')
     column_filters = ExternalObjectView.column_filters + ['type']
 
 
 class PersonView(ExternalObjectView):
     external_object_type = ExternalObjectType.PERSON
-    column_list = ('id', 'name', 'links')
+    column_list = ('id', 'name', 'links_count')
 
 
 class MovieView(ExternalObjectView):
     external_object_type = ExternalObjectType.MOVIE
     column_list = ('id', 'title', 'date', 'genres', 'duration', 'country',
-                   'links')
+                   'links_count')
 
 
 class SerieView(ExternalObjectView):
@@ -291,13 +287,13 @@ class SerieView(ExternalObjectView):
     column_details_list = ('id', 'type', 'attributes_list', 'links_list',
                            'episodes_list')
     column_list = ('id', 'title', 'date', 'genres', 'country', 'episodes',
-                   'links')
+                   'links_count')
 
 
 class EpisodeView(ExternalObjectView):
     external_object_type = ExternalObjectType.EPISODE
     column_list = ('id', 'title', 'date', 'serie', 'season', 'episode',
-                   'country', 'links')
+                   'country', 'links_count')
     column_details_list = ('id', 'type', 'attributes_list', 'links_list',
                            'episode_details')
     column_filters = ExternalObjectView.column_filters + [
