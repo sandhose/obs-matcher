@@ -7,3 +7,5 @@ dist/
 build/
 *.egg-info/
 doc/_build/
+.eggs/
+/instance/
