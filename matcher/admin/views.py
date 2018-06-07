@@ -256,7 +256,8 @@ class ExternalObjectView(DefaultView):
 
     def get_query(self):
         q = super(ExternalObjectView, self).get_query()\
-            .options(joinedload(ExternalObject.attributes).joinedload(Value.sources))
+            .options(joinedload(ExternalObject.attributes).
+                     joinedload(Value.sources))
         if hasattr(self, 'external_object_type'):
             q = q.filter(ExternalObject.type == self.external_object_type)
         return q

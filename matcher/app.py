@@ -5,6 +5,7 @@ import os
 from alembic.migration import MigrationContext
 from flask import Flask, render_template, url_for
 from flask.cli import FlaskGroup
+from flask_debugtoolbar import DebugToolbarExtension
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from raven.contrib.flask import Sentry
@@ -13,6 +14,7 @@ from .commands import setup_cli
 
 db = SQLAlchemy()
 sentry = Sentry()
+toolbar = DebugToolbarExtension()
 
 
 def setup_routes(app):
@@ -46,6 +48,7 @@ def create_app(info=None):
     app.config.from_pyfile('application.cfg', silent=True)
     sentry.init_app(app, logging=True, level=logging.ERROR)
     db.init_app(app)
+    toolbar.init_app(app)
 
     Migrate(app=app, db=db,
             directory=os.path.join(os.path.dirname(__file__),
