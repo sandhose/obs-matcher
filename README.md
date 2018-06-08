@@ -60,3 +60,22 @@ cd doc
 make html
 ```
 * Browse to /path/to/obs-matcher/doc
+
+Run on Docker
+-------------
+
+```bash
+# Generate the secret key and postgres password
+mkdir secrets
+openssl rand -base64 48 > secrets/postgres-password
+openssl rand -base64 48 > secrets/secret-key
+
+# Copy the dev override (tweak it if needed)
+cp docker-compose.dev.yml docker-compose.override.yml
+
+# Build the docker images
+docker-compose build
+
+# Run the app
+docker-compose up
+```

@@ -1,0 +1,16 @@
+.git/
+__pycache__/
+.mypy_cache/
+*.pyc
+.DS_Store
+.venv/
+venv
+dist/
+build/
+*.egg-info/
+doc/_build/
+.eggs/
+/instance/
+/secrets/
+docker-compose*
+Dockerfile

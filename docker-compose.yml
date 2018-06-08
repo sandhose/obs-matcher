@@ -1,0 +1,71 @@
+version: '3.3'
+services:
+  web:
+    build: .
+    image: sandhose/matcher:latest
+    command: gunicorn -w 4 matcher:app -b 0.0.0.0:8000
+    expose:
+      - "8000"
+    ports:
+      - "8000:8000"
+    env_file:
+      - docker-compose.env
+    depends_on:
+      - redis
+      - db
+      - migrate
+    secrets:
+      - postgres-password
+      - secret-key
+
+  worker:
+    build: .
+    image: sandhose/matcher:latest
+    command: matcher worker -l info
+    env_file:
+      - docker-compose.env
+    depends_on:
+      - redis
+      - db
+      - migrate
+    secrets:
+      - postgres-password
+      - secret-key
+
+  migrate:
+    build: .
+    image: sandhose/matcher:latest
+    command: matcher db upgrade
+    env_file:
+      - docker-compose.env
+    depends_on:
+      - redis
+      - db
+    secrets:
+      - postgres-password
+      - secret-key
+
+  redis:
+    image: redis:alpine
+    volumes:
+      - 'redis:/data'
+
+  db:
+    image: postgres:alpine
+    environment:
+      POSTGRES_USER: matcher
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
+    volumes:
+      - 'postgres:/var/lib/postgresql/data'
+    secrets:
+      - postgres-password
+
+volumes:
+  redis:
+  postgres:
+
+secrets:
+  postgres-password:
+    file: ./secrets/postgres-password
+  secret-key:
+    file: ./secrets/secret-key
