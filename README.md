@@ -10,6 +10,7 @@ Dependencies
 * git
 * build-essential
 * postgresql
+* redis
 
 Install
 -------
@@ -34,10 +35,8 @@ sudo -u postgres psql
 >>> CREATE DATABASE matcher;
 >>> GRANT ALL PRIVILEGES ON DATABASE matcher TO "user";
 Ctrl+D
-# Upgrade database i
+# Upgrade the database
 matcher db upgrade
-# Run server
-matcher runserver
 ```
 
 Usage
@@ -47,9 +46,9 @@ Usage
 # Initiate virtualenv
 source venv/bin/activate
 # Run local server
-matcher runserver
-# Delete object entries (not the platforms)
-matcher nuke
+gunicorn -w 8 matcher:app --reload
+# In another shell, run the celery worker
+celery -l info -A matcher:celery
 ```
 
 Documentation

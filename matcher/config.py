@@ -29,6 +29,15 @@ postgres_url = str(URL(
     database=env_var('POSTGRES_DATABASE', 'matcher'),
 ))
 
+redis_url = str(URL(
+    drivername='redis',
+    host=env_var('REDIS_HOST', 'localhost'),
+    port=env_var('REDIS_PORT', '6379'),
+    username=env_var('REDIS_USERNAME'),
+    password=env_var('REDIS_PASSWORD'),
+    database=env_var('REDIS_DATABASE'),
+))
+
 
 class Config(object):
     DEBUG = env_var('DEBUG', True)
@@ -37,7 +46,9 @@ class Config(object):
 
     SQLALCHEMY_DATABASE_URI = env_var('SQLALCHEMY_DATABASE_URI', postgres_url)
     SQLALCHEMY_TRACK_MODIFICATIONS = True
-    DATABASE_CONNECT_OPTIONS = {}
+
+    CELERY_BROKER_URL = env_var('CELERY_BROKER_URL', redis_url)
+    CELERY_RESULT_BACKEND = env_var('CELERY_RESULT_BACKEND', redis_url)
 
     THREADS_PER_PAGE = 2
     SECRET_KEY = env_var('SECRET_KEY',
