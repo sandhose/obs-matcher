@@ -17,7 +17,7 @@ from operator import attrgetter, itemgetter
 
 from sqlalchemy import (Boolean, Column, Enum, ForeignKey, Integer,
                         PrimaryKeyConstraint, Sequence, Table, Text, and_,
-                        column, func, select, tuple_,)
+                        column, func, select, tuple_, table,)
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import aliased, column_property, joinedload, relationship
 from tqdm import tqdm
@@ -197,7 +197,7 @@ class ExternalObject(Base, ResourceMixin):
 
     links_count = column_property(
         select([func.count('platform_id')]).
-        select_from('object_link').
+        select_from(table('object_link')).
         where(column('external_object_id') == id)
     )
 

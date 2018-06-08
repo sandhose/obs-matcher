@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import (Boolean, Column, DateTime, Enum, ForeignKey, Integer,
-                        Sequence, String, Text, column, func, select,)
+                        Sequence, String, Text, column, func, select, table,)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import column_property, relationship
 
@@ -110,7 +110,7 @@ class Platform(Base, ResourceMixin):
 
     links_count = column_property(
         select([func.count('external_object_id')]).
-        select_from('object_link').
+        select_from(table('object_link')).
         where(column('platform_id') == id)
     )
 
