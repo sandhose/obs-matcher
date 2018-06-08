@@ -3,7 +3,7 @@ import logging
 import os
 
 from alembic.migration import MigrationContext
-from flask import Flask, render_template, url_for
+from flask import Flask, jsonify, render_template, request, url_for
 from flask.cli import FlaskGroup
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_migrate import Migrate
@@ -35,6 +35,21 @@ def setup_routes(app):
 
         if revision in heads:
             _setup_admin(app)
+
+    @app.route('/queue', methods=['POST'])
+    def queue():
+        from matcher.scheme.platform import Scrap
+        from matcher.tasks.object import insert_dict
+
+        scrap_id = request.headers.get('x-scrap-id', None)
+        if scrap_id is None:
+            raise Exception('Missing `x-scrap-id` header')
+        scrap_id = int(scrap_id)
+
+        assert db.session.query(Scrap).get(scrap_id)
+
+        insert_dict.delay(request.json, scrap_id)
+        return jsonify({'status': 'queued'})
 
     @app.route('/')
     def index():
