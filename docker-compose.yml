@@ -21,7 +21,7 @@ services:
   worker:
     build: .
     image: sandhose/matcher:latest
-    command: matcher worker -l info
+    command: matcher worker -l info --uid nobody --gid nobody
     env_file:
       - docker-compose.env
     depends_on:

@@ -18,10 +18,11 @@ class ExternalObjectPlatformFilter(BaseFilter):
     def apply(self, query, value, alias=None):
         from ..scheme.object import ObjectLink, ExternalObject
         from ..scheme.platform import Platform
+        from matcher.app import db
 
         if self.invert:
             return query.filter(
-                ~ObjectLink.query
+                ~db.session.query(ObjectLink)
                 .join(ObjectLink.platform)
                 .filter(self.column == value)
                 .filter(ObjectLink.external_object_id == ExternalObject.id)
@@ -41,8 +42,9 @@ class ExternalObjectPlatformFilter(BaseFilter):
 class ExternalObjectSimilarFilter(BaseFilter):
     def apply(self, query, value, alias=None):
         from ..scheme.object import ExternalObject
+        from matcher.app import db
 
-        similar = list(ExternalObject.query.get(int(value)).similar())
+        similar = list(db.session.query(ExternalObject).get(int(value)).similar())
         json_data = json.dumps([s._asdict() for s in similar])
 
         c = column('data', JSON)

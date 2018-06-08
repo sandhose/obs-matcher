@@ -17,7 +17,7 @@ from operator import attrgetter, itemgetter
 
 from sqlalchemy import (Boolean, Column, Enum, ForeignKey, Integer,
                         PrimaryKeyConstraint, Sequence, Table, Text, and_,
-                        column, func, select, tuple_, table,)
+                        column, func, select, table, tuple_,)
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import aliased, column_property, joinedload, relationship
 from tqdm import tqdm
@@ -221,7 +221,7 @@ class ExternalObject(Base, ResourceMixin):
 
     @property
     def episodes(self):
-        return Episode.query.filter(Episode.serie == self).\
+        return db.session.query(Episode).filter(Episode.serie == self).\
             options(joinedload('external_object')).\
             order_by(Episode.season, Episode.episode).\
             limit(10)
@@ -312,7 +312,7 @@ class ExternalObject(Base, ResourceMixin):
 
         """
         # Existing links from DB
-        db_links = ObjectLink.query\
+        db_links = db.session.query(ObjectLink)\
             .filter(tuple_(ObjectLink.platform_id,
                            ObjectLink.external_id).in_(links))\
             .all()
@@ -461,16 +461,16 @@ class ExternalObject(Base, ResourceMixin):
                         our_source.value = their_attr
                     # their_attr.sources.append(our_source)
 
-        for role in list(Role.query.filter(Role.external_object == self)):
+        for role in list(db.session.query(Role).filter(Role.external_object == self)):
             role.external_object = their
 
-        for episode in list(Episode.query.filter(Episode.external_object == self)):
-            if Episode.query.filter(Episode.external_object_id == their.id).first() is not None:
+        for episode in list(db.session.query(Episode).filter(Episode.external_object == self)):
+            if db.session.query(Episode).filter(Episode.external_object_id == their.id).first() is not None:
                 db.session.delete(episode)
             else:
                 episode.external_object = their
 
-        for episode in list(Episode.query.filter(Episode.serie == self)):
+        for episode in list(db.session.query(Episode).filter(Episode.serie == self)):
             episode.serie = their
 
     def merge_and_delete(self, their, session):
@@ -526,8 +526,8 @@ class ExternalObject(Base, ResourceMixin):
             if candidate.obj in merged or candidate.into in excluded:
                 continue
 
-            src = cls.query.get(candidate.obj)
-            dest = cls.query.get(candidate.into)
+            src = db.session.query(cls).get(candidate.obj)
+            dest = db.session.query(cls).get(candidate.into)
 
             # TODO: merge chains?
             if src is None:
@@ -581,7 +581,7 @@ class ExternalObject(Base, ResourceMixin):
                            into=v[0],
                            score=v[1])
             for v in matches if not links_overlap(
-                ObjectLink.query.filter(ObjectLink.external_object_id == v[0]),
+                db.session.query(ObjectLink).filter(ObjectLink.external_object_id == v[0]),
                 self.links
             )
         ]
@@ -636,7 +636,7 @@ class ExternalObject(Base, ResourceMixin):
                 continue
 
             factor = 1
-            their = ExternalObject.query.get(candidate.into)
+            their = db.session.query(ExternalObject).get(candidate.into)
             for criteria in criterias:
                 factor *= math.pow(2, math.log2(1 + criteria(self, their)))
             yield MergeCandidate(obj=candidate.obj,
@@ -691,8 +691,8 @@ class ExternalObject(Base, ResourceMixin):
         if has_attributes:
             # Find the link created for this platform and add the scrap to it
             with links_lock, db.session.begin_nested():
-                link = ObjectLink.query.filter(ObjectLink.external_object == obj,
-                                               ObjectLink.platform == scrap.platform).first()
+                link = db.session.query(ObjectLink).filter(ObjectLink.external_object == obj,
+                                                           ObjectLink.platform == scrap.platform).first()
                 if link is not None:
                     link.scraps.append(scrap)
                 else:
@@ -1064,8 +1064,8 @@ class Person(Base, ExternalObjectMetaMixin):
 
         """
         with role_lock, db.session.begin_nested():
-            if Role.query.filter(Role.person == self.external_object and
-                                 Role.external_object == movie).first() is None:
+            if db.session.query(Role).filter(Role.person == self.external_object and
+                                             Role.external_object == movie).first() is None:
                 db.session.merge(Role(person=self.external_object,
                                       external_object=movie,
                                       role=role))

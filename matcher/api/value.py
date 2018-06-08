@@ -1,7 +1,8 @@
+from matcher.app import db
+from matcher.scheme.value import Value
 from restless.preparers import (CollectionSubPreparer, FieldsPreparer,
                                 SubPreparer,)
 
-from ..scheme.value import Value
 from .utils import AutoPreparer, CustomFlaskResource
 
 
@@ -29,7 +30,7 @@ class ValueResource(CustomFlaskResource):
         return True
 
     def list(self):
-        return Value.query.all()
+        return db.session.query(Value).all()
 
     def detail(self, pk):
-        return Value.query.filter(Value.id == pk).one()
+        return db.session.query(Value).filter(Value.id == pk).one()

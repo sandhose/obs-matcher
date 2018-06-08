@@ -23,11 +23,11 @@ class PlatformGroupResource(CustomFlaskResource):
         return True
 
     def list(self):
-        return PlatformGroup.query.all()
+        return db.session.query(PlatformGroup).all()
 
     def detail(self, pk):
         try:
-            return PlatformGroup.query.filter(PlatformGroup.id == pk).one()
+            return db.session.query(PlatformGroup).filter(PlatformGroup.id == pk).one()
         except sqlalchemy.orm.exc.NoResultFound:
             raise restless.exceptions.NotFound()
 
@@ -42,7 +42,7 @@ class PlatformGroupResource(CustomFlaskResource):
                     else platform
 
                 try:
-                    group.platforms.append(Platform.query.filter(
+                    group.platforms.append(db.session.query(Platform).filter(
                         Platform.id == pid).one())
                 except sqlalchemy.orm.exc.NoResultFound:
                     raise restless.exceptions.BadRequest()
@@ -53,7 +53,7 @@ class PlatformGroupResource(CustomFlaskResource):
 
     def delete(self, pk):
         try:
-            group = PlatformGroup.query.filter(PlatformGroup.id == pk).one()
+            group = db.session.query(PlatformGroup).filter(PlatformGroup.id == pk).one()
         except sqlalchemy.orm.exc.NoResultFound:
             raise restless.exceptions.NotFound()
 
@@ -62,7 +62,7 @@ class PlatformGroupResource(CustomFlaskResource):
 
     def update(self, pk):
         try:
-            group = PlatformGroup.query.filter(PlatformGroup.id == pk).one()
+            group = db.session.query(PlatformGroup).filter(PlatformGroup.id == pk).one()
         except sqlalchemy.orm.exc.NoResultFound:
             raise restless.exceptions.NotFound()
 
@@ -90,11 +90,11 @@ class PlatformResource(CustomFlaskResource):
         return True
 
     def list(self):
-        return Platform.query.all()
+        return db.session.query(Platform).all()
 
     def detail(self, pk):
         try:
-            return Platform.query.filter(Platform.id == pk).one()
+            return db.session.query(Platform).filter(Platform.id == pk).one()
         except sqlalchemy.orm.exc.NoResultFound:
             raise restless.exceptions.NotFound()
 
@@ -106,7 +106,7 @@ class PlatformResource(CustomFlaskResource):
                 else self.data['group']
 
             try:
-                group = PlatformGroup.query\
+                group = db.session.query(PlatformGroup)\
                     .filter(PlatformGroup.id == gid)\
                     .one()
             except sqlalchemy.orm.exc.NoResultFound:
@@ -133,7 +133,7 @@ class PlatformResource(CustomFlaskResource):
 
     def update(self, pk):
         try:
-            platform = Platform.query.filter(Platform.id == pk).one()
+            platform = db.session.query(Platform).filter(Platform.id == pk).one()
         except sqlalchemy.orm.exc.NoResultFound:
             raise restless.exceptions.NotFound()
 
@@ -143,7 +143,7 @@ class PlatformResource(CustomFlaskResource):
                 else self.data['group']
 
             try:
-                platform.group = PlatformGroup.query.filter(
+                platform.group = db.session.query(PlatformGroup).filter(
                     PlatformGroup.id == gid)
             except sqlalchemy.orm.exc.NoResultFound:
                 raise restless.exceptions.NotFound()
@@ -178,13 +178,13 @@ class ScrapResource(CustomFlaskResource):
         return True
 
     def list(self):
-        return Scrap.query.all()
+        return db.session.query(Scrap).all()
 
     def detail(self, pk):
-        return Scrap.query.filter(Scrap.id == pk).one()
+        return db.session.query(Scrap).filter(Scrap.id == pk).one()
 
     def update(self, pk):
-        scrap = Scrap.query.filter(Scrap.id == pk).one()
+        scrap = db.session.query(Scrap).filter(Scrap.id == pk).one()
 
         if 'status' in self.data:
             status = ScrapStatus.from_name(self.data['status'])

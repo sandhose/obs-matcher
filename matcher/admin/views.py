@@ -65,7 +65,7 @@ def meta_formatter(attr):
 
 
 def episodes_formatter(view, context, model, name):
-    count = Episode.query.filter(Episode.serie == model).count()
+    count = db.session.query(Episode).filter(Episode.serie == model).count()
     return rules.Markup('<a href="{}">{}</a>'.format(
         url_for('episodes.index_view', flt1_5=model.id),
         count)

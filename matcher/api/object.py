@@ -2,11 +2,12 @@ from flask import request
 from sqlalchemy.orm.exc import NoResultFound
 
 import restless.exceptions
+from matcher.app import db
+from matcher.scheme.object import ExternalObject
+from matcher.scheme.platform import Scrap
 from restless.preparers import (CollectionSubPreparer, FieldsPreparer,
                                 SubPreparer,)
 
-from ..scheme.object import ExternalObject
-from ..scheme.platform import Scrap
 from .utils import AutoPreparer, CustomFlaskResource
 
 
@@ -31,10 +32,10 @@ class ObjectResource(CustomFlaskResource):
         return True
 
     def list(self):
-        return ExternalObject.query.all()
+        return db.session.query(ExternalObject).all()
 
     def detail(self, pk):
-        return ExternalObject.query.filter(ExternalObject.id == pk).one()
+        return db.session.query(ExternalObject).filter(ExternalObject.id == pk).one()
 
     def create(self):
         scrap_id = request.headers.get('x-scrap-id', None)
@@ -43,7 +44,7 @@ class ObjectResource(CustomFlaskResource):
                 BadRequest('Missing `x-scrap-id` header')
 
         try:
-            scrap = Scrap.query.filter(Scrap.id == scrap_id).one()
+            scrap = db.session.query(Scrap).filter(Scrap.id == scrap_id).one()
         except NoResultFound:
             raise restless.exceptions.NotFound('Scrap not found')
 

@@ -63,8 +63,9 @@ class ScrapParamType(click.ParamType):
     @with_appcontext
     def convert(self, value, param, ctx):
         from .scheme.platform import Scrap
+        from matcher.app import db
         try:
-            s = Scrap.query.get(int(value))
+            s = db.session.query(Scrap).get(int(value))
             if s is None:
                 self.fail('scrap {} not found'.format(value), param, ctx)
             return s
@@ -130,7 +131,7 @@ def match(scrap=None, platform=None, exclude=None, offset=None, type=None, limit
     if type is None:
         type = ExternalObjectType.MOVIE
 
-    q = ExternalObject.query.\
+    q = db.session.query(ExternalObject).\
         filter(ExternalObject.type == type)
 
     if platform:
@@ -138,7 +139,7 @@ def match(scrap=None, platform=None, exclude=None, offset=None, type=None, limit
                                            filter(ObjectLink.platform == platform)))
     elif not all:
         if scrap is None:
-            scrap = Scrap.query.order_by(Scrap.id.desc()).one()
+            scrap = db.session.query(Scrap).order_by(Scrap.id.desc()).one()
 
         q = q.filter(ExternalObject.id.in_(
             db.session.query(ObjectLink.external_object_id).
@@ -221,7 +222,7 @@ def import_csv(external_ids, attributes, attr_platform, input):
     it = tqdm(rows)
     for row in it:
         id = row[0]
-        obj = ExternalObject.query.get(id)
+        obj = db.session.query(ExternalObject).get(id)
 
         if not obj:
             it.write('SKIP ' + id)
@@ -245,7 +246,7 @@ def import_csv(external_ids, attributes, attr_platform, input):
                 continue
 
             if not platform.allow_links_overlap:
-                existing = ObjectLink.query.\
+                existing = db.session.query(ObjectLink).\
                     filter(ObjectLink.external_object == obj).\
                     filter(ObjectLink.platform == platform).\
                     first()
@@ -254,7 +255,7 @@ def import_csv(external_ids, attributes, attr_platform, input):
                     it.write('> DEL old link {}'.format(existing.external_id))
 
                     # Lookup for old attributes from this source and delete them
-                    ValueSource.query.\
+                    db.session.query(ValueSource).\
                         filter(ValueSource.id_platform == platform.id).\
                         filter(ValueSource.id_value.in_(
                             db.session.query(Value.id).
@@ -263,7 +264,7 @@ def import_csv(external_ids, attributes, attr_platform, input):
                         delete(synchronize_session=False)
 
                     # Remove attributes with no sources
-                    Value.query.\
+                    db.session.query(Value).\
                         filter(Value.external_object_id == obj.id).\
                         filter(~Value.sources.any()).\
                         delete(synchronize_session=False)
@@ -271,7 +272,7 @@ def import_csv(external_ids, attributes, attr_platform, input):
                     db.session.delete(existing)
                     db.session.commit()
 
-            link = ObjectLink.query.\
+            link = db.session.query(ObjectLink).\
                 filter(ObjectLink.external_id == external_id).\
                 filter(ObjectLink.platform == platform).\
                 first()
@@ -372,7 +373,7 @@ def fix_titles():
     from tqdm import tqdm
 
     values = list(
-        Value.query
+        db.session.query(Value)
         .filter(Value.text.like('%[%]'))
         .filter(Value.type == ValueType.TITLE)
         .all()
@@ -383,9 +384,9 @@ def fix_titles():
     for v in tqdm(values):
         new = re.sub(r"\[.*\]", "", v.text).strip()
 
-        existing = Value.query.filter(Value.type == ValueType.TITLE,
-                                      Value.text == new,
-                                      Value.external_object_id == v.external_object_id).first()
+        existing = db.session.query(Value).filter(Value.type == ValueType.TITLE,
+                                                  Value.text == new,
+                                                  Value.external_object_id == v.external_object_id).first()
 
         if existing is None:
             added += 1
@@ -413,7 +414,7 @@ def fix_countries():
     from tqdm import tqdm
 
     values = list(
-        Value.query
+        db.session.query(Value)
         .filter(~Value.external_object_id.in_(
             db.session.query(Value.external_object_id)
             .filter(Value.type == ValueType.COUNTRY)
@@ -484,14 +485,14 @@ def export(offset=None, limit=None, platform=[], cap=None, group=None,
     include_list = db.session.query(ObjectLink.external_object_id)
 
     if group:
-        platform = Platform.query.\
+        platform = db.session.query(Platform).\
             filter(Platform.type == group)
 
     platform_ids = [p.id for p in platform]
     ignore_ids = [p.id for p in ignore]
 
     ignore_ids += [id for (id,) in db.session.query(Platform.id).
-                   filter(Platform.ignore_in_exports == True).
+                   filter(Platform.ignore_in_exports._is(True)).
                    all()]
 
     if platform_ids:
@@ -505,7 +506,7 @@ def export(offset=None, limit=None, platform=[], cap=None, group=None,
     if type is None:
         type = ExternalObjectType.MOVIE
 
-    query = ExternalObject.query.\
+    query = db.session.query(ExternalObject).\
         filter(ExternalObject.type == type).\
         filter(ExternalObject.id.in_(include_list)).\
         order_by(ExternalObject.id)
@@ -560,13 +561,13 @@ def export(offset=None, limit=None, platform=[], cap=None, group=None,
     writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames)
     writer.writeheader()
 
-    imdb = Platform.query.filter(Platform.slug == 'imdb').one()
-    tmdb = Platform.query.filter(Platform.slug == 'tmdb').one()
+    imdb = db.session.query(Platform).filter(Platform.slug == 'imdb').one()
+    tmdb = db.session.query(Platform).filter(Platform.slug == 'tmdb').one()
 
     if type == ExternalObjectType.SERIE:
-        lumieretvdb = Platform.query.filter(Platform.slug == 'tvdb').one()
+        lumieretvdb = db.session.query(Platform).filter(Platform.slug == 'tvdb').one()
     else:
-        lumieretvdb = Platform.query.filter(Platform.slug == 'lumiere').one()
+        lumieretvdb = db.session.query(Platform).filter(Platform.slug == 'lumiere').one()
 
     for e in it:
         countries = db.session.query(Value.text).\
