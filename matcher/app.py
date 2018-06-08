@@ -17,9 +17,13 @@ sentry = Sentry()
 toolbar = DebugToolbarExtension()
 
 
+def _setup_admin(app):
+    from .admin import setup_admin
+    setup_admin(app)
+
+
 def setup_routes(app):
     from .api import api
-    from .admin import setup_admin
 
     app.register_blueprint(api, url_prefix='/api')
 
@@ -30,7 +34,7 @@ def setup_routes(app):
         heads = migration_context.get_current_heads()
 
         if revision in heads:
-            setup_admin(app)
+            _setup_admin(app)
 
     @app.route('/')
     def index():
