@@ -10,7 +10,7 @@ from .views import (AllObjectView, EpisodeView, MovieView, ObjectLinkView,
 
 
 def setup_admin(app):
-    admin = Admin(base_template='admin_master.html')
+    admin = Admin(name='Matcher', base_template='admin_master.html')
     admin.add_views(
         PlatformView(Platform, db.session, name='Platform',
                      category='Platforms'),

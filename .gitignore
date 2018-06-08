@@ -1,4 +1,5 @@
 __pycache__/
+.mypy_cache/
 *.pyc
 .DS_Store
 .venv/
@@ -9,3 +10,5 @@ build/
 doc/_build/
 .eggs/
 /instance/
+/secrets/
+docker-compose.dev.yml

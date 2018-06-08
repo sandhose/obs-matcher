@@ -79,6 +79,15 @@ VALUE_TYPE = ValueTypeParamType()
 EXTERNAL_OBJECT_TYPE = ExternalObjectParamType()
 
 
+@click.command(context_settings=dict(
+    ignore_unknown_options=True,
+))
+@click.argument('celery_options', nargs=-1)
+def worker(celery_options):
+    from matcher import celery
+    celery.worker_main(['matcher worker'] + list(celery_options))
+
+
 @click.command()
 @with_appcontext
 @click.confirmation_option(prompt="This will distroy everything in the "
@@ -695,3 +704,4 @@ def setup_cli(app):
     app.cli.add_command(fix_attributes)
     app.cli.add_command(fix_countries)
     app.cli.add_command(fix_titles)
+    app.cli.add_command(worker)
