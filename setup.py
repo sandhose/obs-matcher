@@ -7,6 +7,12 @@ https://github.com/sandhose/obs-matcher
 from codecs import open
 from os import path
 
+# FIXME: This is an ugly workaround for pip 10
+try:  # for pip >= 10
+    from pip._internal.req import parse_requirements
+except ImportError:  # for pip < 10
+    from pip.req import parse_requirements
+
 from setuptools import find_packages, setup
 
 here = path.abspath(path.dirname(__file__))
@@ -15,8 +21,8 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
-with open('requirements.txt') as f:
-    requirements = f.read().splitlines()
+requirements = [str(r.req) for r in
+                parse_requirements('requirements.txt', session=False)]
 
 setup(
     name='matcher',
