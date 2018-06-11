@@ -12,4 +12,8 @@ COPY . .
 RUN python setup.py install
 RUN python setup.py develop
 
+ENV PYTHONUNBUFFERED=1 PYTHONHASHSEED=random PYTHONDONTWRITEBYTECODE=1
+
+EXPOSE 5000
+
 CMD [ "matcher", "run" ]

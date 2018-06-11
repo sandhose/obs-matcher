@@ -8,6 +8,7 @@ Flask
 Flask-DebugToolbar
 gunicorn
 psycopg2
+psycopg2-binary
 raven[flask]
 redis
 restless

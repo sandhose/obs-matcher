@@ -50,6 +50,16 @@ services:
     volumes:
       - 'redis:/data'
 
+  flower:
+    image: mher/flower:latest
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+      - worker
+
   db:
     image: postgres:alpine
     environment:
