@@ -199,7 +199,7 @@ class ScrapResource(CustomFlaskResource):
 
     def create(self):
         try:
-            platform = Platform.lookup(self.data['platform'])
+            platform = Platform.lookup(db.session, self.data['platform'])
         except ValueError:
             raise restless.exceptions.BadRequest('Missing key `platform`')
 

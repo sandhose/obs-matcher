@@ -23,7 +23,8 @@ class PlatformParamType(click.ParamType):
     @with_appcontext
     def convert(self, value, param, ctx):
         from .scheme.platform import Platform
-        p = Platform.lookup(value)
+        from matcher.app import db
+        p = Platform.lookup(db.session, value)
 
         if p is None:
             self.fail('unknown platform ' + value, param, ctx)

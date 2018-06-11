@@ -5,7 +5,6 @@ from sqlalchemy import (Boolean, Column, DateTime, Enum, ForeignKey, Integer,
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import column_property, relationship
 
-from matcher.app import db
 from slugify import slugify
 
 from . import Base
@@ -119,7 +118,7 @@ class Platform(Base, ResourceMixin):
         return '<Platform {!r}>'.format(self.name)
 
     @classmethod
-    def lookup(cls, platform):
+    def lookup(cls, session, platform):
         """Search for a platform using its ID or Slug
 
         :platform: Slug or ID of the platform
@@ -132,10 +131,10 @@ class Platform(Base, ResourceMixin):
 
         try:
             # Try converting into an ID first
-            q = db.session.query(Platform).filter(Platform.id == int(platform))
+            q = session.query(Platform).filter(Platform.id == int(platform))
         except ValueError:
             # then try to match the slug
-            q = db.session.query(Platform).filter(Platform.slug == platform)
+            q = session.query(Platform).filter(Platform.slug == platform)
 
         return q.one_or_none()
 

@@ -160,7 +160,7 @@ def _normalize_link(link):
 
     # We check if the platform exists (if this doesn't crush
     # performance)
-    platform = Platform.lookup(platform)
+    platform = Platform.lookup(db.session, platform)
     if platform is None:
         # TODO: custom exception
         raise Exception('platform not found')
