@@ -443,7 +443,7 @@ def fix_countries():
     print("Fixed {} countries out of {}".format(added, len(values)))
 
 
-@click.command()
+@click.command()  # noqa: C901
 @with_appcontext
 @click.option('--offset', '-o', type=int)
 @click.option('--limit', '-l', type=int)
