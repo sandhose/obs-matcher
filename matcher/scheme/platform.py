@@ -10,6 +10,7 @@ from slugify import slugify
 from . import Base
 from .mixins import ResourceMixin
 from .utils import CustomEnum
+from matcher.exceptions import InvalidStatusTransition
 
 
 class PlatformGroup(Base, ResourceMixin):
@@ -165,15 +166,6 @@ class ScrapStatus(CustomEnum):
     """The job has failed"""
 
 
-class ScrapType(CustomEnum):
-    # FIXME: Other types of scraps? Like “new releases” pages?
-    INDIVIDUAL = 1
-    """One job to scrap a bunch of given IDs"""
-
-    FULL = 2
-    """Start a full site scrap"""
-
-
 class Scrap(Base, ResourceMixin):
     """Represents one job
 
@@ -228,9 +220,8 @@ class Scrap(Base, ResourceMixin):
     def finish(self, status):
         """Set the status to one of the finished status"""
         if self.status is not ScrapStatus.RUNNING:
-            # FIXME: custom exception
-            raise Exception('scrap is "{}", should be "{}"'.format(
-                self.status, ScrapStatus.RUNNING))
+            raise InvalidStatusTransition(from_status=self.status,
+                                          to_status=status)
 
         if not any(s == status for s in [ScrapStatus.SUCCESS,
                                          ScrapStatus.FAILED,
@@ -243,8 +234,8 @@ class Scrap(Base, ResourceMixin):
     def run(self):
         """Mark the job as running"""
         if self.status is not ScrapStatus.SCHEDULED:
-            # FIXME: custom exception
-            raise Exception()
+            raise InvalidStatusTransition(from_status=self.status,
+                                          to_status=ScrapStatus.RUNNING)
 
         self.date = datetime.now()
         self.status = ScrapStatus.RUNNING
@@ -255,8 +246,8 @@ class Scrap(Base, ResourceMixin):
         # FIXME: This maybe should duplicate itself when not RUNNING or ABORTED
         if self.status is ScrapStatus.SUCCESS or \
            self.status is ScrapStatus.SCHEDULED:
-            # FIXME: custom exception
-            raise Exception()
+            raise InvalidStatusTransition(from_status=self.status,
+                                          to_status=ScrapStatus.SCHEDULED)
 
         self.status = ScrapStatus.SCHEDULED
 

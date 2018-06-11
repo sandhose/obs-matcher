@@ -6,7 +6,7 @@ from ..scheme.platform import Platform, PlatformGroup, Scrap
 from ..scheme.value import Value, ValueSource
 from .views import (AllObjectView, EpisodeView, MovieView, ObjectLinkView,
                     PersonView, PlatformGroupView, PlatformView, ScrapView,
-                    SerieView, ValueSourceView, ValueView,)
+                    SeriesView, ValueSourceView, ValueView,)
 
 
 def setup_admin(app):
@@ -24,7 +24,7 @@ def setup_admin(app):
         AllObjectView(db.session, name='All objects'),
         PersonView(db.session, name='Persons'),
         MovieView(db.session, name='Movies'),
-        SerieView(db.session, name='Series'),
+        SeriesView(db.session, name='Series'),
         EpisodeView(db.session, name='Episodes'),
     )
     admin.init_app(app, endpoint='admin', url='/admin')

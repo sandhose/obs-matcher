@@ -53,13 +53,10 @@ class ExternalObjectType(CustomEnum):
     """Represents a single movie"""
 
     EPISODE = 3
-    """Represents an episode of a serie's season"""
+    """Represents an episode of a series' season"""
 
-    SEASON = 4
-    """Represents a season of a serie"""
-
-    SERIE = 5
-    """Represents a (TV) serie"""
+    SERIES = 4
+    """Represents a (TV) series"""
 
 
 scrap_link = Table(
@@ -221,7 +218,7 @@ class ExternalObject(Base, ResourceMixin):
 
     @property
     def episodes(self):
-        return db.session.query(Episode).filter(Episode.serie == self).\
+        return db.session.query(Episode).filter(Episode.series == self).\
             options(joinedload('external_object')).\
             order_by(Episode.season, Episode.episode).\
             limit(10)
@@ -470,8 +467,8 @@ class ExternalObject(Base, ResourceMixin):
             else:
                 episode.external_object = their
 
-        for episode in list(db.session.query(Episode).filter(Episode.serie == self)):
-            episode.serie = their
+        for episode in list(db.session.query(Episode).filter(Episode.series == self)):
+            episode.series = their
 
     def merge_and_delete(self, their, session):
         """Merge into another ExternalObject, and delete the old one.
@@ -759,6 +756,10 @@ class ExternalObject(Base, ResourceMixin):
         }
 
         if 'type' in raw and raw['type'] is not None:
+            # 'SERIES' was once named 'SERIE'
+            if raw['type'].lower() == 'serie':
+                raw['type'] = 'series'
+
             data['type'] = ExternalObjectType.from_name(raw['type'])
 
         if 'attributes' in raw and raw['attributes'] is not None:
@@ -880,7 +881,7 @@ class RoleType(CustomEnum):
 
 
 class Role(Base):
-    """A role of a person on another object (movie/episode/serie…)."""
+    """A role of a person on another object (movie/episode/series…)."""
 
     __tablename__ = 'role'
 
@@ -988,24 +989,24 @@ class ExternalObjectMetaMixin(object):
 
 
 class Episode(Base, ExternalObjectMetaMixin):
-    """An episode of a TV serie."""
+    """An episode of a TV series."""
 
     __tablename__ = 'episode'
     object_type = ExternalObjectType.EPISODE
 
-    serie_id = Column(Integer,
-                      ForeignKey('external_object.id'))
+    series_id = Column(Integer,
+                       ForeignKey('external_object.id'))
 
     # FIXME: how to handle special episodes?
     episode = Column(Integer)
     """:obj:`int` : The episode number in the season"""
 
     season = Column(Integer)
-    """:obj:`int` : The season number in the serie"""
+    """:obj:`int` : The season number in the series"""
 
-    serie = relationship('ExternalObject',
-                         foreign_keys=[serie_id])
-    """:obj:`ExternalObject` : The serie in which this episode is in"""
+    series = relationship('ExternalObject',
+                          foreign_keys=[series_id])
+    """:obj:`ExternalObject` : The series in which this episode is in"""
 
     def set_parent(self, parent):
         """Set the parent season.
@@ -1018,12 +1019,12 @@ class Episode(Base, ExternalObjectMetaMixin):
         Raises
         ------
         matcher.exceptions.InvalidRelation
-            when the parent's type isn't a :obj:`ExternalObjectType.SERIE`
+            when the parent's type isn't a :obj:`ExternalObjectType.SERIES`
 
         """
-        if parent.type != ExternalObjectType.SERIE:
+        if parent.type != ExternalObjectType.SERIES:
             raise InvalidRelation("part of", parent, self)
-        self.serie = parent
+        self.series = parent
 
     def add_meta(self, key, content):
         """Add a metadata to the object.

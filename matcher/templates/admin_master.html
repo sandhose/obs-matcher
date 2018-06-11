@@ -88,7 +88,7 @@
 {% endmacro %}
 
 {% macro episode_details(model, column) %}
-  <a href="{{ url_for('series.details_view', id=model.related_object.serie_id) }}">
+  <a href="{{ url_for('series.details_view', id=model.related_object.series_id) }}">
     Season {{ model.related_object.season }} episode {{ model.related_object.episode }}
   </a>
 {% endmacro %}

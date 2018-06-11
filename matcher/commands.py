@@ -301,7 +301,7 @@ def import_csv(external_ids, attributes, attr_platform, input):
 @click.command('merge-episodes')
 @with_appcontext
 def merge_episodes():
-    """Merge episodes that are in the same serie"""
+    """Merge episodes that are in the same series"""
     from sqlalchemy import and_
     from sqlalchemy.orm import aliased
     from .scheme.object import Episode
@@ -314,7 +314,7 @@ def merge_episodes():
         join((other, and_(
             Episode.episode == other.episode,
             Episode.season == other.season,
-            Episode.serie_id == other.serie_id,
+            Episode.series_id == other.series_id,
             Episode.external_object_id != other.external_object_id
         ))).\
         filter(Episode.episode is not None and Episode.season is not None)
@@ -565,7 +565,7 @@ def export(offset=None, limit=None, platform=[], cap=None, group=None,
     imdb = db.session.query(Platform).filter(Platform.slug == 'imdb').one()
     tmdb = db.session.query(Platform).filter(Platform.slug == 'tmdb').one()
 
-    if type == ExternalObjectType.SERIE:
+    if type == ExternalObjectType.SERIES:
         lumieretvdb = db.session.query(Platform).filter(Platform.slug == 'tvdb').one()
     else:
         lumieretvdb = db.session.query(Platform).filter(Platform.slug == 'lumiere').one()
@@ -621,10 +621,10 @@ def export(offset=None, limit=None, platform=[], cap=None, group=None,
         national_production = any(l.platform.country for l in real_links
                                   if l.platform.country == country)
 
-        if type == ExternalObjectType.SERIE:
-            # FIXME: should count_countries do something for series?
+        if type == ExternalObjectType.SERIES:
+            # FIXME: should count_countries do something for seriess?
             total_count = db.session.query(Episode.episode, Episode.season).\
-                filter(Episode.serie == e).\
+                filter(Episode.series == e).\
                 join(ObjectLink, ObjectLink.external_object_id == Episode.external_object_id).\
                 filter(ObjectLink.platform_id.in_(platform_ids)).\
                 group_by(Episode.episode, Episode.season).\
@@ -632,7 +632,7 @@ def export(offset=None, limit=None, platform=[], cap=None, group=None,
 
             if cap is not None:
                 capped_count = db.session.query(Episode.episode, Episode.season).\
-                    filter(Episode.serie == e).\
+                    filter(Episode.series == e).\
                     join(ObjectLink, ObjectLink.external_object_id == Episode.external_object_id).\
                     filter(ObjectLink.platform_id == cap.id).\
                     group_by(Episode.episode, Episode.season).\
@@ -665,10 +665,10 @@ def export(offset=None, limit=None, platform=[], cap=None, group=None,
 
         if explode:
             for link in real_links:
-                if type == ExternalObjectType.SERIE:
+                if type == ExternalObjectType.SERIES:
                     total_count = db.session.query(ObjectLink.platform_id, ObjectLink.external_object_id).\
                         select_from(Episode).\
-                        filter(Episode.serie == e).\
+                        filter(Episode.series == e).\
                         join(ObjectLink, ObjectLink.external_object_id == Episode.external_object_id).\
                         filter(ObjectLink.platform_id == link.platform_id).\
                         group_by(ObjectLink.platform_id, ObjectLink.external_object_id).\

@@ -14,7 +14,7 @@ from ..scheme.object import (Episode, ExternalObject, ExternalObjectType,
 from ..scheme.platform import Platform, PlatformType
 from ..scheme.value import Value, ValueType
 from .filters import (ExternalObjectPlatformFilter,
-                      ExternalObjectSimilarFilter, SerieFilter,)
+                      ExternalObjectSimilarFilter, SeriesFilter,)
 from .utils import CustomAdminConverter
 
 
@@ -46,14 +46,14 @@ def link_formatter(route):
     return formatter
 
 
-def serie_formatter(view, context, model, name):
-    serie = model.related_object.serie
-    if serie is not None:
+def series_formatter(view, context, model, name):
+    series = model.related_object.series
+    if series is not None:
         return rules.Markup(
             '<a href="{}">{}</a>'
             .format(
-                url_for('series.details_view', id=serie.id),
-                escape(repr(serie))
+                url_for('series.details_view', id=series.id),
+                escape(repr(series))
             )
         )
 
@@ -65,7 +65,7 @@ def meta_formatter(attr):
 
 
 def episodes_formatter(view, context, model, name):
-    count = db.session.query(Episode).filter(Episode.serie == model).count()
+    count = db.session.query(Episode).filter(Episode.series == model).count()
     return rules.Markup('<a href="{}">{}</a>'.format(
         url_for('episodes.index_view', flt1_5=model.id),
         count)
@@ -199,7 +199,7 @@ class ExternalObjectView(DefaultView):
                                         filter=lambda t: t.replace('.', '')
                                                           .isdigit(),
                                         limit=1),
-        'serie': serie_formatter,
+        'series': series_formatter,
         'season': meta_formatter('season'),
         'episode': meta_formatter('episode'),
         'episode_details': macro('episode_details'),
@@ -285,8 +285,8 @@ class MovieView(ExternalObjectView):
                    'links_count')
 
 
-class SerieView(ExternalObjectView):
-    external_object_type = ExternalObjectType.SERIE
+class SeriesView(ExternalObjectView):
+    external_object_type = ExternalObjectType.SERIES
     column_details_list = ('id', 'type', 'attributes_list', 'links_list',
                            'episodes_list')
     column_list = ('id', 'title', 'date', 'genres', 'country', 'episodes',
@@ -295,10 +295,10 @@ class SerieView(ExternalObjectView):
 
 class EpisodeView(ExternalObjectView):
     external_object_type = ExternalObjectType.EPISODE
-    column_list = ('id', 'title', 'date', 'serie', 'season', 'episode',
+    column_list = ('id', 'title', 'date', 'series', 'season', 'episode',
                    'country', 'links_count')
     column_details_list = ('id', 'type', 'attributes_list', 'links_list',
                            'episode_details')
     column_filters = ExternalObjectView.column_filters + [
-        SerieFilter(name='Episode')
+        SeriesFilter(name='Episode')
     ]
