@@ -64,7 +64,7 @@ class Value(Base, ResourceMixin):
     @score.expression
     def score(cls):
         return select([func.sum(ValueSource.score)]).\
-            where(ValueSource.id_value == cls.id).\
+            where(ValueSource.value_id == cls.id).\
             label('total_score')
 
     def __repr__(self):
@@ -77,10 +77,10 @@ class Value(Base, ResourceMixin):
 class ValueSource(Base):
     __tablename__ = 'value_source'
 
-    id_value = Column(Integer,
+    value_id = Column(Integer,
                       ForeignKey('value.id'),
                       primary_key=True)
-    id_platform = Column(Integer,
+    platform_id = Column(Integer,
                          ForeignKey('platform.id'),
                          primary_key=True)
     score_factor = Column(Integer,
@@ -98,7 +98,7 @@ class ValueSource(Base):
     @score.expression
     def score(cls):
         return cls.score_factor * select([Platform.base_score]).\
-            where(Platform.id == cls.id_platform)
+            where(Platform.id == cls.platform_id)
 
     def __repr__(self):
         return '<ValueSource {!r} on {!r}>'.format(self.value.text,

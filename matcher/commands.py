@@ -257,8 +257,8 @@ def import_csv(external_ids, attributes, attr_platform, input):
 
                     # Lookup for old attributes from this source and delete them
                     db.session.query(ValueSource).\
-                        filter(ValueSource.id_platform == platform.id).\
-                        filter(ValueSource.id_value.in_(
+                        filter(ValueSource.platform_id == platform.id).\
+                        filter(ValueSource.value_id.in_(
                             db.session.query(Value.id).
                             filter(Value.external_object_id == obj.id)
                         )).\
