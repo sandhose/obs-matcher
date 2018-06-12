@@ -7,19 +7,19 @@ x-internal:
   networks:
     - internal
   labels:
-    - traefik.enable=false
+    traefik.enable: false
 
 services:
   web:
     command: gunicorn -w 4 matcher:app -b 0.0.0.0:5000 --reload
     volumes:
-      - '.:/app'
+      - './matcher:/app/matcher'
     networks:
       - internal
       - proxy
     labels:
-      - traefik.frontend.rule=Host:matcher.test
-      - traefik.docker.network=proxy
+      traefik.frontend.rule: Host:matcher.test
+      traefik.docker.network: proxy
 
   flower:
     image: mher/flower:latest
@@ -28,8 +28,8 @@ services:
       - internal
       - proxy
     labels:
-      - traefik.frontend.rule=Host:matcher.test;PathPrefixStrip:/flower/
-      - traefik.docker.network=proxy
+      traefik.frontend.rule: Host:matcher.test;PathPrefixStrip:/flower/
+      traefik.docker.network: proxy
 
 
   scrapyd:
@@ -37,8 +37,8 @@ services:
       - internal
       - proxy
     labels:
-      - traefik.frontend.rule=Host:scrapyd.test
-      - traefik.docker.network=proxy
+      traefik.frontend.rule: Host:scrapyd.test
+      traefik.docker.network: proxy
 
   worker:
     command: >
@@ -47,7 +47,7 @@ services:
       watchmedo auto-restart -D -R -p "**/*.py" -- matcher worker -l info -E --uid nobody --gid nobody
       '
     volumes:
-      - '.:/app'
+      - './matcher:/app/matcher'
     << : *internal
 
   redis: *internal
