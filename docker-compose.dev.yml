@@ -1,0 +1,60 @@
+version: '3.4'
+
+# This exposes everything through træfik and allows hot-reloading of the app
+
+x-internal:
+  &internal
+  networks:
+    - internal
+  labels:
+    - traefik.enable=false
+
+services:
+  web:
+    command: gunicorn -w 4 matcher:app -b 0.0.0.0:5000 --reload
+    volumes:
+      - '.:/app'
+    networks:
+      - internal
+      - proxy
+    labels:
+      - traefik.frontend.rule=Host:matcher.test
+      - traefik.docker.network=proxy
+
+  flower:
+    image: mher/flower:latest
+    command: --url_prefix=/flower/
+    networks:
+      - internal
+      - proxy
+    labels:
+      - traefik.frontend.rule=Host:matcher.test;PathPrefixStrip:/flower/
+      - traefik.docker.network=proxy
+
+
+  scrapyd:
+    networks:
+      - internal
+      - proxy
+    labels:
+      - traefik.frontend.rule=Host:scrapyd.test
+      - traefik.docker.network=proxy
+
+  worker:
+    command: >
+      sh -c '
+      pip install watchdog &&
+      watchmedo auto-restart -D -R -p "**/*.py" -- matcher worker -l info -E --uid nobody --gid nobody
+      '
+    volumes:
+      - '.:/app'
+    << : *internal
+
+  redis: *internal
+  db: *internal
+
+networks:
+  internal:
+    external: false
+  proxy:
+    external: true

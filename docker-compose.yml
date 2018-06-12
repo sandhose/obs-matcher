@@ -1,13 +1,11 @@
-version: '3.3'
+version: '3.4'
 services:
   web:
     build: .
     image: sandhose/matcher:latest
-    command: gunicorn -w 4 matcher:app -b 0.0.0.0:8000
+    command: gunicorn -w 4 matcher:app -b 0.0.0.0:5000
     expose:
-      - "8000"
-    ports:
-      - "8000:8000"
+      - "5000"
     env_file:
       - docker-compose.env
     depends_on:
@@ -17,6 +15,12 @@ services:
     secrets:
       - postgres-password
       - secret-key
+    networks:
+      - internal
+      - proxy
+    labels:
+      - traefik.frontend.rule=Host:matcher.test
+      - traefik.docker.network=proxy
 
   worker:
     build: .
@@ -31,6 +35,10 @@ services:
     secrets:
       - postgres-password
       - secret-key
+    networks:
+      - internal
+    labels:
+      - traefik.enable=false
 
   migrate:
     build: .
@@ -44,21 +52,33 @@ services:
     secrets:
       - postgres-password
       - secret-key
+    networks:
+      - internal
+    labels:
+      - traefik.enable=false
 
   redis:
     image: redis:alpine
     volumes:
       - 'redis:/data'
+    networks:
+      - internal
+    labels:
+      - traefik.enable=false
 
   flower:
     image: mher/flower:latest
     environment:
       CELERY_BROKER_URL: redis://redis:6379/
-    ports:
-      - "5555:5555"
     depends_on:
       - redis
       - worker
+    networks:
+      - internal
+      - proxy
+    labels:
+      - traefik.frontend.rule=Host:matcher.test;PathPrefixStrip:/flower/
+      - traefik.docker.network=proxy
 
   db:
     image: postgres:alpine
@@ -69,10 +89,27 @@ services:
       - 'postgres:/var/lib/postgresql/data'
     secrets:
       - postgres-password
+    networks:
+      - internal
+    labels:
+      - traefik.enable=false
+
+  scrapyd:
+    build: ./scrapyd
+    image: sandhose/obs-scrapyd:latest
+    volumes:
+      - scrapy:/var/lib/scrapyd
+    networks:
+      - internal
+      - proxy
+    labels:
+      - traefik.frontend.rule=Host:scrapyd.test
+      - traefik.docker.network=proxy
 
 volumes:
   redis:
   postgres:
+  scrapy:
 
 secrets:
   postgres-password:
