@@ -8,14 +8,44 @@ from raven.contrib.flask import Sentry
 
 from alembic.migration import MigrationContext
 from flask_debugtoolbar import DebugToolbarExtension
+from flask_injector import FlaskInjector
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from injector import Module, provider, singleton
 
 from .commands import setup_cli
 
 db = SQLAlchemy()
-sentry = Sentry()
-toolbar = DebugToolbarExtension()
+
+
+class MigrateModule(Module):
+    @provider
+    @singleton
+    def provide_migrate(self, app: Flask, db: SQLAlchemy) -> Migrate:
+        return Migrate(app=app, db=db,
+                       directory=os.path.join(os.path.dirname(__file__),
+                                              'migrations'))
+
+
+class SentryModule(Module):
+    @provider
+    @singleton
+    def provide_sentry(self, app: Flask) -> Sentry:
+        return Sentry(app=app, logging=True, level=logging.ERROR)
+
+
+class ToolbarModule(Module):
+    @provider
+    @singleton
+    def provide_toolbar(self, app: Flask) -> DebugToolbarExtension:
+        return DebugToolbarExtension(app=app)
+
+
+class DbModule(Module):
+    @provider
+    @singleton
+    def provide_db(self, app: Flask) -> SQLAlchemy:
+        return db
 
 
 def _setup_admin(app):
@@ -38,7 +68,7 @@ def setup_routes(app):
             _setup_admin(app)
 
     @app.route('/queue', methods=['POST'])
-    def queue():
+    def queue(db: SQLAlchemy):
         from matcher.scheme.platform import Scrap
         from matcher.tasks.object import insert_dict
 
@@ -66,13 +96,16 @@ def create_app(info=None):
     # Load config using environment variable
     app.config.from_object('matcher.config.Config')
     app.config.from_pyfile('application.cfg', silent=True)
-    sentry.init_app(app, logging=True, level=logging.ERROR)
     db.init_app(app)
-    toolbar.init_app(app)
 
-    Migrate(app=app, db=db,
-            directory=os.path.join(os.path.dirname(__file__),
-                                   'migrations'))
+    flask_injector = FlaskInjector(app=app, modules=[SentryModule, ToolbarModule, DbModule, MigrateModule])
+    injector = flask_injector.injector
+
+    # Force extensions loading
+    # FIXME: this doesn't seems right
+    injector.get(DebugToolbarExtension)
+    injector.get(Sentry)
+    injector.get(Migrate)
 
     setup_cli(app)
     with app.app_context():

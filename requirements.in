@@ -1,11 +1,12 @@
 alembic_autogenerate_enums
 celery
 flake8
+Flask
 Flask-Admin
+Flask-DebugToolbar
+Flask-Injector
 Flask-Migrate
 Flask-SQLAlchemy
-Flask
-Flask-DebugToolbar
 gunicorn
 psycopg2
 psycopg2-binary
