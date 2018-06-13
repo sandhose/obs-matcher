@@ -4,6 +4,10 @@
 #
 #    pip-compile --generate-hashes --output-file requirements.txt requirements.in
 #
+amqp==2.3.2 \
+    --hash=sha256:073dd02fdd73041bffc913b767866015147b61f2a9bc104daef172fc1a0066eb \
+    --hash=sha256:eed41946890cd43e8dee44a316b85cf6fee5a1a34bb4a562b660a358eb529e1b \
+    # via kombu
 asn1crypto==0.24.0 \
     --hash=sha256:2f1adbb7546ed199e3c90ef23ec95c5cf3585bac7d11fb7eb562a3fe89c64e87 \
     --hash=sha256:9d5c20441baf0cb60a4ac34cc447c6c189024b6b4c6cd7877034f4965c464e49 \
@@ -16,6 +20,13 @@ automat==0.6.0 \
     --hash=sha256:2140297df155f7990f6f4c73b2ab0583bd8150db9ed2a1b48122abe66e9908c1 \
     --hash=sha256:3c1fd04ecf08ac87b4dd3feae409542e9bf7827257097b2b6ed5692f69d6f6a8 \
     # via twisted
+billiard==3.5.0.3 \
+    --hash=sha256:1d7b22bdc47aa52841120fcd22a74ae4fc8c13e9d3935643098184f5788c3ce6 \
+    --hash=sha256:abd9ce008c9a71ccde2c816f8daa36246e92a21e6a799831b887d88277187ecd \
+    # via celery
+celery[redis]==4.2.0 \
+    --hash=sha256:2082cbd82effa8ac8a8a58977d70bb203a9f362817e3b66f4578117b9f93d8a9 \
+    --hash=sha256:ff727c115533edbc7b81b2b4ba1ec88d1c2fc4836e1e2f4c3c33a76ff53e5d7f
 certifi==2018.4.16 \
     --hash=sha256:13e698f54293db9f89122b0581843a782ad0934a4fe0172d2a980ba77fc61bb7 \
     --hash=sha256:9fa520c1bacfb634fa7af20a76bcbd3d5fb390481724c597da32c719a7dca4b0 \
@@ -95,6 +106,10 @@ incremental==17.5.0 \
 isodate==0.6.0 \
     --hash=sha256:2e364a3d5759479cdb2d37cce6b9376ea504db2ff90252a2e5b7cc89cc9ff2d8 \
     --hash=sha256:aa4d33c06640f5352aca96e4b81afd8ab3b47337cc12089822d6f322ac772c81
+kombu==4.2.1 \
+    --hash=sha256:86adec6c60f63124e2082ea8481bbe4ebe04fde8ebed32c177c7f0cd2c1c9082 \
+    --hash=sha256:b274db3a4eacc4789aeb24e1de3e460586db7c4fc8610f7adcc7a3a1709a60af \
+    # via celery
 lxml==4.2.1 \
     --hash=sha256:01c45df6d90497c20aa2a07789a41941f9a1029faa30bf725fc7f6d515b1afe9 \
     --hash=sha256:0c9fef4f8d444e337df96c54544aeb85b7215b2ed7483bb6c35de97ac99f1bcd \
@@ -148,10 +163,18 @@ pyopenssl==18.0.0 \
     --hash=sha256:26ff56a6b5ecaf3a2a59f132681e2a80afcc76b4f902f612f518f92c2a1bf854 \
     --hash=sha256:6488f1423b00f73b7ad5167885312bb0ce410d3312eb212393795b53c8caa580 \
     # via scrapy, service-identity, twisted
+pytz==2018.4 \
+    --hash=sha256:65ae0c8101309c45772196b21b74c46b2e5d11b6275c45d251b150d5da334555 \
+    --hash=sha256:c06425302f2cf668f1bba7a0a03f3c1d34d4ebeef2c72003da308b3947c7f749 \
+    # via celery
 queuelib==1.5.0 \
     --hash=sha256:42b413295551bdc24ed9376c1a2cd7d0b1b0fa4746b77b27ca2b797a276a1a17 \
     --hash=sha256:ff43b5b74b9266f8df4232a8f768dc4d67281a271905e2ed4a3689d4d304cd02 \
     # via scrapy
+redis==2.10.6 \
+    --hash=sha256:8a1900a9f2a0a44ecf6e8b5eb3e967a9909dfed219ad66df094f27f7d6f330fb \
+    --hash=sha256:a22ca993cea2962dbb588f9f30d0015ac4afcc45bee27d3978c0dbe9e97c6c0f \
+    # via celery
 requests==2.18.4 \
     --hash=sha256:6a1b267aa90cac58ac3a765d067950e7dbbf75b1da07e895d1f594193a40a38b \
     --hash=sha256:9c443e7324ba5b85070c4a818ade28bfabedf16ea10206da1132edaa6dda237e
@@ -177,6 +200,10 @@ urllib3==1.22 \
     --hash=sha256:06330f386d6e4b195fbfc736b297f58c5a892e4440e54d294d7004e3a9bbea1b \
     --hash=sha256:cc44da8e1145637334317feebd728bd869a35285b93cbb4cca2577da7e62db4f \
     # via requests
+vine==1.1.4 \
+    --hash=sha256:52116d59bc45392af9fdd3b75ed98ae48a93e822cee21e5fda249105c59a7a72 \
+    --hash=sha256:6849544be74ec3638e84d90bc1cf2e1e9224cc10d96cd4383ec3f69e9bce077b \
+    # via amqp
 w3lib==1.19.0 \
     --hash=sha256:55994787e93b411c2d659068b51b9998d9d0c05e0df188e6daf8f45836e1ea38 \
     --hash=sha256:aaf7362464532b1036ab0092e2eee78e8fd7b56787baa9ed4967457b083d011b \
