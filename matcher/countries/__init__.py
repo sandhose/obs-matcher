@@ -9,22 +9,32 @@ from unidecode import unidecode
 data = []
 
 
+def update_data(path):
+    global data
+    UPDATE_URL = 'https://raw.githubusercontent.com/mledoze/countries/' \
+                 'master/dist/countries.json'
+
+    r = requests.get(UPDATE_URL)
+    assert r.status_code == 200
+    data = r.json()
+    os.makedirs(str(path.parent), exist_ok=True)
+    with open(str(path), 'w') as handle:
+        json.dump(data, handle)
+
+
 def load_data(app):
     global data
     if data:
         return data
+
     DATA_FILE = Path(app.instance_path).joinpath('countries.json')
-    UPDATE_URL = 'https://raw.githubusercontent.com/mledoze/countries/' \
-                 'master/dist/countries.json'
+
     try:
-        data += json.load(open(str(DATA_FILE), 'r'))
+        with open(str(DATA_FILE)) as f:
+            data = json.load(f)
     except OSError:
-        r = requests.get(UPDATE_URL)
-        assert r.status_code == 200
-        data += r.json()
-        os.makedirs(str(DATA_FILE.parent), exist_ok=True)
-        with open(str(DATA_FILE), 'w') as handle:
-            json.dump(data, handle)
+        update_data(DATA_FILE)
+
     return data
 
 

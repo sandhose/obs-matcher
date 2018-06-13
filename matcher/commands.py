@@ -1,4 +1,5 @@
 from operator import attrgetter
+from pathlib import Path
 
 import click
 from flask.cli import with_appcontext
@@ -364,6 +365,17 @@ def fix_attributes():
         db.session.commit()
 
 
+@click.command("download-countries")
+@with_appcontext
+def download_countries():
+    """Download the countries definition json"""
+    from flask import current_app
+    from .countries import update_data
+
+    DATA_FILE = Path(current_app.instance_path).joinpath('countries.json')
+    update_data(DATA_FILE)
+
+
 @click.command("fix-titles")
 @with_appcontext
 def fix_titles():
@@ -697,13 +709,14 @@ def export(offset=None, limit=None, platform=[], cap=None, group=None,
 
 
 def setup_cli(app):
-    app.cli.add_command(nuke)
-    app.cli.add_command(match)
-    app.cli.add_command(merge)
-    app.cli.add_command(merge_episodes)
-    app.cli.add_command(import_csv)
+    app.cli.add_command(download_countries)
     app.cli.add_command(export)
     app.cli.add_command(fix_attributes)
     app.cli.add_command(fix_countries)
     app.cli.add_command(fix_titles)
+    app.cli.add_command(import_csv)
+    app.cli.add_command(match)
+    app.cli.add_command(merge)
+    app.cli.add_command(merge_episodes)
+    app.cli.add_command(nuke)
     app.cli.add_command(worker)
