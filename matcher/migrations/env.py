@@ -3,16 +3,16 @@ from __future__ import with_statement
 import logging
 from logging.config import fileConfig
 
-import alembic_autogenerate_enums  # noqa
-from alembic import context
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 from flask import current_app
-from sqlalchemy import engine_from_config, pool
 
+import alembic_autogenerate_enums  # noqa
+from alembic import context
 from matcher.scheme import Base
+from sqlalchemy import engine_from_config, pool
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

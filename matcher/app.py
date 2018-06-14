@@ -2,13 +2,14 @@ import contextlib
 import logging
 import os
 
-from alembic.migration import MigrationContext
 from flask import Flask, jsonify, render_template, request, url_for
 from flask.cli import FlaskGroup
+from raven.contrib.flask import Sentry
+
+from alembic.migration import MigrationContext
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-from raven.contrib.flask import Sentry
 
 from .commands import setup_cli
 

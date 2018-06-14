@@ -7,13 +7,14 @@ https://github.com/sandhose/obs-matcher
 from codecs import open
 from os import path
 
+from setuptools import find_packages, setup
+
 # FIXME: This is an ugly workaround for pip 10
 try:  # for pip >= 10
     from pip._internal.req import parse_requirements
 except ImportError:  # for pip < 10
     from pip.req import parse_requirements
 
-from setuptools import find_packages, setup
 
 here = path.abspath(path.dirname(__file__))
 

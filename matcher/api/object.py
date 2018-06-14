@@ -1,5 +1,4 @@
 from flask import request
-from sqlalchemy.orm.exc import NoResultFound
 
 import restless.exceptions
 from matcher.app import db
@@ -7,6 +6,7 @@ from matcher.scheme.object import ExternalObject
 from matcher.scheme.platform import Scrap
 from restless.preparers import (CollectionSubPreparer, FieldsPreparer,
                                 SubPreparer,)
+from sqlalchemy.orm.exc import NoResultFound
 
 from .utils import AutoPreparer, CustomFlaskResource
 

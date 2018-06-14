@@ -10,7 +10,6 @@ Create Date: 2018-06-11 13:29:53.345622
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-
 # revision identifiers, used by Alembic.
 revision = '152dea884d0d'
 down_revision = '39018d98191f'

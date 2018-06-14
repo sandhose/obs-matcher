@@ -1,6 +1,5 @@
-import sqlalchemy.orm.exc
-
 import restless.exceptions
+import sqlalchemy.orm.exc
 from restless.preparers import CollectionSubPreparer, SubPreparer
 
 from ..app import db

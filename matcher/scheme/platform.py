@@ -1,29 +1,16 @@
 from datetime import datetime
 
-from sqlalchemy import (
-    Boolean,
-    Column,
-    DateTime,
-    Enum,
-    ForeignKey,
-    Integer,
-    Sequence,
-    String,
-    Text,
-    column,
-    func,
-    select,
-    table,
-)
+from slugify import slugify
+
+from matcher.exceptions import InvalidStatusTransition
+from sqlalchemy import (Boolean, Column, DateTime, Enum, ForeignKey, Integer,
+                        Sequence, String, Text, column, func, select, table,)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import column_property, relationship
-
-from slugify import slugify
 
 from . import Base
 from .mixins import ResourceMixin
 from .utils import CustomEnum
-from matcher.exceptions import InvalidStatusTransition
 
 
 class PlatformGroup(Base, ResourceMixin):
