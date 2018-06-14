@@ -15,37 +15,14 @@ from injector import Module, provider, singleton
 
 from .commands import setup_cli
 
+l = logging.getLogger('injector')
+l.setLevel(logging.DEBUG)
+l.addHandler(logging.StreamHandler())
+
+
+
+
 db = SQLAlchemy()
-
-
-class MigrateModule(Module):
-    @provider
-    @singleton
-    def provide_migrate(self, app: Flask, db: SQLAlchemy) -> Migrate:
-        return Migrate(app=app, db=db,
-                       directory=os.path.join(os.path.dirname(__file__),
-                                              'migrations'))
-
-
-class SentryModule(Module):
-    @provider
-    @singleton
-    def provide_sentry(self, app: Flask) -> Sentry:
-        return Sentry(app=app, logging=True, level=logging.ERROR)
-
-
-class ToolbarModule(Module):
-    @provider
-    @singleton
-    def provide_toolbar(self, app: Flask) -> DebugToolbarExtension:
-        return DebugToolbarExtension(app=app)
-
-
-class DbModule(Module):
-    @provider
-    @singleton
-    def provide_db(self, app: Flask) -> SQLAlchemy:
-        return db
 
 
 def _setup_admin(app):
@@ -54,9 +31,11 @@ def _setup_admin(app):
 
 
 def setup_routes(app):
-    from .api import api
+    from .api_old import api
+    from .api import blueprint as api2
 
     app.register_blueprint(api, url_prefix='/api')
+    app.register_blueprint(api2, url_prefix='/api2')
 
     # Do not install admin if upgrades are pending
     with contextlib.closing(db.engine.connect()) as con:
@@ -90,6 +69,14 @@ def setup_routes(app):
         ])
 
 
+def configure(binder):
+    binder.bind(
+        SQLAlchemy,
+        to=db,
+        scope=request,
+    )
+
+
 def create_app(info=None):
     app = Flask('matcher', instance_relative_config=True)
 
@@ -98,18 +85,16 @@ def create_app(info=None):
     app.config.from_pyfile('application.cfg', silent=True)
     db.init_app(app)
 
-    flask_injector = FlaskInjector(app=app, modules=[SentryModule, ToolbarModule, DbModule, MigrateModule])
-    injector = flask_injector.injector
-
-    # Force extensions loading
-    # FIXME: this doesn't seems right
-    injector.get(DebugToolbarExtension)
-    injector.get(Sentry)
-    injector.get(Migrate)
+    DebugToolbarExtension(app=app)
+    Sentry(app=app, logging=True, level=logging.ERROR)
+    Migrate(app=app, db=db, directory=os.path.join(os.path.dirname(__file__),
+                                                   'migrations'))
 
     setup_cli(app)
     with app.app_context():
         setup_routes(app)
+
+    flask_injector = FlaskInjector(app=app, modules=[configure])
 
     return app
 
