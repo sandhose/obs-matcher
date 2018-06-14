@@ -6,6 +6,8 @@ Flask-Admin
 Flask-DebugToolbar
 Flask-Injector
 Flask-Migrate
+Flask-RESTful
+Flask-RESTPlus
 Flask-SQLAlchemy
 gunicorn
 psycopg2

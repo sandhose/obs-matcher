@@ -1,6 +1,6 @@
 from flask import url_for
 
-from ..api.index import IndexView
+from ..api_old.index import IndexView
 
 
 class ResourceMixin(object):
