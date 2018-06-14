@@ -112,8 +112,7 @@ class PlatformView(DefaultView):
     column_filters = ['type', 'country', 'group']
     column_editable_list = ['country', 'name', 'slug', 'group']
     form_columns = ('type', 'group', 'name', 'slug', 'url', 'country',
-                    'max_rating', 'base_score', 'allow_links_overlap',
-                    'ignore_in_exports')
+                    'base_score', 'allow_links_overlap', 'ignore_in_exports')
 
     form_rules = [
         rules.FieldSet([
@@ -125,7 +124,6 @@ class PlatformView(DefaultView):
         ], header="Basic info"),
         rules.FieldSet([
             rules.Field('slug'),
-            rules.Field('max_rating'),
             rules.Field('base_score'),
             rules.Field('allow_links_overlap'),
             rules.Field('ignore_in_exports'),

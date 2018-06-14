@@ -79,7 +79,6 @@ class PlatformResource(CustomFlaskResource):
         'slug': 'slug',
         'url': 'url',
         'country': 'country',
-        'max_rating': 'max_rating',
         'base_score': 'base_score',
         'group': SubPreparer('group', AutoPreparer({
             'name': 'name',
@@ -156,8 +155,6 @@ class PlatformResource(CustomFlaskResource):
             platform.url = self.data['url']
         if 'country' in self.data:
             platform.country = self.data['country']
-        if 'max_rating' in self.data:
-            platform.max_rating = self.data['max_rating']
         if 'base_score' in self.data:
             platform.base_score = self.data['base_score']
 

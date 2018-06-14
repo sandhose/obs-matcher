@@ -1,7 +1,20 @@
 from datetime import datetime
 
-from sqlalchemy import (Boolean, Column, DateTime, Enum, ForeignKey, Integer,
-                        Sequence, String, Text, column, func, select, table,)
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    Sequence,
+    String,
+    Text,
+    column,
+    func,
+    select,
+    table,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import column_property, relationship
 
@@ -20,14 +33,10 @@ class PlatformGroup(Base, ResourceMixin):
     """
     __tablename__ = 'platform_group'
 
-    id = Column(Integer,
-                Sequence('platform_group_id_seq'),
-                primary_key=True)
-    name = Column(Text,
-                  nullable=False)
+    id = Column(Integer, Sequence('platform_group_id_seq'), primary_key=True)
+    name = Column(Text, nullable=False)
 
-    platforms = relationship('Platform',
-                             back_populates='group')
+    platforms = relationship('Platform', back_populates='group')
 
     def __repr__(self):
         return '<PlatformGroup "{}">'.format(self.name)
@@ -45,10 +54,10 @@ def slug_default(context):
 
 
 class PlatformType(CustomEnum):
-    INFO = 1    # Platforms like IMDb
+    INFO = 1  # Platforms like IMDb
     GLOBAL = 2  # Platforms for global IDs
-    TVOD = 3    # Renting VOD
-    SVOD = 4    # Subscription based VOD
+    TVOD = 3  # Renting VOD
+    SVOD = 4  # Subscription based VOD
 
 
 class Platform(Base, ResourceMixin):
@@ -56,25 +65,17 @@ class Platform(Base, ResourceMixin):
 
     __tablename__ = 'platform'
 
-    id = Column(Integer,
-                Sequence('platform_id_seq'),
-                primary_key=True)
-    name = Column(Text,
-                  nullable=False)
+    id = Column(Integer, Sequence('platform_id_seq'), primary_key=True)
+    name = Column(Text, nullable=False)
     """A human readable name"""
 
     # FIXME: should be unique
-    slug = Column(Text,
-                  nullable=False,
-                  default=slug_default)
+    slug = Column(Text, nullable=False, default=slug_default)
     """A unique identifier"""
 
-    group_id = Column(Integer,
-                      ForeignKey('platform_group.id'))
-
+    group_id = Column(Integer, ForeignKey('platform_group.id'))
     """True if a single item can have multiple links within the platform"""
     allow_links_overlap = Column(Boolean, nullable=False, server_default="FALSE")
-
     """Automatically exclude this platform from exports"""
     ignore_in_exports = Column(Boolean, nullable=False, server_default="FALSE")
 
@@ -85,35 +86,23 @@ class Platform(Base, ResourceMixin):
     country = Column(String(2))
     """ISO 3166-1 alpha-2 country code"""
 
-    max_rating = Column(Integer, default=10)
-    """The max rating for this platform
-
-    As ratings are integers, this should be scaled up to keep precision
-    i.e. 47 could represent a score of 4.7/5 stars
-    """
-
-    type = Column(Enum(PlatformType), nullable=False,
-                  default=PlatformType.INFO, server_default='INFO')
+    type = Column(
+        Enum(PlatformType), nullable=False, default=PlatformType.INFO, server_default='INFO')
 
     base_score = Column(Integer, nullable=False, default=100)
 
-    group = relationship('PlatformGroup',
-                         back_populates='platforms')
+    group = relationship('PlatformGroup', back_populates='platforms')
     """The group in which this platform is"""
 
-    scraps = relationship('Scrap',
-                          back_populates='platform')
+    scraps = relationship('Scrap', back_populates='platform')
     """The scraps (to be) done for this platform"""
 
-    links = relationship('ObjectLink',
-                         back_populates='platform')
+    links = relationship('ObjectLink', back_populates='platform')
     """All known objects found on this platform"""
 
     links_count = column_property(
-        select([func.count('external_object_id')]).
-        select_from(table('object_link')).
-        where(column('platform_id') == id)
-    )
+        select([func.count('external_object_id')]).select_from(
+            table('object_link')).where(column('platform_id') == id))
 
     def __repr__(self):
         return '<Platform {!r}>'.format(self.name)
@@ -175,31 +164,22 @@ class Scrap(Base, ResourceMixin):
 
     __tablename__ = 'scrap'
 
-    id = Column(Integer,
-                Sequence('scrap_id_seq'),
-                primary_key=True)
-    platform_id = Column(Integer,
-                         ForeignKey('platform.id'),
-                         nullable=False)
+    id = Column(Integer, Sequence('scrap_id_seq'), primary_key=True)
+    platform_id = Column(Integer, ForeignKey('platform.id'), nullable=False)
 
     date = Column(DateTime)
     """Date when the scrap was started"""
 
-    status = Column(Enum(ScrapStatus),
-                    nullable=False,
-                    default=ScrapStatus.SCHEDULED)
+    status = Column(Enum(ScrapStatus), nullable=False, default=ScrapStatus.SCHEDULED)
     """Current status of this job, see ScrapStatus"""
 
     stats = Column(JSONB)
     """Statistics from scrapy"""
 
-    platform = relationship('Platform',
-                            back_populates='scraps')
+    platform = relationship('Platform', back_populates='scraps')
     """Platform concerned by this job"""
 
-    links = relationship('ObjectLink',
-                         secondary='scrap_link',
-                         back_populates='scraps')
+    links = relationship('ObjectLink', secondary='scrap_link', back_populates='scraps')
     """Objects (to be) fetched by this job"""
 
     def to_status(self, status):
@@ -220,12 +200,10 @@ class Scrap(Base, ResourceMixin):
     def finish(self, status):
         """Set the status to one of the finished status"""
         if self.status is not ScrapStatus.RUNNING:
-            raise InvalidStatusTransition(from_status=self.status,
-                                          to_status=status)
+            raise InvalidStatusTransition(from_status=self.status, to_status=status)
 
-        if not any(s == status for s in [ScrapStatus.SUCCESS,
-                                         ScrapStatus.FAILED,
-                                         ScrapStatus.ABORTED]):
+        if not any(s == status
+                   for s in [ScrapStatus.SUCCESS, ScrapStatus.FAILED, ScrapStatus.ABORTED]):
             # FIXME: custom exception
             raise Exception('"{}" is not a finished state'.format(status))
 
@@ -234,8 +212,7 @@ class Scrap(Base, ResourceMixin):
     def run(self):
         """Mark the job as running"""
         if self.status is not ScrapStatus.SCHEDULED:
-            raise InvalidStatusTransition(from_status=self.status,
-                                          to_status=ScrapStatus.RUNNING)
+            raise InvalidStatusTransition(from_status=self.status, to_status=ScrapStatus.RUNNING)
 
         self.date = datetime.now()
         self.status = ScrapStatus.RUNNING
@@ -246,8 +223,7 @@ class Scrap(Base, ResourceMixin):
         # FIXME: This maybe should duplicate itself when not RUNNING or ABORTED
         if self.status is ScrapStatus.SUCCESS or \
            self.status is ScrapStatus.SCHEDULED:
-            raise InvalidStatusTransition(from_status=self.status,
-                                          to_status=ScrapStatus.SCHEDULED)
+            raise InvalidStatusTransition(from_status=self.status, to_status=ScrapStatus.SCHEDULED)
 
         self.status = ScrapStatus.SCHEDULED
 

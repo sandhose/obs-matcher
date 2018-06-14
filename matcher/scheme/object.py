@@ -15,7 +15,7 @@ import math
 import re
 from operator import attrgetter, itemgetter
 
-from sqlalchemy import (Boolean, Column, Enum, ForeignKey, Integer,
+from sqlalchemy import (Column, Enum, ForeignKey, Integer,
                         PrimaryKeyConstraint, Sequence, Table, Text, and_,
                         column, func, select, table, tuple_,)
 from sqlalchemy.ext.declarative import declared_attr
@@ -824,10 +824,6 @@ class ObjectLink(Base):
                           back_populates='links')
     """list of :obj:`Scrap` : scraps where the link was found"""
 
-    # FIXME: do something more generic?
-    work_meta = relationship('ObjectLinkWorkMeta')
-    """:obj:`ObjectLinkWorkMeta`"""
-
     @property
     def url(self):
         format = self.platform.url.get(str(self.external_object.type), None)
@@ -836,31 +832,6 @@ class ObjectLink(Base):
     def __repr__(self):
         return '<ObjectLink ({}, {})>'.format(self.external_object,
                                               self.platform)
-
-
-class ObjectLinkWorkMeta(Base):
-    """Metadatas associated with an object on a platform."""
-
-    __tablename__ = 'object_link_work_meta'
-
-    id = Column(Integer,
-                ForeignKey('object_link.id'),
-                nullable=False,
-                primary_key=True)
-
-    original_content = Column(Boolean)
-    """:obj:`bool` : Is this object produced by the platform?"""
-
-    rating = Column(Integer)
-    """:obj:`int` : What's the rating of this item on the platform"""
-
-    link = relationship('ObjectLink',
-                        back_populates='work_meta',
-                        uselist=False)
-    """:obj:`ObjectLink` : The link concerned by those metadatas"""
-
-    def __repr__(self):
-        return '<ObjectLinkWorkMeta {}>'.format(self.link)
 
 
 class Gender(CustomEnum):
