@@ -1,4 +1,3 @@
-import math
 from functools import wraps
 
 from flask_restplus import Model, fields, reqparse

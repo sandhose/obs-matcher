@@ -11,19 +11,8 @@ from flask_debugtoolbar import DebugToolbarExtension
 from flask_injector import FlaskInjector
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-from injector import Module, provider, singleton
 
 from .commands import setup_cli
-
-l = logging.getLogger('injector')
-l.setLevel(logging.DEBUG)
-l.addHandler(logging.StreamHandler())
-
-l = logging.getLogger('flask_restplus.api')
-l.setLevel(logging.DEBUG)
-l.addHandler(logging.StreamHandler())
-
-
 
 db = SQLAlchemy()
 
@@ -97,7 +86,7 @@ def create_app(info=None):
     with app.app_context():
         setup_routes(app)
 
-    flask_injector = FlaskInjector(app=app, modules=[configure])
+    FlaskInjector(app=app, modules=[configure])
 
     return app
 
