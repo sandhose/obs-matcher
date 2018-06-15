@@ -19,6 +19,9 @@ l = logging.getLogger('injector')
 l.setLevel(logging.DEBUG)
 l.addHandler(logging.StreamHandler())
 
+l = logging.getLogger('flask_restplus.api')
+l.setLevel(logging.DEBUG)
+l.addHandler(logging.StreamHandler())
 
 
 
