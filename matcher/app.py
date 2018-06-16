@@ -22,21 +22,22 @@ def _setup_admin(app):
     setup_admin(app)
 
 
-def setup_routes(app):
+def setup_routes(app, admin=True):
     from .api_old import api
     from .api import blueprint as api2
 
     app.register_blueprint(api, url_prefix='/api')
     app.register_blueprint(api2, url_prefix='/api2')
 
-    # Do not install admin if upgrades are pending
-    with contextlib.closing(db.engine.connect()) as con:
-        migration_context = MigrationContext.configure(con)
-        revision = migration_context.get_current_revision()
-        heads = migration_context.get_current_heads()
+    if admin:
+        # Do not install admin if upgrades are pending
+        with contextlib.closing(db.engine.connect()) as con:
+            migration_context = MigrationContext.configure(con)
+            revision = migration_context.get_current_revision()
+            heads = migration_context.get_current_heads()
 
-        if revision in heads:
-            _setup_admin(app)
+            if revision in heads:
+                _setup_admin(app)
 
     @app.route('/queue', methods=['POST'])
     def queue(db: SQLAlchemy):

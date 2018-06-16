@@ -9,4 +9,6 @@ class CustomEnum(enum.Enum):
 
     @classmethod
     def from_name(cls, name):
+        if name is None:
+            return None
         return getattr(cls, name.upper(), None)

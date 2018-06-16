@@ -3,7 +3,6 @@ import os
 from pathlib import Path
 
 import requests
-
 from unidecode import unidecode
 
 data = []
@@ -14,12 +13,15 @@ def update_data(path):
     UPDATE_URL = 'https://raw.githubusercontent.com/mledoze/countries/' \
                  'master/dist/countries.json'
 
-    r = requests.get(UPDATE_URL)
-    assert r.status_code == 200
-    data = r.json()
-    os.makedirs(str(path.parent), exist_ok=True)
-    with open(str(path), 'w') as handle:
-        json.dump(data, handle)
+    try:
+        r = requests.get(UPDATE_URL)
+        assert r.status_code == 200
+        data = r.json()
+        os.makedirs(str(path.parent), exist_ok=True)
+        with open(str(path), 'w') as handle:
+            json.dump(data, handle)
+    except Exception:
+        data = []
 
 
 def load_data(app):

@@ -29,6 +29,15 @@ postgres_url = str(URL(
     database=env_var('POSTGRES_DATABASE', 'matcher'),
 ))
 
+postgres_test_url = str(URL(
+    drivername='postgres+psycopg2',
+    host=env_var('POSTGRES_TEST_HOST', env_var('POSTGRES_HOST', 'localhost')),
+    port=env_var('POSTGRES_TEST_PORT', env_var('POSTGRES_PORT', '5432')),
+    username=env_var('POSTGRES_TEST_USERNAME', env_var('POSTGRES_USERNAME')),
+    password=env_var('POSTGRES_TEST_PASSWORD', env_var('POSTGRES_PASSWORD')),
+    database=env_var('POSTGRES_TEST_DATABASE', env_var('POSTGRES_DATABASE', 'matcher')),
+))
+
 redis_url = str(URL(
     drivername='redis',
     host=env_var('REDIS_HOST', 'localhost'),
@@ -53,3 +62,8 @@ class Config(object):
     THREADS_PER_PAGE = 2
     SECRET_KEY = env_var('SECRET_KEY',
                          'Something reeaaally secret (wow, spooky.)')
+
+
+class TestConfig(Config):
+    SQLALCHEMY_DATABASE_URI = env_var('SQLALCHEMY_TEST_DATABASE_URI', postgres_test_url)
+    TESTING = True
