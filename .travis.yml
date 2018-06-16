@@ -1,6 +1,20 @@
 language: python
+
+addons:
+  postgresql: "9.6"
+
+services:
+  - postgresql
+
 python:
   - "3.5"
   - "3.6"
 
-script: python setup.py flake8
+cache: pip
+
+before_script:
+  - psql -c 'create database matcher;' -U postgres
+
+script:
+  - python setup.py flake8
+  - pytest
