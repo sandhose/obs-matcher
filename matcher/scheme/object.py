@@ -63,10 +63,12 @@ scrap_link = Table(
     'scrap_link',
     Base.metadata,
     Column('scrap_id',
-           ForeignKey('scrap.id'),
+           ForeignKey('scrap.id', ondelete='CASCADE', onupdate='CASCADE'),
            primary_key=True),
     Column('object_link_id',
-           ForeignKey('object_link.id'),
+           ForeignKey('object_link.id',
+                      ondelete='CASCADE',
+                      onupdate='CASCADE'),
            primary_key=True),
 )
 
@@ -184,7 +186,8 @@ class ExternalObject(Base, ResourceMixin):
     """:obj:`ExternalObjectType` : the type of object"""
 
     links = relationship('ObjectLink',
-                         back_populates='external_object')
+                         back_populates='external_object',
+                         cascade='all, delete-orphan')
     """list of :obj:`ObjectLink` : Links to where the object should be found"""
 
     attributes = relationship('Value',
@@ -899,7 +902,9 @@ class ExternalObjectMetaMixin(object):
     def external_object_id(cls):
         """Get the type of the external_object_id attribute."""
         return Column(Integer,
-                      ForeignKey('external_object.id'),
+                      ForeignKey('external_object.id',
+                                 onupdate='CASCADE',
+                                 ondelete='CASCADE'),
                       primary_key=True)
 
     @declared_attr
@@ -966,7 +971,9 @@ class Episode(Base, ExternalObjectMetaMixin):
     object_type = ExternalObjectType.EPISODE
 
     series_id = Column(Integer,
-                       ForeignKey('external_object.id'))
+                       ForeignKey('external_object.id',
+                                  ondelete='CASCADE',
+                                  onupdate='CASCADE'))
 
     # FIXME: how to handle special episodes?
     episode = Column(Integer)
