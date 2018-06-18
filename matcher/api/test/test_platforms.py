@@ -44,15 +44,15 @@ class PlatformTest(TestCase):
         assert platform.group is None
 
         # slug should be unique
-        # FIXME: not the case for the moment
-        # response = self.client.post("/api2/platforms/", data={
-        #     'type': 'info',
-        #     'slug': 'bar',
-        #     'name': 'foo',
-        #     'country': 'US',
-        # })
-        #
-        # self.assert500(response)
+        response = self.client.post("/api2/platforms/", data={
+            'type': 'info',
+            'slug': 'bar',
+            'name': 'baz',
+            'country': 'US',
+        })
+
+        # FIXME: should be a 400
+        self.assert500(response)
 
         # invalid type
         response = self.client.post("/api2/platforms/", data={
