@@ -4,7 +4,8 @@ from slugify import slugify
 
 from matcher.exceptions import InvalidStatusTransition
 from sqlalchemy import (Boolean, Column, DateTime, Enum, ForeignKey, Integer,
-                        Sequence, String, Text, column, func, select, table,)
+                        Sequence, String, Text, UniqueConstraint, column, func,
+                        select, table,)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import column_property, relationship
 
@@ -52,6 +53,10 @@ class Platform(Base, ResourceMixin):
 
     __tablename__ = 'platform'
 
+    __table_args__ = (
+        UniqueConstraint('slug'),
+    )
+
     id = Column(Integer, Sequence('platform_id_seq'), primary_key=True)
     name = Column(Text, nullable=False)
     """A human readable name"""
@@ -81,10 +86,10 @@ class Platform(Base, ResourceMixin):
     group = relationship('PlatformGroup', back_populates='platforms')
     """The group in which this platform is"""
 
-    scraps = relationship('Scrap', back_populates='platform')
+    scraps = relationship('Scrap', back_populates='platform', cascade='all, delete-orphan')
     """The scraps (to be) done for this platform"""
 
-    links = relationship('ObjectLink', back_populates='platform')
+    links = relationship('ObjectLink', back_populates='platform', cascade='all, delete-orphan')
     """All known objects found on this platform"""
 
     links_count = column_property(
