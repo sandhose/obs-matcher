@@ -1,4 +1,4 @@
-from flask_restplus import Namespace, reqparse
+from flask_restplus import Namespace, reqparse, abort
 from matcher.scheme.platform import Scrap, ScrapStatus, Platform
 
 from .. import models, pagination, inputs
@@ -42,7 +42,7 @@ class ScrapList(DbResource):
         platform = Platform.lookup(self.session, args['platform'])
 
         if platform is None:
-            raise Exception('Platform not found')
+            abort(404, "Platform not found")
 
         scrap = Scrap(platform=platform, status=ScrapStatus.SCHEDULED)
 

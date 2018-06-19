@@ -214,7 +214,8 @@ class Scrap(Base, ResourceMixin):
 
         # FIXME: This maybe should duplicate itself when not RUNNING or ABORTED
         if self.status is ScrapStatus.SUCCESS or \
-           self.status is ScrapStatus.SCHEDULED:
+           self.status is ScrapStatus.SCHEDULED or \
+           self.status is ScrapStatus.RUNNING:
             raise InvalidStatusTransition(from_status=self.status, to_status=ScrapStatus.SCHEDULED)
 
         self.status = ScrapStatus.SCHEDULED
