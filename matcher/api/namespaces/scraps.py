@@ -33,10 +33,9 @@ class ScrapList(DbResource):
     @api.expect(scrap_arguments)
     @api.marshal_with(models.scrap)
     def post(self):
-        """
-        Create a new scrap
+        """Create a new scrap
 
-        :raise matcher.exceptions.InvalidStatusTransition:
+        :raises InvalidStatusTransition:
         """
         args = scrap_arguments.parse_args()
 
@@ -77,7 +76,10 @@ class ScrapItem(DbResource):
     @api.expect(edit_scrap_arguments)
     @api.marshal_with(models.scrap)
     def put(self, scrap):
-        """Edit a scrap"""
+        """Edit a scrap
+
+        :raises InvalidStatusTransition:
+        """
         args = edit_scrap_arguments.parse_args()
 
         if args['stats']:

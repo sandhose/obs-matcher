@@ -46,8 +46,8 @@ def test_create(client, session):
         'country': 'US',
     })
 
-    # FIXME: should be a 400
-    assert response.status_code == 500
+    assert response.status_code == 400
+    assert response.json['type'] == 'integrity_error'
 
     # invalid type
     response = client.post("/api2/platforms/", data={

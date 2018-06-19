@@ -34,7 +34,10 @@ class PlatformList(DbResource):
     @api.expect(platform_arguments)
     @api.marshal_with(models.platform)
     def post(self):
-        """Create a new platform"""
+        """Create a new platform
+
+        :raises IntegrityError: Raised when the slug is not unique
+        """
         args = platform_arguments.parse_args()
 
         platform = Platform(**args)
@@ -73,7 +76,10 @@ class PlatformItem(DbResource):
     @api.expect(platform_arguments)
     @api.marshal_with(models.platform)
     def put(self, platform):
-        """Edit a platform"""
+        """Edit a platform
+
+        :raises IntegrityError: Raised when the slug is not unique
+        """
         args = platform_arguments.parse_args()
 
         for key in args:
