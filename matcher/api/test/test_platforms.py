@@ -1,117 +1,112 @@
-from flask_sqlalchemy import SQLAlchemy
-from injector import inject
 from matcher.scheme.platform import Platform, PlatformGroup, PlatformType
-from matcher.test import TestCase
 
 
-class PlatformTest(TestCase):
-    @inject
-    def test_list(self, db: SQLAlchemy):
-        response = self.client.get("/api2/platforms/")
-        self.assertEqual(response.json["items"], [])
+def test_list(client, session):
+    response = client.get("/api2/platforms/")
+    assert response.json["items"] == []
 
-        platform = Platform(name='foo', slug='bar', type=PlatformType.INFO, country='US')
-        db.session.add(platform)
-        db.session.commit()
-        response = self.client.get("/api2/platforms/")
-        self.assertEqual(response.json["items"], [{
-            'id': platform.id,
-            'type': 'info',
-            'slug': platform.slug,
-            'name': platform.name,
-            'country': platform.country,
-            'group': None
-        }])
+    platform = Platform(name='foo', slug='bar', type=PlatformType.INFO, country='US')
+    session.add(platform)
+    session.commit()
+    response = client.get("/api2/platforms/")
+    assert response.json["items"] == [{
+        'id': platform.id,
+        'type': 'info',
+        'slug': platform.slug,
+        'name': platform.name,
+        'country': platform.country,
+        'group': None
+    }]
 
-    @inject
-    def test_create(self, db: SQLAlchemy):
-        response = self.client.post("/api2/platforms/", data={
-            'type': 'info',
-            'slug': 'bar',
-            'name': 'foo',
-            'country': 'US',
-        })
 
-        assert 'id' in response.json
+def test_create(client, session):
+    response = client.post("/api2/platforms/", data={
+        'type': 'info',
+        'slug': 'bar',
+        'name': 'foo',
+        'country': 'US',
+    })
 
-        platform = db.session.query(Platform).get(response.json['id'])
-        assert platform is not None
-        assert platform.id == response.json['id']
-        assert platform.type == PlatformType.INFO
-        assert platform.slug == 'bar'
-        assert platform.name == 'foo'
-        assert platform.country == 'US'
-        assert platform.group is None
+    assert 'id' in response.json
 
-        # slug should be unique
-        response = self.client.post("/api2/platforms/", data={
-            'type': 'info',
-            'slug': 'bar',
-            'name': 'baz',
-            'country': 'US',
-        })
+    platform = session.query(Platform).get(response.json['id'])
+    assert platform is not None
+    assert platform.id == response.json['id']
+    assert platform.type == PlatformType.INFO
+    assert platform.slug == 'bar'
+    assert platform.name == 'foo'
+    assert platform.country == 'US'
+    assert platform.group is None
 
-        # FIXME: should be a 400
-        self.assert500(response)
+    # slug should be unique
+    response = client.post("/api2/platforms/", data={
+        'type': 'info',
+        'slug': 'bar',
+        'name': 'baz',
+        'country': 'US',
+    })
 
-        # invalid type
-        response = self.client.post("/api2/platforms/", data={
-            'type': 'foo',
-            'slug': 'bar2',
-            'name': 'foo2',
-            'country': 'US',
-        })
+    # FIXME: should be a 400
+    assert response.status_code == 500
 
-        self.assert400(response)
+    # invalid type
+    response = client.post("/api2/platforms/", data={
+        'type': 'foo',
+        'slug': 'bar2',
+        'name': 'foo2',
+        'country': 'US',
+    })
 
-    @inject
-    def test_get(self, db: SQLAlchemy):
-        platform = Platform(name='foo', slug='bar', type=PlatformType.INFO, country='US')
-        db.session.add(platform)
-        db.session.commit()
+    assert response.status_code == 400
 
-        response = self.client.get("/api2/platforms/{}".format(platform.id))
-        self.assertEqual(response.json, {
-            'id': platform.id,
-            'type': 'info',
-            'slug': platform.slug,
-            'name': platform.name,
-            'country': platform.country,
-            'group': None
-        })
 
-        group = PlatformGroup(name='baz', platforms=[platform])
-        db.session.add(group)
-        db.session.commit()
+def test_get(client, session):
+    platform = Platform(name='foo', slug='bar', type=PlatformType.INFO, country='US')
+    session.add(platform)
+    session.commit()
 
-        response = self.client.get("/api2/platforms/{}".format(platform.id))
-        self.assertEqual(response.json['group'], {
-            'id': group.id,
-            'name': group.name,
-        })
+    response = client.get("/api2/platforms/{}".format(platform.id))
+    assert response.json == {
+        'id': platform.id,
+        'type': 'info',
+        'slug': platform.slug,
+        'name': platform.name,
+        'country': platform.country,
+        'group': None
+    }
 
-    @inject
-    def test_delete(self, db: SQLAlchemy):
-        platform = Platform(name='foo', slug='bar', type=PlatformType.INFO, country='US')
-        db.session.add(platform)
-        db.session.commit()
+    group = PlatformGroup(name='baz', platforms=[platform])
+    session.add(group)
+    session.commit()
 
-        platform_id = platform.id
-        db.session.expire(platform)
+    response = client.get("/api2/platforms/{}".format(platform.id))
+    assert response.json['group'] == {
+        'id': group.id,
+        'name': group.name,
+    }
 
-        response = self.client.delete("/api2/platforms/{}".format(platform.id))
-        assert response.json == 'ok'
 
-        assert db.session.query(PlatformGroup).get(platform_id) is None
+def test_delete(client, session):
+    platform = Platform(name='foo', slug='bar', type=PlatformType.INFO, country='US')
+    session.add(platform)
+    session.commit()
 
-    @inject
-    def test_put(self, db: SQLAlchemy):
-        platform = Platform(name='foo', slug='bar', type=PlatformType.INFO, country='US')
-        db.session.add(platform)
-        db.session.commit()
+    platform_id = platform.id
+    session.expire(platform)
 
-        response = self.client.put("/api2/platforms/{}".format(platform.id), data={'name': 'baz'})
-        assert response.json['name'] == 'baz'
+    response = client.delete("/api2/platforms/{}".format(platform.id))
+    assert response.json == 'ok'
 
-        db.session.refresh(platform)
-        assert platform.name == 'baz'
+    assert session.query(PlatformGroup).get(platform_id) is None
+
+
+def test_put(client, session):
+    platform = Platform(name='foo', slug='bar', type=PlatformType.INFO, country='US')
+    session.add(platform)
+    session.commit()
+
+    response = client.put("/api2/platforms/{}".format(platform.id), data={'name': 'baz'})
+    assert response.json['name'] == 'baz'
+
+    session.refresh(platform)
+    assert platform.name == 'baz'
