@@ -9,6 +9,10 @@ api = Namespace('groups', description='Platform group operations')
 platform_group_arguments = reqparse.RequestParser()
 platform_group_arguments.add_argument('name', type=str, required=False)
 
+for key in ['platform_base', 'platform', 'platform_group']:
+    model = getattr(models, key)
+    api.models[model.name] = model
+
 
 @api.route('/')
 class PlatformGroupList(DbResource):

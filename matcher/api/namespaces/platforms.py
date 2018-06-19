@@ -2,12 +2,13 @@ from flask_restplus import Namespace, inputs, reqparse
 from matcher.scheme.platform import Platform, PlatformType
 
 from .. import models, pagination
+from ..inputs import custom_enum
 from ..resources import DbResource
 
 api = Namespace('platforms', description='Platform operations')
 
 platform_arguments = reqparse.RequestParser()
-platform_arguments.add_argument('type', type=str, choices=['tvod', 'svod', 'global', 'info'], required=False)
+platform_arguments.add_argument('type', type=custom_enum(PlatformType), required=False)
 platform_arguments.add_argument('name', type=str, required=False)
 platform_arguments.add_argument('slug', type=str, required=False)
 platform_arguments.add_argument('country', type=inputs.regex('^[A-Z]{2}$'), required=False)
@@ -35,8 +36,6 @@ class PlatformList(DbResource):
     def post(self):
         """Create a new platform"""
         args = platform_arguments.parse_args()
-
-        args['type'] = PlatformType.from_name(args['type'])
 
         platform = Platform(**args)
         self.session.add(platform)
@@ -76,8 +75,6 @@ class PlatformItem(DbResource):
     def put(self, platform):
         """Edit a platform"""
         args = platform_arguments.parse_args()
-
-        args['type'] = PlatformType.from_name(args['type'])
 
         for key in args:
             if args[key] is not None:

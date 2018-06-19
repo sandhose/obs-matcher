@@ -1,96 +1,91 @@
-from flask_sqlalchemy import SQLAlchemy
-from injector import inject
 from matcher.scheme.platform import Platform, PlatformGroup, PlatformType
-from matcher.test import TestCase
 
 
-class GroupTest(TestCase):
-    @inject
-    def test_list(self, db: SQLAlchemy):
-        response = self.client.get("/api2/groups/")
-        self.assertEqual(response.json["items"], [])
+def test_list(client, session):
+    response = client.get("/api2/groups/")
+    assert response.json["items"] == []
 
-        group = PlatformGroup(name='foo')
-        db.session.add(group)
-        db.session.commit()
-        response = self.client.get("/api2/groups/")
-        self.assertEqual(response.json["items"], [{
-            'id': group.id,
-            'name': group.name,
-            'platforms': []
-        }])
+    group = PlatformGroup(name='foo')
+    session.add(group)
+    session.commit()
+    response = client.get("/api2/groups/")
+    assert response.json["items"] == [{
+        'id': group.id,
+        'name': group.name,
+        'platforms': []
+    }]
 
-    @inject
-    def test_create(self, db: SQLAlchemy):
-        response = self.client.post("/api2/groups/", data={'name': 'foo'})
 
-        assert 'id' in response.json
-        assert 'name' in response.json
-        assert response.json['name'] == 'foo'
+def test_create(client, session):
+    response = client.post("/api2/groups/", data={'name': 'foo'})
 
-        group = db.session.query(PlatformGroup).get(response.json['id'])
-        assert group is not None
-        assert group.id == response.json['id']
-        assert group.name == response.json['name']
+    assert 'id' in response.json
+    assert 'name' in response.json
+    assert response.json['name'] == 'foo'
 
-    @inject
-    def test_get(self, db: SQLAlchemy):
-        group = PlatformGroup(name='foo')
-        db.session.add(group)
-        db.session.commit()
+    group = session.query(PlatformGroup).get(response.json['id'])
+    assert group is not None
+    assert group.id == response.json['id']
+    assert group.name == response.json['name']
 
-        response = self.client.get("/api2/groups/{}".format(group.id))
-        self.assertEqual(response.json, {
-            'id': group.id,
-            'name': group.name,
-            'platforms': []
-        })
 
-        platform = Platform(name='bar', slug='bar', type=PlatformType.INFO, country='US', group=group)
-        db.session.add(group)
-        db.session.commit()
+def test_get(client, session):
+    group = PlatformGroup(name='foo')
+    session.add(group)
+    session.commit()
 
-        response = self.client.get("/api2/groups/{}".format(group.id))
-        self.assertEqual(response.json, {
-            'id': group.id,
-            'name': group.name,
-            'platforms': [{
-                'id': platform.id,
-                'type': 'info',
-                'slug': platform.slug,
-                'name': platform.name,
-                'country': platform.country,
-            }]
-        })
+    response = client.get("/api2/groups/{}".format(group.id))
+    assert response.json == {
+        'id': group.id,
+        'name': group.name,
+        'platforms': []
+    }
 
-        db.session.delete(group)
-        db.session.commit()
+    platform = Platform(name='bar', slug='bar', type=PlatformType.INFO, country='US', group=group)
+    session.add(group)
+    session.commit()
 
-        response = self.client.get("/api2/groups/{}".format(group.id))
-        self.assert404(response)
+    response = client.get("/api2/groups/{}".format(group.id))
+    assert response.json == {
+        'id': group.id,
+        'name': group.name,
+        'platforms': [{
+            'id': platform.id,
+            'type': 'info',
+            'slug': platform.slug,
+            'name': platform.name,
+            'country': platform.country,
+        }]
+    }
 
-    @inject
-    def test_delete(self, db: SQLAlchemy):
-        group = PlatformGroup(name='foo')
-        db.session.add(group)
-        db.session.commit()
+    session.delete(group)
+    session.commit()
 
-        group_id = group.id
-        db.session.expire(group)
+    response = client.get("/api2/groups/{}".format(group.id))
+    assert response.status_code == 404
 
-        response = self.client.delete("/api2/groups/{}".format(group_id))
-        assert response.json == 'ok'
 
-        assert db.session.query(PlatformGroup).get(group_id) is None
+def test_delete(client, session):
+    group = PlatformGroup(name='foo')
+    session.add(group)
+    session.commit()
 
-    @inject
-    def test_put(self, db: SQLAlchemy):
-        group = PlatformGroup(name='foo')
-        db.session.add(group)
-        db.session.commit()
+    group_id = group.id
+    session.expire(group)
 
-        response = self.client.put("/api2/groups/{}".format(group.id), data={'name': 'bar'})
-        assert response.json['name'] == 'bar'
+    response = client.delete("/api2/groups/{}".format(group_id))
+    assert response.json == 'ok'
 
-        db.session.refresh(group)
-        assert group.name == 'bar'
+    assert session.query(PlatformGroup).get(group_id) is None
+
+
+def test_put(client, session):
+    group = PlatformGroup(name='foo')
+    session.add(group)
+    session.commit()
+
+    response = client.put("/api2/groups/{}".format(group.id), data={'name': 'bar'})
+    assert response.json['name'] == 'bar'
+
+    session.refresh(group)
+    assert group.name == 'bar'

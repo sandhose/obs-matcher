@@ -1,8 +1,10 @@
 from flask_restplus import Mask, Model, fields
 
+from matcher.scheme.platform import ScrapStatus, PlatformType
+
 platform_base = Model('Platform base', {
     'id': fields.Integer,
-    'type': fields.String(enum=['tvod', 'svod', 'global', 'info']),
+    'type': fields.String(enum=[str(t) for t in PlatformType]),
     'slug': fields.String,
     'name': fields.String,
     'country': fields.String,
@@ -22,3 +24,12 @@ platform = platform_base.clone('Platform', {
 
 # It works, alright?
 platform.__mask__ = Mask('id,type,slug,name,country,group{id,name}')
+
+
+scrap = Model('Scrap', {
+    'id': fields.Integer,
+    'date': fields.DateTime,
+    'status': fields.String(choice=[str(s) for s in ScrapStatus]),
+    'platform': fields.Nested(platform),
+    'stats': fields.Raw()
+}, mask='id,date,status,platform{id,name,slug}')
