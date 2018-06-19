@@ -2,6 +2,8 @@ import contextlib
 import logging
 import os
 
+from celery import Celery
+from injector import Module, singleton, provider, Injector
 from flask import Flask, jsonify, render_template, request, url_for
 from flask.cli import FlaskGroup
 from raven.contrib.flask import Sentry
@@ -15,6 +17,36 @@ from flask_sqlalchemy import SQLAlchemy
 from .commands import setup_cli
 
 db = SQLAlchemy()
+
+injector = Injector()
+
+
+class SQLAlchemyModule(Module):
+    @provider
+    @singleton
+    def provide_db(self, app: Flask) -> SQLAlchemy:
+        return db
+
+
+class CeleryModule(Module):
+    @provider
+    @singleton
+    def provide_celery(self, app: Flask) -> Celery:
+        celery = Celery(
+            app.import_name,
+            backend=app.config['CELERY_RESULT_BACKEND'],
+            broker=app.config['CELERY_BROKER_URL'],
+            imports=('matcher.tasks.object',)
+        )
+        celery.conf.update(app.config)
+
+        class ContextTask(celery.Task):
+            def __call__(self, *args, **kwargs):
+                with app.app_context():
+                    return self.run(*args, **kwargs)
+
+        celery.Task = ContextTask
+        return celery
 
 
 def _setup_admin(app):
@@ -62,14 +94,6 @@ def setup_routes(app, admin=True):
         ])
 
 
-def configure(binder):
-    binder.bind(
-        SQLAlchemy,
-        to=db,
-        scope=request,
-    )
-
-
 def create_app(info=None):
     app = Flask('matcher', instance_relative_config=True)
 
@@ -87,7 +111,7 @@ def create_app(info=None):
     with app.app_context():
         setup_routes(app)
 
-    FlaskInjector(app=app, modules=[configure])
+    FlaskInjector(injector=injector, app=app, modules=[SQLAlchemyModule, CeleryModule])
 
     return app
 

@@ -1,11 +1,11 @@
 from werkzeug.contrib.fixers import ProxyFix
+from celery import Celery
 
-from .app import create_app
+from .app import create_app, injector
 from .countries import load_data
-from .tasks import make_celery
 
 app = create_app()
-celery = make_celery(app)
+celery = injector.get(Celery)
 
 app.wsgi_app = ProxyFix(app.wsgi_app)
 
