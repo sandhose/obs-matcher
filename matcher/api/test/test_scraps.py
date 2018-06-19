@@ -1,7 +1,10 @@
+import json
 from datetime import datetime
 from http import HTTPStatus
+
 import pytest
-from matcher.scheme.platform import Platform, Scrap, PlatformType, ScrapStatus
+
+from matcher.scheme.platform import Platform, PlatformType, Scrap, ScrapStatus
 
 
 @pytest.fixture(scope="function")
@@ -113,13 +116,18 @@ def test_put(client, session, platform):
     session.add(scrap)
     session.commit()
 
-    response = client.put("/api2/scraps/{}".format(scrap.id), data={'status': 'running'})
+    response = client.put("/api2/scraps/{}".format(scrap.id),
+                          data=json.dumps({'status': 'running', 'stats': {'foo': 'bar'}}),
+                          content_type='application/json',
+                          headers={'X-Fields': 'date,status,stats'})
     assert response.json['status'] == 'running'
 
     session.refresh(scrap)
     assert scrap.date is not None
     assert scrap.date.isoformat() == response.json['date']
     assert scrap.status == ScrapStatus.RUNNING
+    assert scrap.stats == {'foo': 'bar'}
+    assert scrap.stats == response.json['stats']
 
 
 transitions = [

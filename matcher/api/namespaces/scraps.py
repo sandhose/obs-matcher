@@ -83,7 +83,7 @@ class ScrapItem(DbResource):
         args = edit_scrap_arguments.parse_args()
 
         if args['stats']:
-            scrap.status = args['status']
+            scrap.stats = args['stats']
 
         if args['status']:
             scrap.to_status(args['status'])
