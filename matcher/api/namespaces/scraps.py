@@ -1,7 +1,8 @@
-from flask_restplus import Namespace, reqparse, abort
-from matcher.scheme.platform import Scrap, ScrapStatus, Platform
+from flask_restplus import Namespace, abort, reqparse
 
-from .. import models, pagination, inputs
+from matcher.scheme.platform import Platform, Scrap, ScrapStatus
+
+from .. import inputs, models, pagination
 from ..resources import DbResource
 
 api = Namespace('scraps', description='Scrap operations')

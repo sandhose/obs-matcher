@@ -1,6 +1,6 @@
 from flask_restplus import Mask, Model, fields
 
-from matcher.scheme.platform import ScrapStatus, PlatformType
+from matcher.scheme.platform import PlatformType, ScrapStatus
 
 platform_base = Model('Platform base', {
     'id': fields.Integer,

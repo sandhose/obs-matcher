@@ -1,9 +1,10 @@
-from flask_restplus import Namespace, abort
 from flask import request
+from flask_restplus import Namespace, abort
 
 from matcher.scheme.platform import Scrap
-from ..resources import DbResource, CeleryResource
+
 from .. import models
+from ..resources import CeleryResource, DbResource
 
 api = Namespace('queue', description='Queue new objects and inspect the current state of it')
 

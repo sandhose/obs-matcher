@@ -1,4 +1,5 @@
 from flask_restplus import Namespace, inputs, reqparse
+
 from matcher.scheme.platform import Platform, PlatformType
 
 from .. import models, pagination
