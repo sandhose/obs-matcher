@@ -4,7 +4,7 @@ import os
 
 from celery import Celery
 from injector import Module, singleton, provider, Injector
-from flask import Flask, jsonify, render_template, request, url_for
+from flask import Flask, render_template, url_for
 from flask.cli import FlaskGroup
 from raven.contrib.flask import Sentry
 
@@ -55,11 +55,9 @@ def _setup_admin(app):
 
 
 def setup_routes(app, admin=True):
-    from .api_old import api
-    from .api import blueprint as api2
+    from .api import blueprint as api
 
     app.register_blueprint(api, url_prefix='/api')
-    app.register_blueprint(api2, url_prefix='/api2')
 
     if admin:
         # Do not install admin if upgrades are pending
@@ -75,7 +73,7 @@ def setup_routes(app, admin=True):
     def index():
         return render_template('index.html', navigation=[
             {'url': url_for('admin.index'), 'caption': 'Admin'},
-            {'url': url_for('api.index'), 'caption': 'API'},
+            {'url': url_for('api.root'), 'caption': 'API'},
         ])
 
 

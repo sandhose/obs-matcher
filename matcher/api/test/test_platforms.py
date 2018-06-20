@@ -2,13 +2,13 @@ from matcher.scheme.platform import Platform, PlatformGroup, PlatformType
 
 
 def test_list(client, session):
-    response = client.get("/api2/platforms/")
+    response = client.get("/api/platforms/")
     assert response.json["items"] == []
 
     platform = Platform(name='foo', slug='bar', type=PlatformType.INFO, country='US')
     session.add(platform)
     session.commit()
-    response = client.get("/api2/platforms/")
+    response = client.get("/api/platforms/")
     assert response.json["items"] == [{
         'id': platform.id,
         'type': 'info',
@@ -20,7 +20,7 @@ def test_list(client, session):
 
 
 def test_create(client, session):
-    response = client.post("/api2/platforms/", data={
+    response = client.post("/api/platforms/", data={
         'type': 'info',
         'slug': 'bar',
         'name': 'foo',
@@ -39,7 +39,7 @@ def test_create(client, session):
     assert platform.group is None
 
     # slug should be unique
-    response = client.post("/api2/platforms/", data={
+    response = client.post("/api/platforms/", data={
         'type': 'info',
         'slug': 'bar',
         'name': 'baz',
@@ -50,7 +50,7 @@ def test_create(client, session):
     assert response.json['type'] == 'integrity_error'
 
     # invalid type
-    response = client.post("/api2/platforms/", data={
+    response = client.post("/api/platforms/", data={
         'type': 'foo',
         'slug': 'bar2',
         'name': 'foo2',
@@ -65,7 +65,7 @@ def test_get(client, session):
     session.add(platform)
     session.commit()
 
-    response = client.get("/api2/platforms/{}".format(platform.id))
+    response = client.get("/api/platforms/{}".format(platform.id))
     assert response.json == {
         'id': platform.id,
         'type': 'info',
@@ -79,7 +79,7 @@ def test_get(client, session):
     session.add(group)
     session.commit()
 
-    response = client.get("/api2/platforms/{}".format(platform.id))
+    response = client.get("/api/platforms/{}".format(platform.id))
     assert response.json['group'] == {
         'id': group.id,
         'name': group.name,
@@ -94,7 +94,7 @@ def test_delete(client, session):
     platform_id = platform.id
     session.expire(platform)
 
-    response = client.delete("/api2/platforms/{}".format(platform.id))
+    response = client.delete("/api/platforms/{}".format(platform.id))
     assert response.json == 'ok'
 
     assert session.query(PlatformGroup).get(platform_id) is None
@@ -105,7 +105,7 @@ def test_put(client, session):
     session.add(platform)
     session.commit()
 
-    response = client.put("/api2/platforms/{}".format(platform.id), data={'name': 'baz'})
+    response = client.put("/api/platforms/{}".format(platform.id), data={'name': 'baz'})
     assert response.json['name'] == 'baz'
 
     session.refresh(platform)
