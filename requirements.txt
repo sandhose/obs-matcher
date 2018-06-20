@@ -74,9 +74,9 @@ flask-debugtoolbar==0.10.1 \
 flask-injector==0.10.1 \
     --hash=sha256:df12eee64027f86fd6ca46f1e324d938277035ded79a104426bf93eadac2a9a8 \
     --hash=sha256:e5436ba5637ce049e72bf2868ad0fe086beeb7e00b1bd47d6b356931be4f8076
-flask-migrate==2.2.0 \
-    --hash=sha256:2697d2a9f9cd7de14a01a3de9f6e27d44ccffe1a2bf59bae2b2bb22cecb9d86a \
-    --hash=sha256:654af52ce82733fa066dc2a19cb462c52e56871a4785f03895a5bb43ea5a4e5b
+flask-migrate==2.2.1 \
+    --hash=sha256:83ebc105f87357ddd3968f83510d2b1092f006660b1c6ba07a4efce036ca567d \
+    --hash=sha256:cd1b4e6cb829eeb41c02ad9202d83bef5f4b7a036dd9fad72ce96ad1e22efb07
 flask-restful==0.3.6 \
     --hash=sha256:5795519501347e108c436b693ff9a4d7b373a3ac9069627d64e4001c05dd3407 \
     --hash=sha256:e2f1b8063de3944b94c7f8be5cee4d2161db0267c54c5b757d875295061776fa
