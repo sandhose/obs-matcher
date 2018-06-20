@@ -16,13 +16,13 @@ def platform(session):
 
 
 def test_list(client, session, platform):
-    response = client.get("/api2/scraps/")
+    response = client.get("/api/scraps/")
     assert response.json["items"] == []
 
     scrap = Scrap(status=ScrapStatus.SCHEDULED, platform=platform, date=datetime.now())
     session.add(scrap)
     session.commit()
-    response = client.get("/api2/scraps/")
+    response = client.get("/api/scraps/")
     assert response.json["items"] == [{
         'id': scrap.id,
         'status': str(scrap.status),
@@ -36,7 +36,7 @@ def test_list(client, session, platform):
 
 
 def test_create(client, session, platform):
-    response = client.post("/api2/scraps/", data={'platform': platform.slug})
+    response = client.post("/api/scraps/", data={'platform': platform.slug})
 
     assert response.status_code == HTTPStatus.OK
     assert 'id' in response.json
@@ -54,12 +54,12 @@ def test_create(client, session, platform):
                                          'slug': platform.slug}
 
     # Setting the platform by id should work
-    response = client.post("/api2/scraps/", data={'platform': platform.id})
+    response = client.post("/api/scraps/", data={'platform': platform.id})
     assert response.status_code == HTTPStatus.OK
     assert response.json['platform']['slug'] == platform.slug
 
     # Directly transitionning to 'RUNNING' should work and set the date
-    response = client.post("/api2/scraps/", data={'platform': platform.id,
+    response = client.post("/api/scraps/", data={'platform': platform.id,
                                                   'status': 'running'})
     assert response.status_code == HTTPStatus.OK
     assert response.json['status'] == 'running'
@@ -70,17 +70,17 @@ def test_create(client, session, platform):
 
     # Transitionning to other status should not work
     for status in ['aborted', 'success', 'failed']:
-        response = client.post("/api2/scraps/", data={'platform': platform.id,
+        response = client.post("/api/scraps/", data={'platform': platform.id,
                                                       'status': status})
         assert response.status_code == HTTPStatus.BAD_REQUEST
         assert response.json['type'] == 'invalid_status_transition'
 
     # Invalid parameter
-    response = client.post("/api2/scraps/")
+    response = client.post("/api/scraps/")
     assert response.status_code == HTTPStatus.BAD_REQUEST
 
     # Platform not found
-    response = client.post("/api2/scraps/", data={'platform': 'non-existant'})
+    response = client.post("/api/scraps/", data={'platform': 'non-existant'})
     assert response.status_code == HTTPStatus.NOT_FOUND
 
 
@@ -89,7 +89,7 @@ def test_get(client, session, platform):
     session.add(scrap)
     session.commit()
 
-    response = client.get("/api2/scraps/{}".format(scrap.id))
+    response = client.get("/api/scraps/{}".format(scrap.id))
     assert response.json == {
         'id': scrap.id,
         'date': scrap.date,
@@ -107,7 +107,7 @@ def test_delete(client, session, platform):
     session.add(scrap)
     session.commit()
 
-    response = client.delete("/api2/scraps/{}".format(scrap.id))
+    response = client.delete("/api/scraps/{}".format(scrap.id))
     assert response.status_code == HTTPStatus.METHOD_NOT_ALLOWED
 
 
@@ -116,7 +116,7 @@ def test_put(client, session, platform):
     session.add(scrap)
     session.commit()
 
-    response = client.put("/api2/scraps/{}".format(scrap.id),
+    response = client.put("/api/scraps/{}".format(scrap.id),
                           data=json.dumps({'status': 'running', 'stats': {'foo': 'bar'}}),
                           content_type='application/json',
                           headers={'X-Fields': 'date,status,stats'})
@@ -162,7 +162,7 @@ def test_put_transitions(from_status, to_status, valid, client, session, platfor
     session.add(scrap)
     session.commit()
 
-    response = client.put("/api2/scraps/{}".format(scrap.id), data={'status': to_status})
+    response = client.put("/api/scraps/{}".format(scrap.id), data={'status': to_status})
 
     if valid:
         assert response.status_code == HTTPStatus.OK
