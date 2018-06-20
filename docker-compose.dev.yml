@@ -27,12 +27,11 @@ services:
 
   flower:
     image: mher/flower:latest
-    command: --url_prefix=/flower/
     networks:
       - internal
       - proxy
     labels:
-      traefik.frontend.rule: Host:matcher.test;PathPrefixStrip:/flower/
+      traefik.frontend.rule: Host:flower.test
       traefik.docker.network: proxy
 
 

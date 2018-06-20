@@ -1,4 +1,5 @@
 from injector import inject
+from celery import Celery
 from flask_restplus import Resource
 from flask_sqlalchemy import SQLAlchemy
 
@@ -18,3 +19,12 @@ class DbResource(Resource):
     @property
     def query(self):
         return self.session.query
+
+
+class CeleryResource(Resource):
+    """A resource that has celery injected"""
+
+    @inject
+    def __init__(self, *args, celery: Celery, **kwargs):
+        super(CeleryResource, self).__init__(*args, **kwargs)
+        self.celery = celery
