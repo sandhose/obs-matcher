@@ -71,21 +71,6 @@ def setup_routes(app, admin=True):
             if revision in heads:
                 _setup_admin(app)
 
-    @app.route('/queue', methods=['POST'])
-    def queue(db: SQLAlchemy):
-        from matcher.scheme.platform import Scrap
-        from matcher.tasks.object import insert_dict
-
-        scrap_id = request.headers.get('x-scrap-id', None)
-        if scrap_id is None:
-            raise Exception('Missing `x-scrap-id` header')
-        scrap_id = int(scrap_id)
-
-        assert db.session.query(Scrap).get(scrap_id)
-
-        insert_dict.delay(request.json, scrap_id)
-        return jsonify({'status': 'queued'})
-
     @app.route('/')
     def index():
         return render_template('index.html', navigation=[

@@ -12,6 +12,8 @@ COPY . .
 RUN python setup.py install
 RUN python setup.py develop
 
+RUN mkdir -p instance && chmod 777 instance
+
 ENV PYTHONUNBUFFERED=1 PYTHONHASHSEED=random PYTHONDONTWRITEBYTECODE=1
 
 EXPOSE 5000

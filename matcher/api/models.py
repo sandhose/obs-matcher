@@ -33,3 +33,8 @@ scrap = Model('Scrap', {
     'platform': fields.Nested(platform),
     'stats': fields.Raw()
 }, mask='id,date,status,platform{id,name,slug}')
+
+
+queue = Model('Queue', {
+    'workers': fields.List(fields.String(example='celery@c679340222ca'))
+})
