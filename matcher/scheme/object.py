@@ -15,14 +15,13 @@ import math
 import re
 from operator import attrgetter, itemgetter
 
-from unidecode import unidecode
-
 from sqlalchemy import (Column, Enum, ForeignKey, Integer,
                         PrimaryKeyConstraint, Sequence, Table, Text, and_,
                         column, func, select, table, tuple_,)
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import aliased, column_property, joinedload, relationship
 from tqdm import tqdm
+from unidecode import unidecode
 
 from . import Base
 from ..app import db

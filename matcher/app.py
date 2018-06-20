@@ -2,17 +2,16 @@ import contextlib
 import logging
 import os
 
+from alembic.migration import MigrationContext
 from celery import Celery
-from injector import Module, singleton, provider, Injector
 from flask import Flask, render_template, url_for
 from flask.cli import FlaskGroup
-from raven.contrib.flask import Sentry
-
-from alembic.migration import MigrationContext
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_injector import FlaskInjector
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from injector import Injector, Module, provider, singleton
+from raven.contrib.flask import Sentry
 
 from .commands import setup_cli
 

@@ -1,13 +1,13 @@
 from datetime import datetime
 
 from slugify import slugify
-
-from matcher.exceptions import InvalidStatusTransition
 from sqlalchemy import (Boolean, Column, DateTime, Enum, ForeignKey, Integer,
                         Sequence, String, Text, UniqueConstraint, column, func,
                         select, table,)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import column_property, relationship
+
+from matcher.exceptions import InvalidStatusTransition
 
 from . import Base
 from .mixins import ResourceMixin

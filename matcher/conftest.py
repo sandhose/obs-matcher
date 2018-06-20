@@ -1,9 +1,10 @@
 import pytest
 from flask import Flask, request
-
 from flask_injector import FlaskInjector
 from flask_sqlalchemy import SQLAlchemy
-from matcher.app import db as _db, setup_routes
+
+from matcher.app import db as _db
+from matcher.app import setup_routes
 from matcher.scheme import Base
 
 

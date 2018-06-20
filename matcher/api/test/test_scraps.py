@@ -60,7 +60,7 @@ def test_create(client, session, platform):
 
     # Directly transitionning to 'RUNNING' should work and set the date
     response = client.post("/api/scraps/", data={'platform': platform.id,
-                                                  'status': 'running'})
+                                                 'status': 'running'})
     assert response.status_code == HTTPStatus.OK
     assert response.json['status'] == 'running'
     scrap = session.query(Scrap).get(response.json['id'])
@@ -71,7 +71,7 @@ def test_create(client, session, platform):
     # Transitionning to other status should not work
     for status in ['aborted', 'success', 'failed']:
         response = client.post("/api/scraps/", data={'platform': platform.id,
-                                                      'status': status})
+                                                     'status': status})
         assert response.status_code == HTTPStatus.BAD_REQUEST
         assert response.json['type'] == 'invalid_status_transition'
 

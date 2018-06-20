@@ -1,7 +1,7 @@
-from injector import inject
 from celery import Celery
 from flask_restplus import Resource
 from flask_sqlalchemy import SQLAlchemy
+from injector import inject
 
 
 class DbResource(Resource):

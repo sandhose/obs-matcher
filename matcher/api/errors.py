@@ -1,5 +1,6 @@
 from flask_restplus import fields
 from sqlalchemy.exc import IntegrityError
+
 from matcher.exceptions import InvalidStatusTransition
 
 
