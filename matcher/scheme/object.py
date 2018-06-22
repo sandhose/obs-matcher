@@ -31,7 +31,6 @@ from ..exceptions import (AmbiguousLinkError, ExternalIDMismatchError,
                           ObjectTypeMismatchError, UnknownAttribute,
                           UnknownRelation,)
 from ..utils import Lock
-from .mixins import ResourceMixin
 from .platform import Platform, PlatformType
 from .utils import CustomEnum
 from .value import Value, ValueSource, ValueType
@@ -171,7 +170,7 @@ def _normalize_link(link):
 MergeCandidate = collections.namedtuple('MergeCandidate', 'obj into score')
 
 
-class ExternalObject(Base, ResourceMixin):
+class ExternalObject(Base):
     """An object imported from scraping."""
 
     __tablename__ = 'external_object'

@@ -8,7 +8,6 @@ from sqlalchemy.orm import relationship
 
 from . import Base
 from ..countries import lookup
-from .mixins import ResourceMixin
 from .platform import Platform
 from .utils import CustomEnum
 
@@ -39,7 +38,7 @@ class ValueType(CustomEnum):
         return fmt_map.get(self, lambda _: None)(value)
 
 
-class Value(Base, ResourceMixin):
+class Value(Base):
     __tablename__ = 'value'
 
     id = Column(Integer,

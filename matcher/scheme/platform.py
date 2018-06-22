@@ -10,11 +10,10 @@ from sqlalchemy.orm import column_property, relationship
 from matcher.exceptions import InvalidStatusTransition
 
 from . import Base
-from .mixins import ResourceMixin
 from .utils import CustomEnum
 
 
-class PlatformGroup(Base, ResourceMixin):
+class PlatformGroup(Base):
     """A group of platform
 
     For example, the “Netflix” group would hold all it's country variations
@@ -48,7 +47,7 @@ class PlatformType(CustomEnum):
     SVOD = 4  # Subscription based VOD
 
 
-class Platform(Base, ResourceMixin):
+class Platform(Base):
     """Represents one platform"""
 
     __tablename__ = 'platform'
@@ -147,7 +146,7 @@ class ScrapStatus(CustomEnum):
     """The job has failed"""
 
 
-class Scrap(Base, ResourceMixin):
+class Scrap(Base):
     """Represents one job
 
     This is used by the scheduler to run the scrapers on SCHEDULED jobs, and

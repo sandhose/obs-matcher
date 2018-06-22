@@ -14,8 +14,9 @@ from injector import Injector, Module, provider, singleton
 from raven.contrib.flask import Sentry
 
 from .commands import setup_cli
+from .scheme import metadata
 
-db = SQLAlchemy()
+db = SQLAlchemy(metadata=metadata)
 
 injector = Injector()
 
