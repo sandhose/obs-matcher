@@ -54,7 +54,10 @@ services:
     << : *internal
 
   redis: *internal
-  db: *internal
+  db:
+    << : *internal
+    ports:
+      - "5432:5432"
 
 networks:
   internal:
