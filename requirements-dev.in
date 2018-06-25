@@ -1,0 +1,8 @@
+-r requirements-test.in
+
+Flask-DebugToolbar
+pip-tools
+pytest-runner
+Sphinx
+sphinxcontrib-napoleon
+watchdog

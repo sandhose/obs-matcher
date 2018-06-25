@@ -7,7 +7,6 @@ Each exception defines a `status` attribute which is used to set the HTTP
 status the server should respond with when the exception is raised.
 
 """
-from restless.constants import BAD_REQUEST, CONFLICT, UNAVAILABLE
 
 
 class AmbiguousLinkError(Exception):
@@ -19,8 +18,6 @@ class AmbiguousLinkError(Exception):
         List of objects that should be merged
 
     """
-
-    status = UNAVAILABLE
 
     def resolve(self, session):
         """Resolve the conflict by merging all objects.
@@ -53,8 +50,6 @@ class ObjectTypeMismatchError(Exception):
 
     """
 
-    status = CONFLICT
-
     def __init__(self, is_type, should_be):
         """Raise with both types we've got for this object."""
         self.is_type = is_type
@@ -74,8 +69,6 @@ class UnknownRelation(Exception):
         The relation that was given.
 
     """
-
-    status = BAD_REQUEST
 
     def __init__(self, relation):
         """Raise for a given unknown relation type."""
@@ -98,8 +91,6 @@ class InvalidRelation(Exception):
         The child object in this relation
 
     """
-
-    status = BAD_REQUEST
 
     def __init__(self, relation, parent, child):
         """Raise when a relation can't be set with this set of objects."""
@@ -124,8 +115,6 @@ class ExternalIDMismatchError(Exception):
         The ID that was given
 
     """
-
-    status = CONFLICT
 
     def __init__(self, link, external_id):
         """Raise with the existing link and the external_id that was given."""
@@ -189,8 +178,6 @@ class LinkNotFound(Exception):
 
     """
 
-    status = BAD_REQUEST
-
     def __init__(self, links, platform):
         """Raise with the links on the object and the platform scrapped."""
         self.links = links
@@ -212,8 +199,6 @@ class InvalidMetadata(Exception):
         The metadata that was tried to be added
 
     """
-
-    status = BAD_REQUEST
 
     def __init__(self, object_type, key):
         """Raise with the type the object is and the metadata key."""
@@ -237,8 +222,6 @@ class InvalidMetadataValue(Exception):
 
     """
 
-    status = BAD_REQUEST
-
     def __init__(self, key, content):
         """Raise with the metadata key and content."""
         self.key = key
@@ -260,8 +243,6 @@ class LinksOverlap(Exception):
         The object it is merged into
 
     """
-
-    status = CONFLICT
 
     def __init__(self, mine, their):
         """Raise with the two objects being merged."""

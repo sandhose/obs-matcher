@@ -5,7 +5,6 @@ from sqlalchemy.dialects.postgresql import (ARRAY, aggregate_order_by, array,
 
 from . import Base
 from .mixins import ViewMixin
-from .object import ExternalObject
 from .utils import crosstab
 from .value import Value, ValueSource, ValueType
 

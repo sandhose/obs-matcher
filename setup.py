@@ -22,8 +22,12 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
-requirements = [str(r.req) for r in
-                parse_requirements('requirements.txt', session=False)]
+
+def req(suite=None):
+    suffix = '-' + suite if suite is not None else ''
+    return [str(r.req) for r in
+            parse_requirements('requirements{suffix}.txt'.format(suffix=suffix), session=False)]
+
 
 setup(
     name='matcher',
@@ -44,7 +48,9 @@ setup(
     ],
 
     packages=find_packages(),
-    install_requires=requirements,
+    install_requires=req(),
+    tests_require=req('test'),
+    setup_requires=req('dev'),
     include_package_data=True,
 
     entry_points={

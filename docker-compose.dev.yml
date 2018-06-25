@@ -45,10 +45,7 @@ services:
 
   worker:
     command: >
-      sh -c '
-      pip install watchdog &&
       watchmedo auto-restart -D -R -p "**/*.py" -- matcher worker -l info -E --uid nobody --gid nobody
-      '
     volumes:
       - './matcher:/app/matcher'
     << : *internal
