@@ -1,7 +1,7 @@
-from sqlalchemy.schema import DDLElement
-from sqlalchemy.sql import table
 from sqlalchemy.ext import compiler
 from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.schema import DDLElement
+from sqlalchemy.sql import table
 
 
 class CreateView(DDLElement):
@@ -54,3 +54,12 @@ class ViewMixin(object):
             raise Exception("need selectable")
 
         return view(cls.__tablename__, cls.metadata, cls.__selectable__, cls.__materialized__)
+
+    @classmethod
+    def refresh(cls, session, concurrently=True):
+        if not cls.__materialized__:
+            raise Exception('only materialized views should be refreshed')
+        session.flush()
+        session.execute('REFRESH MATERIALIZED VIEW{opts} {name}'
+                        .format(opts=('CONCURRENTLY' if concurrently else ''),
+                                name=cls.__table__.fullname))
