@@ -14,7 +14,7 @@ cache: pip
 
 install:
   - pip install codecov pytest-cov
-  - pip install -r requirements.txt
+  - pip install -r requirements-dev.txt
 
 before_script:
   - psql -c 'create database matcher;' -U postgres
