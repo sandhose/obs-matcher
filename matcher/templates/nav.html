@@ -1,0 +1,29 @@
+{% macro menu_item(title, url, active=False, disabled=False) -%}
+  <li href="nav-item">
+    <a class="nav-link
+      {%- if active %} active{% endif -%}
+      {%- if disabled %} disabled{% endif -%}
+    " href="{{ url }}">
+      {{ title }}{% if active %} <span class="sr-only">(current)</span>{% endif %}
+    </a>
+  </li>
+{% endmacro -%}
+
+
+<nav class="navbar navbar-expand-md navbar-dark bg-dark sticky-top">
+  <div class="container">
+  <a class="navbar-brand" href="#">Scraping</a>
+
+  <ul class="navbar-nav mr-auto">
+    {{ menu_item("Home", "#", active=True) }}
+    {{ menu_item("Platforms", "#", disabled=True) }}
+    {{ menu_item("Scraps", "#", disabled=True) }}
+    {{ menu_item("Objects", "#", disabled=True) }}
+    {{ menu_item("Exports", "#", disabled=True) }}
+  </ul>
+
+  <ul class="navbar-nav">
+    {{ menu_item("API", url_for("api.root")) }}
+  </ul>
+  </div>
+</nav>

@@ -1,14 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>OBS AV</title>
-</head>
-<body>
-  <ul class="nav">
+{% extends "base.html" %}
+
+{% block content %}
+  <ul>
     {% for item in navigation %}
     <li><a href="{{ item.url }}">{{ item.caption }}</a></li>
     {% endfor %}
   </ul>
-</body>
-</html>
+{% endblock %}
