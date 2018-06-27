@@ -92,8 +92,10 @@ class Platform(Base):
     """All known objects found on this platform"""
 
     links_count = column_property(
-        select([func.count('external_object_id')]).select_from(
-            table('object_link')).where(column('platform_id') == id))
+        select([func.count('external_object_id')]).
+        select_from(table('object_link')).
+        where(column('platform_id') == id)
+    )
 
     def __repr__(self):
         return '<Platform {!r}>'.format(self.name)
@@ -172,6 +174,12 @@ class Scrap(Base):
 
     links = relationship('ObjectLink', secondary='scrap_link', back_populates='scraps')
     """Objects (to be) fetched by this job"""
+
+    links_count = column_property(
+        select([func.count('object_link_id')]).
+        select_from(table('scrap_link')).
+        where(column('scrap_id') == id)
+    )
 
     def to_status(self, status):
         """Try to change the status of the scrap

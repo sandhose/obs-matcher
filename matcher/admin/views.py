@@ -134,7 +134,7 @@ class PlatformView(DefaultView):
 class ScrapView(DefaultView):
     can_view_details = True
     form_columns = ('platform', 'date', 'status', 'stats')
-    column_list = ('platform', 'date', 'status')
+    column_list = ('platform', 'date', 'status', 'links_count')
     column_details_list = ('id', 'platform', 'date', 'status', 'stats')
 
 

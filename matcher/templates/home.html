@@ -90,6 +90,7 @@
                 <th>Platform</th>
                 <th>Status</th>
                 <th>Date</th>
+                <th>Links</th>
               </tr>
             </thead>
             <tbody>
@@ -98,6 +99,7 @@
                   <td>{{ scrap.platform.name }}</td>
                   <td>{{ scrap.status | upper }}</td>
                   <td>{{ scrap.date }}</td>
+                  <td>{{ scrap.links_count }}</td>
                 </tr>
               {% endfor %}
             </tbody>
