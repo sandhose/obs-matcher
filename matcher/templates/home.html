@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% macro stat(count, name, plural=None) -%}
+  {%- if plural is none -%}
+    {% set plural = name + 's' %}
+  {%- elif not plural -%}
+    {% set plural = name %}
+  {%- endif -%}
+  <b>
+    {{- count | default(0) -}}
+  </b>&nbsp;
+  {%- if count == 1 -%}
+    {{ name }}
+  {%- else -%}
+    {{ plural }}
+  {%- endif -%}
+{%- endmacro %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-4">
+      <div class="card card-stats">
+        <div class="card-header card-header-success card-header-icon">
+          <div class="card-icon">
+            <i class="material-icons">video_library</i>
+          </div>
+          <p class="card-category">Discovered content</p>
+          <h4 class="card-title">
+            {{ stat(external_object_stats['MOVIE'], 'movie') }}
+            & {{ stat(external_object_stats['SERIES'], 'series', plural=False) }}
+          </h4>
+        </div>
+        <div class="card-footer">
+          <a href="#">Browse library…</a>
+        </div>
+      </div>
+
+      <div class="card card-stats">
+        <div class="card-header card-header-warning card-header-icon">
+          <div class="card-icon">
+            <i class="material-icons">business</i>
+          </div>
+          <p class="card-category">Platforms</p>
+          <h3 class="card-title">
+            {{ platforms_stats['SVOD'] + platforms_stats['TVOD'] + platforms_stats['INFO'] }}
+          </h3>
+        </div>
+        <div class="card-footer">
+          <div class="stats">
+            <i class="material-icons">notes</i>
+            {{ platforms_stats['SVOD'] }} SVOD, 
+            {{ platforms_stats['TVOD'] }} TVOD and
+            {{ platforms_stats['INFO'] }} INFO
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-stats">
+        <div class="card-header card-header-primary card-header-icon">
+          <div class="card-icon">
+            <i class="material-icons">link</i>
+          </div>
+          <p class="card-category">Unique links</p>
+          <h3 class="card-title">
+            {{ object_link_count }}
+          </h3>
+        </div>
+        <div class="card-footer">
+          <div class="stats">
+            <i class="material-icons">notes</i>
+            {{ (object_link_count / (external_object_stats.values() | sum)) | round(1) }} per item on average
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-8">
+      <div class="card">
+        <div class="card-header card-header-primary d-flex">
+          <div class="mr-auto">
+            <h4 class="card-title">Recent scraps</h4>
+            <p class="card-category">Recent scraps</p>
+          </div>
+          <a href="#" class="btn btn-white">See all</a>
+        </div>
+        <div class="card-body table-responsive">
+          <table class="table">
+            <thead class="text-primary">
+              <tr>
+                <th>Platform</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for scrap in last_scraps %}
+                <tr>
+                  <td>{{ scrap.platform.name }}</td>
+                  <td>{{ scrap.status | upper }}</td>
+                  <td>{{ scrap.date }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

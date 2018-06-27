@@ -56,8 +56,10 @@ def _setup_admin(app):
 
 def setup_routes(app, admin=True):
     from .api import blueprint as api
+    from .dashboard import blueprint as dashboard
 
     app.register_blueprint(api, url_prefix='/api')
+    app.register_blueprint(dashboard, url_prefix='/dashboard')
 
     if admin:
         # Do not install admin if upgrades are pending
