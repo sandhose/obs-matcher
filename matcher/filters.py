@@ -4,10 +4,11 @@ from jinja2 import Markup, escape
 
 def relative_date(dt):
     dt = pendulum.instance(dt)
-    display = dt.diff_for_humans() if dt.diff().days < 3 else dt.to_datetime_string()
+    human = escape(dt.diff_for_humans())
+    full = escape(dt.to_datetime_string())
+    fmt = {'title': full, 'display': human} if dt.diff().days < 3 else {'title': human, 'display': full}
     return Markup(
-        '<abbr title="{}">{}</abbr>'
-        .format(escape(dt.to_datetime_string()), escape(display))
+        '<abbr title="{title}">{display}</abbr>'.format(**fmt)
     )
 
 
