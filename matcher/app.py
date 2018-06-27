@@ -15,6 +15,7 @@ from raven.contrib.flask import Sentry
 
 from .commands import setup_cli
 from .scheme import metadata
+from .filters import register as register_filters
 
 db = SQLAlchemy(metadata=metadata)
 
@@ -85,7 +86,10 @@ def create_app(info=None):
     # Load config using environment variable
     app.config.from_object('matcher.config.Config')
     app.config.from_pyfile('application.cfg', silent=True)
+    app.url_map.strict_slashes = False  # Trailing slashes are not required
     db.init_app(app)
+
+    register_filters(app)
 
     DebugToolbarExtension(app=app)
     Sentry(app=app, logging=True, level=logging.ERROR)

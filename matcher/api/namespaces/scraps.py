@@ -1,4 +1,6 @@
+import pendulum
 from flask_restplus import Namespace, abort, reqparse
+from sqlalchemy import DATE, Interval, cast, func
 
 from matcher.scheme.platform import Platform, Scrap, ScrapStatus
 
@@ -92,3 +94,29 @@ class ScrapItem(DbResource):
         self.session.commit()
 
         return scrap
+
+
+@api.route('/stats')
+class ScrapStats(DbResource):
+    """Show statistics about last scraps"""
+
+    def get(self):
+        now = pendulum.now()
+        series = self.query(cast(func.generate_series(
+            cast(now.subtract(weeks=1), type_=DATE),
+            cast(now, type_=DATE),
+            cast('1 day', type_=Interval)
+        ), type_=DATE).label('timestep')).subquery()
+
+        stats = (
+            self.query(series.c.timestep,
+                       func.count(Scrap.id),
+                       func.sum(Scrap.links_count))
+            .outerjoin((Scrap, cast(Scrap.date, type_=DATE) == cast(series.c.timestep, type_=DATE)))
+            .group_by(series.c.timestep)
+            .order_by(series.c.timestep)
+            .all()
+        )
+
+        return {str(date): {'scraps': int(scraps), 'items': int(items)}
+                for (date, scraps, items) in stats}

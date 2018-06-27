@@ -8,6 +8,7 @@ Flask-RESTful
 Flask-RESTPlus
 Flask-SQLAlchemy
 gunicorn
+pendulum
 psycopg2-binary
 raven[flask]
 redis
