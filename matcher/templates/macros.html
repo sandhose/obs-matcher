@@ -1,10 +1,11 @@
-{% macro render_pagination(pagination, endpoint) %}
+{% macro render_pagination(pagination, endpoint=request.url_rule.endpoint, args={}) %}
   <nav>
+    {{ query }}
     <ul class="pagination">
     {%- for page in pagination.iter_pages() %}
       {% if page %}
         <li class="page-item{% if page == pagination.page %} active{% endif %}">
-          <a class="page-link" href="{{ url_for(endpoint, page=page, per_page=pagination.per_page) }}">{{ page }}</a>
+          <a class="page-link" href="{{ url_for(endpoint, page=page, per_page=pagination.per_page, **args) }}">{{ page }}</a>
         </li>
       {% else %}
         <li class="page-item disabled"><a href="#" class="page-link">…</a></li>
@@ -13,7 +14,6 @@
     </ul>
   </nav>
 {% endmacro %}
-
 
 {% macro render_field(field, label_visible=true) -%}
   <div class="form-group {% if field.errors %}has-error{% endif %} {{ kwargs.pop('class_', '') }}">

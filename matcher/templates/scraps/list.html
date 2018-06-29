@@ -14,9 +14,9 @@
           <h4 class="card-title">Filters</h4>
         </div>
 
-        {% call m.render_form(search_form, class_="card-body", action="GET") %}
-          {{ m.render_field(search_form.platforms, field_class="select2-platforms") }}
-          {{ m.render_field(search_form.status, field_class="select2") }}
+        {% call m.render_form(filter_form, class_="card-body", action="GET") %}
+          {{ m.render_field(filter_form.platforms, field_class="select2-platforms") }}
+          {{ m.render_field(filter_form.status, field_class="select2") }}
         {% endcall %}
       </div>
     </div>
@@ -46,7 +46,7 @@
           </table>
         </div>
         <div class="card-footer">
-          {{ m.render_pagination(page, '.scrap_list') }}
+          {{ m.render_pagination(page, args=query) }}
         </div>
       </div>
     </div>

@@ -2,33 +2,50 @@
 {% import "macros.html" as m %}
 
 {% block content %}
-  <div class="card">
-    <div class="card-body table-responsive">
-      <table class="table">
-        <thead class="text-primary">
-          <tr>
-            <th>Type</th>
-            <th>Name</th>
-            <th>Slug</th>
-            <th>Country</th>
-            <th>Links</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for platform in page.items %}
-            <tr>
-              <td>{{ platform.type | upper }}</td>
-              <td>{{ platform.name }}</td>
-              <td>{{ platform.slug }}</td>
-              <td>{{ platform.country }}</td>
-              <td>{{ platform.links_count }}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+  <div class="row">
+    <div class="col-4">
+      <div class="card">
+        <div class="card-header card-header-primary">
+          <h4 class="card-title">Filters</h4>
+        </div>
+
+        {% call m.render_form(filter_form, class_="card-body", action="GET") %}
+          {{ m.render_field(filter_form.search) }}
+          {{ m.render_field(filter_form.type, field_class="select2") }}
+          {{ m.render_field(filter_form.country, field_class="select2") }}
+        {% endcall %}
+      </div>
     </div>
-    <div class="card-footer">
-      {{ m.render_pagination(page, '.platform_list') }}
+    <div class="col-8">
+      <div class="card">
+        <div class="card-body table-responsive">
+          <table class="table">
+            <thead class="text-primary">
+              <tr>
+                <th>Type</th>
+                <th>Name</th>
+                <th>Slug</th>
+                <th>Country</th>
+                <th>Links</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for platform in page.items %}
+                <tr>
+                  <td>{{ platform.type | upper }}</td>
+                  <td>{{ platform.name }}</td>
+                  <td>{{ platform.slug }}</td>
+                  <td>{{ platform.country }}</td>
+                  <td>{{ platform.links_count }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="card-footer">
+          {{ m.render_pagination(page, args=query) }}
+        </div>
+      </div>
     </div>
   </div>
 {% endblock %}
