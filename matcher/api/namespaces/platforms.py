@@ -37,12 +37,7 @@ class PlatformList(DbResource):
 
         search_args = search_arguments.parse_args()
         if search_args['q']:
-            search = search_args['q']
-            query = query.filter(
-                func.to_tsvector('simple', Platform.name).
-                op('@@')
-                (func.to_tsquery('simple', "'" + search + "':*"))
-            )
+            query = query.filter(Platform.search_filter(search_args['q']))
 
         return query
 

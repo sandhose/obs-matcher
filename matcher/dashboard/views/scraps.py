@@ -27,7 +27,7 @@ class ScrapListView(View, DbMixin):
                     filter(Scrap.status.in_(form.status.data))
 
         ctx = {}
-        ctx['search_form'] = form
+        ctx['filter_form'] = form
         ctx['page'] = query.paginate()
 
         return render_template('scraps/list.html', **ctx)

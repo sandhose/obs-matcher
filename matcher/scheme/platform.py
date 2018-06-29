@@ -126,6 +126,14 @@ class Platform(Base):
 
         return q.one_or_none()
 
+    @classmethod
+    def search_filter(cls, term):
+        return (
+            (func.to_tsvector('simple', cls.name).op('||')(func.to_tsvector('simple', cls.slug))).
+            op('@@')
+            (func.to_tsquery('simple', "'" + term + "':*"))
+        )
+
     def match_objects(self):
         """Try to match objects that where found in this platform"""
         from ..scheme.object import ExternalObject
