@@ -2,10 +2,10 @@ from functools import wraps
 
 from flask_restplus import Model, fields, reqparse
 
-arguments = reqparse.RequestParser()
-arguments.add_argument('page', type=int, required=False, default=1)
-arguments.add_argument('per_page', type=int, required=False,
-                       choices=[5, 10, 20, 30, 40, 50], default=10)
+pagination_arguments = reqparse.RequestParser()
+pagination_arguments.add_argument('page', type=int, required=False, default=1)
+pagination_arguments.add_argument('per_page', type=int, required=False,
+                                  choices=[5, 10, 20, 30, 40, 50], default=10)
 
 
 model = Model('Pagination', {
@@ -18,7 +18,7 @@ model = Model('Pagination', {
 })
 
 
-def wrap(api, _model):
+def wrap(api, _model, arguments=[]):
     def decorator(func):
         api.add_model('Pagination', model)
         wrapped_model = api.model('{name} page'.format(name=_model.name), {
@@ -27,7 +27,7 @@ def wrap(api, _model):
         })
 
         @api.marshal_with(wrapped_model)
-        @api.expect(arguments)
+        @api.expect(pagination_arguments, *arguments)
         @wraps(func)
         def f(*args, **kwargs):
             pagination = func(*args, **kwargs).paginate()

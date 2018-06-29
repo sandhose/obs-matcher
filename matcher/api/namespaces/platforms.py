@@ -1,4 +1,5 @@
 from flask_restplus import Namespace, inputs, reqparse
+from sqlalchemy import func
 
 from matcher.scheme.platform import Platform, PlatformType
 
@@ -16,6 +17,9 @@ platform_arguments.add_argument('country', type=inputs.regex('^[A-Z]{2}$'), requ
 platform_arguments.add_argument('base_score', type=int, required=False)
 platform_arguments.add_argument('group_id', type=int, required=False)
 
+search_arguments = reqparse.RequestParser()
+search_arguments.add_argument('q', type=str, required=False)
+
 for key in ['platform_base', 'platform', 'platform_group']:
     model = getattr(models, key)
     api.models[model.name] = model
@@ -26,10 +30,21 @@ class PlatformList(DbResource):
     """List all platforms"""
 
     @api.doc('list_platforms')
-    @pagination.wrap(api, models.platform)
+    @pagination.wrap(api, models.platform, arguments=[search_arguments])
     def get(self):
         """List all platforms"""
-        return self.query(Platform)
+        query = self.query(Platform)
+
+        search_args = search_arguments.parse_args()
+        if search_args['q']:
+            search = search_args['q']
+            query = query.filter(
+                func.to_tsvector('simple', Platform.name).
+                op('@@')
+                (func.to_tsquery('simple', "'" + search + "':*"))
+            )
+
+        return query
 
     @api.doc('create_platform')
     @api.expect(platform_arguments)
