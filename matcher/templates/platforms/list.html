@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+
+{% block content %}
+  <div class="card">
+    <div class="card-body table-responsive">
+      <table class="table">
+        <thead class="text-primary">
+          <tr>
+            <th>Type</th>
+            <th>Name</th>
+            <th>Slug</th>
+            <th>Country</th>
+            <th>Links</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for platform in page.items %}
+            <tr>
+              <td>{{ platform.type | upper }}</td>
+              <td>{{ platform.name }}</td>
+              <td>{{ platform.slug }}</td>
+              <td>{{ platform.country }}</td>
+              <td>{{ platform.links_count }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer">
+      {{ m.render_pagination(page, '.platform_list') }}
+    </div>
+  </div>
+{% endblock %}
