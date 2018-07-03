@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-4">
+      <div class="card">
+        <div class="card-header card-header-primary">
+          <h3 class="card-title">
+            {{ platform.name }}
+            <a href="#"><i class="material-icons">open_in_new</i></a>
+          </h3>
+          <p class="card-category">
+            {{ platform.type | upper }}
+            {% if platform.group %}• {{ platform.group.name }}{% endif %}
+            {% if platform.country %}• {{ platform.country }}{% endif %}
+          </p>
+        </div>
+        <div class="list-group list-group-flush" style="margin-top: 1rem">
+          <a href="#" class="list-group-item list-group-item-action">{{ m.stat(link_stats['MOVIE'], 'movie') }}</a>
+          <a href="#" class="list-group-item list-group-item-action">{{ m.stat(link_stats['SERIES'], 'series', False) }}</a>
+          <a href="#" class="list-group-item list-group-item-action">{{ m.stat(link_stats['EPISODE'], 'episode') }}</a>
+          <a href="{{ url_for('.scrap_list', platforms=[platform.slug]) }}" class="list-group-item list-group-item-action">
+            {{ m.stat(recent_scraps_count['week'], 'scrap') }} this week,
+            {{ recent_scraps_count['month'] }} this month,
+            {{ recent_scraps_count['year'] }} this year.
+          </a>
+        </div>
+      </div>
+
+      <div class="card mt-5">
+        <!-- Fake data -->
+        <div class="card-header card-header-success">
+          <h4 class="card-title">
+            Available sources <em>(fake data)</em>
+          </h4>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center card-body">
+          <div>
+            <h5 class="my-0">Whole movies scraper</h5>
+            <div>Last run: never</div>
+          </div>
+          <button class="btn btn-success">Run</button>
+        </div>
+        <hr class="my-0" />
+        <div class="d-flex justify-content-between align-items-center card-body">
+          <div>
+            <h5 class="my-0">Whole series scraper</h5>
+            <div>Last run: 2 days ago</div>
+          </div>
+          <button class="btn btn-success">Run</button>
+        </div>
+        <hr class="my-0" />
+        <div class="d-flex justify-content-between align-items-center card-body">
+          <div>
+            <h5 class="my-0">AMPERE file import</h5>
+            <div>Last import: 3 hours ago</div>
+          </div>
+          <button class="btn btn-success">Import</button>
+        </div>
+      </div>
+
+      {% if platform.group %}
+        {% with group=platform.group %}
+          {% include "platforms/_group.html" %}
+        {% endwith %}
+      {% endif %}
+    </div>
+
+    <div class="col-8">
+      {%- with scraps=platform.scraps[:10] %}
+        <div class="card">
+          <div class="card-body">
+            {% include "scraps/_list.html" %}
+            <div class="d-flex justify-content-end">
+              <a href="{{ url_for('.scrap_list') }}" class="btn btn-primary">See all</a>
+            </div>
+          </div>
+        </div>
+      {% endwith %}
+    </div>
+  </div>
+{% endblock %}
