@@ -1,5 +1,4 @@
 from flask_restplus import Namespace, inputs, reqparse
-from sqlalchemy import func
 
 from matcher.scheme.platform import Platform, PlatformType
 

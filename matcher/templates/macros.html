@@ -66,3 +66,19 @@
     <button type="submit" class="{{ btn_class }}">{{ action_text }}</button>
   </form>
 {%- endmacro %}
+
+{% macro stat(count, name, plural=None) -%}
+  {%- if plural is none -%}
+    {% set plural = name + 's' %}
+  {%- elif not plural -%}
+    {% set plural = name %}
+  {%- endif -%}
+  <b>
+    {{- count | default(0) -}}
+  </b>&nbsp;
+  {%- if count == 1 -%}
+    {{ name }}
+  {%- else -%}
+    {{ plural }}
+  {%- endif -%}
+{%- endmacro %}

@@ -1,3 +1,8 @@
 main {
   margin-top: 2rem;
 }
+
+.td-actions {
+  display: flex;
+  align-items: center;
+}

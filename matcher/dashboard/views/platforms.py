@@ -1,12 +1,16 @@
-from flask import render_template, request
+import datetime
+
+from flask import abort, render_template, request
 from flask.views import View
+from sqlalchemy import func
 
 from matcher.mixins import DbMixin
-from matcher.scheme.platform import Platform
+from matcher.scheme.object import ExternalObject, ObjectLink
+from matcher.scheme.platform import Platform, Scrap
 
 from ..forms.platforms import PlatformListFilter
 
-__all__ = ['PlatformListView']
+__all__ = ['PlatformListView', 'ShowPlatformView']
 
 
 class PlatformListView(View, DbMixin):
@@ -30,3 +34,39 @@ class PlatformListView(View, DbMixin):
         ctx['page'] = query.paginate()
 
         return render_template('platforms/list.html', **ctx)
+
+
+class ShowPlatformView(View, DbMixin):
+    def dispatch_request(self, slug):
+        platform = self.query(Platform).filter(Platform.slug == slug).first()
+
+        if platform is None:
+            abort(404)
+
+        ctx = {}
+        ctx['platform'] = platform
+        ctx['link_stats'] = {type_.name: count for (type_, count) in (
+            self.query(ExternalObject.type, func.count(ExternalObject.id)).
+            join(ObjectLink).
+            filter(ObjectLink.platform == platform).
+            group_by(ExternalObject.type)
+        )}
+
+        now = datetime.datetime.utcnow()
+
+        def last_scraps(timedelta):
+            return (
+                self
+                .query(Scrap)
+                .filter(Scrap.date >= (now - timedelta))
+                .filter(Scrap.platform == platform)
+                .count()
+            )
+
+        ctx['recent_scraps_count'] = {
+            'week': last_scraps(datetime.timedelta(weeks=1)),
+            'month': last_scraps(datetime.timedelta(days=30)),
+            'year': last_scraps(datetime.timedelta(days=365)),
+        }
+
+        return render_template('platforms/show.html', **ctx)

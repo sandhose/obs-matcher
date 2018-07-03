@@ -1,0 +1,31 @@
+<table class="table">
+  <thead class="text-primary">
+    <tr>
+      <th>Platform</th>
+      <th>Status</th>
+      <th>Date</th>
+      <th>Links</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for scrap in scraps %}
+      <tr>
+        <td class="td-actions">
+          {{ scrap.platform.name }}
+          <a class="btn btn-sm btn-link" href="{{ url_for('.show_platform', slug=scrap.platform.slug) }}" rel="tooltip" title="Show platform">
+            <i class="material-icons">chevron_right</i>
+          </a>
+        </td>
+        <td>{{ scrap.status | upper }}</td>
+        <td>{{ scrap.date | relative_date }}</td>
+        <td>{{ scrap.links_count }}</td>
+        <td class="td-actions">
+          <a class="btn btn-sm btn-link" href="#" rel="tooltip" title="View scrap">
+            <i class="material-icons">arrow_forward</i>
+          </a>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>

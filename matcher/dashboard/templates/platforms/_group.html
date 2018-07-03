@@ -1,0 +1,21 @@
+<div class="card mt-5">
+  <a href="#">
+    <div class="card-header card-header-primary">
+      <h4 class="card-title d-flex justify-content-between">
+        <span>Group <b>{{ group.name }}</b></span>
+        <i class="material-icons">chevron_right</i>
+      </h4>
+    </div>
+  </a>
+  <div class="card-body table-responsive">
+    <table class="table">
+      {% for platform in group.platforms %}
+        <tr>
+          <td width="100%"><a href="{{ url_for('.show_platform', slug=platform.slug) }}">{{ platform.name }}</a></td>
+          <td class="text-monospace text-center">{{ platform.country or "-" }}</td>
+          <td class="text-monospace text-right">{{ platform.links_count }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
