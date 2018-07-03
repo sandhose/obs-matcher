@@ -53,7 +53,7 @@ class Value(Base):
     text = Column(Text, nullable=False)
 
     external_object = relationship('ExternalObject',
-                                   back_populates='attributes')
+                                   back_populates='values')
     sources = relationship('ValueSource',
                            back_populates='value',
                            cascade='all, delete-orphan')
