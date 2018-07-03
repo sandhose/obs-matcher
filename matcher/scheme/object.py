@@ -19,7 +19,8 @@ from sqlalchemy import (Column, Enum, ForeignKey, Integer,
                         PrimaryKeyConstraint, Sequence, Table, Text, and_,
                         column, func, select, table, tuple_,)
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm import aliased, column_property, joinedload, relationship
+from sqlalchemy.orm import (aliased, column_property, foreign, joinedload,
+                            relationship,)
 from tqdm import tqdm
 from unidecode import unidecode
 
@@ -34,6 +35,7 @@ from ..utils import Lock
 from .platform import Platform, PlatformType
 from .utils import CustomEnum
 from .value import Value, ValueSource, ValueType
+from .views import AttributesView
 
 lookup_lock = Lock('lookup')
 links_lock = Lock('links')
@@ -190,10 +192,13 @@ class ExternalObject(Base):
                          cascade='all, delete-orphan')
     """list of :obj:`ObjectLink` : Links to where the object should be found"""
 
-    attributes = relationship('Value',
-                              back_populates='external_object',
-                              cascade='all, delete-orphan')
+    values = relationship('Value',
+                          back_populates='external_object',
+                          cascade='all, delete-orphan')
     """list of :obj:`.value.Value` : arbitrary attributes for this object"""
+
+    attributes = relationship(AttributesView, primaryjoin=(foreign(AttributesView.external_object_id) == id))
+    """:obj:`.views.AttributesView` : a computed list of attributes"""
 
     links_count = column_property(
         select([func.count('platform_id')]).
@@ -276,7 +281,7 @@ class ExternalObject(Base):
         # Looking for an existing attribute
         # This loads *all* the attributes
         value = None
-        for attr in self.attributes:
+        for attr in self.values:
             if (type, text) == (attr.type, attr.text):
                 value = attr
                 break
@@ -284,7 +289,7 @@ class ExternalObject(Base):
         if value is None:
             # Create attribute value if it wasn't found
             value = Value(type=type, text=text)
-            self.attributes.append(value)
+            self.values.append(value)
 
         existing = next((source for source in value.sources
                          if source.platform == platform), None)
@@ -437,16 +442,16 @@ class ExternalObject(Base):
         db.session.commit()
 
         # Then merge the attributes
-        for our_attr in self.attributes:
+        for our_attr in self.values:
             # Lookup for a matching attribute
-            their_attr = next((attr for attr in their.attributes
+            their_attr = next((attr for attr in their.values
                                if our_attr.text == attr.text and
                                our_attr.type == attr.type), None)
 
             if their_attr is None:
                 # Move attribute if it was not present on their side
                 our_attr.external_object = their
-                # their.attributes.append(our_attr)
+                # their.values.append(our_attr)
             else:
                 # Else move only the value sources.
                 # FIXME: *In theory*, we should not have any trouble merging by
@@ -597,9 +602,9 @@ class ExternalObject(Base):
                 return None
 
         def numeric_attr(mine, their, type, process=into_float):
-            my_attrs = set([process(attr.text) for attr in mine.attributes
+            my_attrs = set([process(attr.text) for attr in mine.values
                             if attr.type == type])
-            their_attrs = set([process(attr.text) for attr in their.attributes
+            their_attrs = set([process(attr.text) for attr in their.values
                                if attr.type == type])
 
             return len([True
@@ -610,9 +615,9 @@ class ExternalObject(Base):
                         abs(x - y) < 1])
 
         def text_attr(mine, their, type, process=lambda n: n.lower()):
-            my_attrs = set([process(attr.text) for attr in mine.attributes
+            my_attrs = set([process(attr.text) for attr in mine.values
                             if attr.type == type])
-            their_attrs = set([process(attr.text) for attr in their.attributes
+            their_attrs = set([process(attr.text) for attr in their.values
                                if attr.type == type])
 
             return len([True

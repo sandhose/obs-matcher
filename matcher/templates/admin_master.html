@@ -1,6 +1,6 @@
 {% extends "admin/base.html" %}
 
-{% macro attributes_list(model, column) %}
+{% macro values_list(model, column) %}
   <table class="table table-bordered">
     <thead>
       <tr>
@@ -10,7 +10,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for attribute in model.attributes|sort(attribute='score', reverse=True)|sort(attribute='type.value') %}
+      {% for attribute in model.values|sort(attribute='score', reverse=True)|sort(attribute='type.value') %}
         <tr>
           <td>{{ attribute.type|upper }}</td>
           <td>
@@ -73,8 +73,8 @@
   </table>
 {% endmacro %}
 
-{% macro attributes_link(attributes, show_score=False) %}
-  {% for attribute in attributes|sort(attribute='score', reverse=True)|sort(attribute='type.value')  -%}
+{% macro values_link(values, show_score=False) %}
+  {% for attribute in values|sort(attribute='score', reverse=True)|sort(attribute='type.value')  -%}
     <a href="{{ url_for('value.details_view', id=attribute.id) }}"
       {% if attribute.score > 100000 -%} style="font-weight: bold;" {% endif -%}
     >

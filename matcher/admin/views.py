@@ -75,7 +75,7 @@ def episodes_formatter(view, context, model, name):
 def attribute_formatter(f=lambda _: True, show_score=False,
                         filter=lambda _: True, limit=None):
     def formatter(view, context, model, name):
-        attrs = [attr for attr in model.attributes
+        attrs = [attr for attr in model.values
                  if f(attr.type) and filter(attr.text)]
         if limit is not None:
             attrs = attrs[:limit]
@@ -83,8 +83,8 @@ def attribute_formatter(f=lambda _: True, show_score=False,
         if context is None:
             return ','.join((attr.text for attr in attrs))
 
-        m = context.resolve('attributes_link')
-        return m(attributes=attrs, show_score=show_score)
+        m = context.resolve('values_link')
+        return m(values=attrs, show_score=show_score)
     return formatter
 
 
@@ -183,7 +183,7 @@ class ExternalObjectView(DefaultView):
     # TODO: Export formatters
     export_types = ['csv', 'xls']
 
-    column_details_list = ('id', 'type', 'attributes_list', 'links_list')
+    column_details_list = ('id', 'type', 'values_list', 'links_list')
     column_formatters = {
         'name': attribute_formatter(partial(eq, ValueType.NAME)),
         'title': attribute_formatter(partial(eq, ValueType.TITLE)),
@@ -203,8 +203,8 @@ class ExternalObjectView(DefaultView):
         'episode_details': macro('episode_details'),
         'episodes': episodes_formatter,
         'episodes_list': macro('episodes_list'),
-        'attributes': attribute_formatter(show_score=True),
-        'attributes_list': macro('attributes_list'),
+        'values': attribute_formatter(show_score=True),
+        'values_list': macro('values_list'),
         'links_list': macro('links_list'),
         'links': count_formatter
     }
@@ -254,7 +254,7 @@ class ExternalObjectView(DefaultView):
 
     def get_query(self):
         q = super(ExternalObjectView, self).get_query()\
-            .options(joinedload(ExternalObject.attributes).
+            .options(joinedload(ExternalObject.values).
                      joinedload(Value.sources))
         if hasattr(self, 'external_object_type'):
             q = q.filter(ExternalObject.type == self.external_object_type)
@@ -268,7 +268,7 @@ class ExternalObjectView(DefaultView):
 
 
 class AllObjectView(ExternalObjectView):
-    column_list = ('id', 'type', 'attributes', 'links_count')
+    column_list = ('id', 'type', 'values', 'links_count')
     column_filters = ExternalObjectView.column_filters + ['type']
 
 
@@ -285,7 +285,7 @@ class MovieView(ExternalObjectView):
 
 class SeriesView(ExternalObjectView):
     external_object_type = ExternalObjectType.SERIES
-    column_details_list = ('id', 'type', 'attributes_list', 'links_list',
+    column_details_list = ('id', 'type', 'values_list', 'links_list',
                            'episodes_list')
     column_list = ('id', 'title', 'date', 'genres', 'country', 'episodes',
                    'links_count')
@@ -295,7 +295,7 @@ class EpisodeView(ExternalObjectView):
     external_object_type = ExternalObjectType.EPISODE
     column_list = ('id', 'title', 'date', 'series', 'season', 'episode',
                    'country', 'links_count')
-    column_details_list = ('id', 'type', 'attributes_list', 'links_list',
+    column_details_list = ('id', 'type', 'values_list', 'links_list',
                            'episode_details')
     column_filters = ExternalObjectView.column_filters + [
         SeriesFilter(name='Episode')
