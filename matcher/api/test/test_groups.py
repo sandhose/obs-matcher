@@ -1,4 +1,5 @@
-from matcher.scheme.platform import Platform, PlatformGroup, PlatformType
+from matcher.scheme.enums import PlatformType
+from matcher.scheme.platform import Platform, PlatformGroup
 
 
 def test_list(client, session):

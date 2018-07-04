@@ -1,7 +1,7 @@
 from wtforms import Form, SelectMultipleField, StringField
 from wtforms.ext.sqlalchemy.fields import QuerySelectMultipleField
 
-from matcher.scheme.platform import PlatformType
+from matcher.scheme.enums import PlatformType
 
 
 class PlatformListFilter(Form):

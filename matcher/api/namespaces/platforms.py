@@ -1,6 +1,7 @@
 from flask_restplus import Namespace, inputs, reqparse
 
-from matcher.scheme.platform import Platform, PlatformType
+from matcher.scheme.enums import PlatformType
+from matcher.scheme.platform import Platform
 
 from .. import models, pagination
 from ..inputs import custom_enum

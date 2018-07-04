@@ -1,0 +1,35 @@
+{% macro attribute(list) %}
+  {% if list %}
+    {% for value in list[:5] %}
+      {%- if loop.first -%}
+        <b>{{ value }}</b>
+      {%- else -%}
+        {{ value }}
+      {%- endif -%}
+      {%- if not loop.last %}, {% endif %}
+    {% endfor %}
+  {% else %}
+    <span class="text-muted">–</span>
+  {% endif %}
+{% endmacro %}
+
+<table class="table">
+  <thead>
+    <tr>
+      <td>ID</td>
+      <td>Type</td>
+      <td>Titles</td>
+      <td>Countries</td>
+    </tr>
+  </thead>
+  <tbody>
+    {% for object in objects %}
+      <tr>
+        <td>{{ object.id }}</td>
+        <td><span class="badge badge-pill badge-{{ object.type | badge_color }}">{{ object.type | upper }}</span></td>
+        <td>{{ attribute(object.attributes.titles) }}</td>
+        <td>{{ attribute(object.attributes.countries) }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>

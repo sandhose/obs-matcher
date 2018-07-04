@@ -32,31 +32,16 @@ from ..exceptions import (AmbiguousLinkError, ExternalIDMismatchError,
                           ObjectTypeMismatchError, UnknownAttribute,
                           UnknownRelation,)
 from ..utils import Lock
-from .platform import Platform, PlatformType
-from .utils import CustomEnum
-from .value import Value, ValueSource, ValueType
+from .enums import (ExternalObjectType, Gender, PlatformType, RoleType,
+                    ValueType,)
+from .platform import Platform
+from .value import Value, ValueSource
 from .views import AttributesView
 
 lookup_lock = Lock('lookup')
 links_lock = Lock('links')
 role_lock = Lock('role')
 attributes_lock = Lock('attribute')
-
-
-class ExternalObjectType(CustomEnum):
-    """A type of object in database."""
-
-    PERSON = 1
-    """Represents a person. Can be an actor, director, or anything else"""
-
-    MOVIE = 2
-    """Represents a single movie"""
-
-    EPISODE = 3
-    """Represents an episode of a series' season"""
-
-    SERIES = 4
-    """Represents a (TV) series"""
 
 
 scrap_link = Table(
@@ -197,7 +182,9 @@ class ExternalObject(Base):
                           cascade='all, delete-orphan')
     """list of :obj:`.value.Value` : arbitrary attributes for this object"""
 
-    attributes = relationship(AttributesView, primaryjoin=(foreign(AttributesView.external_object_id) == id))
+    attributes = relationship(AttributesView,
+                              primaryjoin=(foreign(AttributesView.external_object_id) == id),
+                              uselist=False)
     """:obj:`.views.AttributesView` : a computed list of attributes"""
 
     links_count = column_property(
@@ -842,23 +829,6 @@ class ObjectLink(Base):
     def __repr__(self):
         return '<ObjectLink ({}, {})>'.format(self.external_object,
                                               self.platform)
-
-
-class Gender(CustomEnum):
-    """ISO/IEC 5218 compliant gender enum."""
-
-    NOT_KNOWN = 0
-    MALE = 1
-    FEMALE = 2
-    NOT_APPLICABLE = 9
-
-
-class RoleType(CustomEnum):
-    """A type of role of a person on another object."""
-
-    DIRECTOR = 0
-    ACTOR = 1
-    WRITER = 2
 
 
 class Role(Base):

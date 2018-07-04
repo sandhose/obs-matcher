@@ -4,12 +4,14 @@ from pathlib import Path
 import click
 from flask.cli import with_appcontext
 
+from matcher.scheme.enums import ExternalObjectType, PlatformType, ValueType
+
 
 class ValueTypeParamType(click.ParamType):
     name = 'type'
 
     def convert(self, value, param, ctx):
-        from .scheme.value import ValueType
+        from .scheme.enums import ValueType
         t = ValueType.from_name(value)
 
         if t is None:
@@ -37,7 +39,6 @@ class PlatformTypeParamType(click.ParamType):
     name = 'type'
 
     def convert(self, value, param, ctx):
-        from .scheme.platform import PlatformType
         p = PlatformType.from_name(value)
 
         if p is None:
@@ -50,7 +51,6 @@ class ExternalObjectParamType(click.ParamType):
     name = 'type'
 
     def convert(self, value, param, ctx):
-        from .scheme.object import ExternalObjectType
         t = ExternalObjectType.from_name(value)
 
         if t is None:
@@ -120,8 +120,7 @@ def nuke():
 def match(scrap=None, platform=None, exclude=None, offset=None, type=None, limit=None, all=False):
     """Try to match ExternalObjects with each other"""
     from .scheme.platform import Scrap
-    from .scheme.object import ExternalObject, ExternalObjectType, \
-        ObjectLink, scrap_link
+    from .scheme.object import ExternalObject, ObjectLink, scrap_link
     from .app import db
 
     db.session.add_all((x for x in [scrap, platform] if x))
@@ -380,7 +379,7 @@ def download_countries():
 def fix_titles():
     """Fix countries attributes with no ISO codes"""
     import re
-    from .scheme.value import Value, ValueType, ValueSource
+    from .scheme.value import Value, ValueSource
     from .app import db
     from tqdm import tqdm
 
@@ -420,7 +419,7 @@ def fix_titles():
 def fix_countries():
     """Fix countries attributes with no ISO codes"""
     from sqlalchemy.sql.expression import func
-    from .scheme.value import Value, ValueType, ValueSource
+    from .scheme.value import Value, ValueSource
     from .app import db
     from .countries import lookup
     from tqdm import tqdm
@@ -477,10 +476,9 @@ def export(offset=None, limit=None, platform=[], cap=None, group=None,
     import csv
     import sys
     from tqdm import tqdm
-    from .scheme.object import ExternalObject, ObjectLink, \
-        ExternalObjectType, Episode
-    from .scheme.platform import Platform, PlatformType
-    from .scheme.value import Value, ValueType
+    from .scheme.object import ExternalObject, ObjectLink, Episode
+    from .scheme.platform import Platform
+    from .scheme.value import Value
     from .app import db
 
     EUR28 = ['DE', 'AT', 'BE', 'BG', 'CY', 'HR', 'DK', 'ES', 'EE', 'FI',

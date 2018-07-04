@@ -6,8 +6,9 @@ from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 
 from matcher.mixins import DbMixin
+from matcher.scheme.enums import ScrapStatus
 from matcher.scheme.object import ExternalObject, ObjectLink
-from matcher.scheme.platform import Platform, Scrap, ScrapStatus
+from matcher.scheme.platform import Platform, Scrap
 
 __all__ = ['HomeView']
 

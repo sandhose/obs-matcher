@@ -1,41 +1,11 @@
-import re
-from functools import partial
-
 from sqlalchemy import (Column, Enum, ForeignKey, Integer, Sequence, Text,
                         func, select,)
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 
 from . import Base
-from ..countries import lookup
+from .enums import ValueType
 from .platform import Platform
-from .utils import CustomEnum
-
-
-class ValueType(CustomEnum):
-    TITLE = 1
-    DATE = 2
-    GENRES = 3
-    DURATION = 4
-    NAME = 5
-    COUNTRY = 6
-
-    def fmt(self, value):
-        def m(r, t):
-            result = re.match(r, t)
-            return result.group(1) if result is not None else None
-
-        duration_regex = r'^[^\d]*(\d+(?:.\d*)?)[^\d]*$'
-        date_regex = r'(\d{4})'
-        parenthesis_regex = r'\([^)]*\)'
-        fmt_map = {
-            ValueType.DURATION: partial(m, duration_regex),
-            ValueType.COUNTRY: lookup,
-            ValueType.DATE: partial(m, date_regex),
-            ValueType.TITLE: lambda t: re.sub(parenthesis_regex, '', t).strip()
-        }
-
-        return fmt_map.get(self, lambda _: None)(value)
 
 
 class Value(Base):

@@ -9,10 +9,10 @@ from jinja2 import escape
 from sqlalchemy.orm import joinedload
 
 from ..app import db
-from ..scheme.object import (Episode, ExternalObject, ExternalObjectType,
-                             ObjectLink,)
-from ..scheme.platform import Platform, PlatformType
-from ..scheme.value import Value, ValueType
+from ..scheme.enums import ExternalObjectType, PlatformType, ValueType
+from ..scheme.object import Episode, ExternalObject, ObjectLink
+from ..scheme.platform import Platform
+from ..scheme.value import Value
 from .filters import (ExternalObjectPlatformFilter,
                       ExternalObjectSimilarFilter, SeriesFilter,)
 from .utils import CustomAdminConverter
