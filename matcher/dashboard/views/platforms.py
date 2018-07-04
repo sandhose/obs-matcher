@@ -69,4 +69,11 @@ class ShowPlatformView(View, DbMixin):
             'year': last_scraps(datetime.timedelta(days=365)),
         }
 
+        ctx['objects_sample'] = (
+            self.query(ExternalObject).
+            filter(ExternalObject.id.in_(self.query(ObjectLink.external_object_id).
+                                         filter(ObjectLink.platform == platform))).
+            order_by(func.random())
+        )
+
         return render_template('platforms/show.html', **ctx)

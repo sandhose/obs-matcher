@@ -2,6 +2,8 @@ import pendulum
 from flask import request
 from jinja2 import Markup, escape
 
+from matcher.scheme.enums import ExternalObjectType, PlatformType
+
 
 def relative_date(dt):
     """Intelligently show a human-readable date inside an <abbr>
@@ -27,7 +29,21 @@ def query():
     return dict(query=query)
 
 
+def badge_color(type_):
+    return {
+        ExternalObjectType.MOVIE: 'primary',
+        ExternalObjectType.SERIES: 'success',
+        ExternalObjectType.EPISODE: 'info',
+        ExternalObjectType.PERSON: 'secondary',
+        PlatformType.GLOBAL: 'secondary',
+        PlatformType.INFO: 'info',
+        PlatformType.SVOD: 'danger',
+        PlatformType.TVOD: 'primary',
+    }.get(type_, 'secondary')
+
+
 def register(app):
     """Register the filters and context processors for jinja"""
     app.jinja_env.filters['relative_date'] = relative_date
+    app.jinja_env.filters['badge_color'] = badge_color
     app.context_processor(query)

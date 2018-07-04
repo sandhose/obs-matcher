@@ -4,9 +4,10 @@ from sqlalchemy.dialects.postgresql import (ARRAY, aggregate_order_by, array,
                                             array_agg,)
 
 from . import Base
+from .enums import ValueType
 from .mixins import ViewMixin
 from .utils import crosstab
-from .value import Value, ValueSource, ValueType
+from .value import Value, ValueSource
 
 
 class ValueScoreView(Base, ViewMixin):

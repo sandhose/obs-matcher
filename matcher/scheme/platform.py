@@ -10,7 +10,7 @@ from sqlalchemy.orm import column_property, relationship
 from matcher.exceptions import InvalidStatusTransition
 
 from . import Base
-from .utils import CustomEnum
+from .enums import PlatformType, ScrapStatus
 
 
 class PlatformGroup(Base):
@@ -42,13 +42,6 @@ def slug_default(context):
         return slugify(context.current_parameters['name'])
     else:
         return None
-
-
-class PlatformType(CustomEnum):
-    INFO = 1  # Platforms like IMDb
-    GLOBAL = 2  # Platforms for global IDs
-    TVOD = 3  # Renting VOD
-    SVOD = 4  # Subscription based VOD
 
 
 class Platform(Base):
@@ -140,25 +133,6 @@ class Platform(Base):
 
         objs = [l.external_object for l in self.links]
         ExternalObject.match_objects(objs)
-
-
-class ScrapStatus(CustomEnum):
-    """Enum representing the current status of a given scrap"""
-
-    SCHEDULED = 1
-    """The job isn't started, and waiting to be picked up"""
-
-    RUNNING = 2
-    """The job has been picked up by a worker"""
-
-    ABORTED = 3
-    """The job was aborted while running or pending"""
-
-    SUCCESS = 4
-    """The job has succedded"""
-
-    FAILED = 5
-    """The job has failed"""
 
 
 class Scrap(Base):

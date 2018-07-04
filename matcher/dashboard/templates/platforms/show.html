@@ -79,6 +79,13 @@
           </div>
         </div>
       {% endwith %}
+      {%- with objects=objects_sample[:10] %}
+        <div class="card">
+          <div class="card-body">
+            {% include "objects/_list.html" %}
+          </div>
+        </div>
+      {% endwith %}
     </div>
   </div>
 {% endblock %}

@@ -4,7 +4,8 @@ from http import HTTPStatus
 
 import pytest
 
-from matcher.scheme.platform import Platform, PlatformType, Scrap, ScrapStatus
+from matcher.scheme.enums import PlatformType, ScrapStatus
+from matcher.scheme.platform import Platform, Scrap
 
 
 @pytest.fixture(scope="function")

@@ -1,6 +1,6 @@
 from wtforms import Form, SelectMultipleField
 
-from matcher.scheme.platform import ScrapStatus
+from matcher.scheme.enums import ScrapStatus
 
 from .fields import SelectAJAXMultipleField
 
