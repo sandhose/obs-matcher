@@ -60,7 +60,7 @@ def setup_routes(app, admin=True):
     from .dashboard import blueprint as dashboard
 
     app.register_blueprint(api, url_prefix='/api')
-    app.register_blueprint(dashboard, url_prefix='/dashboard')
+    app.register_blueprint(dashboard, url_prefix='/')
 
     if admin:
         # Do not install admin if upgrades are pending
@@ -71,13 +71,6 @@ def setup_routes(app, admin=True):
 
             if revision in heads:
                 _setup_admin(app)
-
-    @app.route('/')
-    def index():
-        return render_template('index.html', navigation=[
-            {'url': url_for('admin.index'), 'caption': 'Admin'},
-            {'url': url_for('api.root'), 'caption': 'API'},
-        ])
 
 
 def create_app(info=None):
