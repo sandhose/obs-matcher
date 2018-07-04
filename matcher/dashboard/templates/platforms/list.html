@@ -25,8 +25,10 @@
                 <th>Type</th>
                 <th>Name</th>
                 <th>Slug</th>
+                <th>Group</th>
                 <th>Country</th>
                 <th>Links</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -39,8 +41,14 @@
                   </td>
                   <td>{{ platform.name }}</td>
                   <td>{{ platform.slug }}</td>
+                  <td>{{ platform.group.name or "—" }}</td>
                   <td>{{ platform.country or "—" }}</td>
                   <td>{{ platform.links_count }}</td>
+                  <td class="td-actions">
+                    <a class="btn btn-sm btn-link" href="{{ url_for('.show_platform', slug=platform.slug) }}" rel="tooltip" title="View platform">
+                      <i class="material-icons">arrow_forward</i>
+                    </a>
+                  </td>
                 </tr>
               {% endfor %}
             </tbody>
