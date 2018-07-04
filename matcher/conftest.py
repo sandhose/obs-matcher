@@ -2,6 +2,7 @@ import pytest
 from flask import Flask, request
 from flask_injector import FlaskInjector
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import text
 
 from matcher.app import db as _db
 from matcher.app import setup_routes
@@ -28,6 +29,7 @@ def app():
     FlaskInjector(app=app, modules=[configure])
 
     with app.app_context():
+        _db.engine.execute(text('CREATE EXTENSION IF NOT EXISTS tablefunc'))
         Base.metadata.create_all(bind=_db.engine)
 
         yield app
