@@ -2,7 +2,7 @@ import pendulum
 from flask import request
 from jinja2 import Markup, escape
 
-from matcher.scheme.enums import ExternalObjectType, PlatformType
+from matcher.scheme.enums import ExternalObjectType, PlatformType, ScrapStatus
 
 
 def relative_date(dt):
@@ -39,6 +39,11 @@ def badge_color(type_):
         PlatformType.INFO: 'info',
         PlatformType.SVOD: 'danger',
         PlatformType.TVOD: 'primary',
+        ScrapStatus.SCHEDULED: 'secondary',
+        ScrapStatus.RUNNING: 'primary',
+        ScrapStatus.SUCCESS: 'success',
+        ScrapStatus.ABORTED: 'warning',
+        ScrapStatus.FAILED: 'danger',
     }.get(type_, 'secondary')
 
 

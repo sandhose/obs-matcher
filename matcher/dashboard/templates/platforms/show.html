@@ -71,16 +71,22 @@
     <div class="col-8">
       {%- with scraps=platform.scraps[:10] %}
         <div class="card">
+          <div class="card-header card-header-danger">
+            <h4 class="card-title">Latest scraps</h4>
+          </div>
           <div class="card-body">
             {% include "scraps/_list.html" %}
             <div class="d-flex justify-content-end">
-              <a href="{{ url_for('.scrap_list') }}" class="btn btn-primary">See all</a>
+              <a href="{{ url_for('.scrap_list') }}" class="btn btn-danger">See all</a>
             </div>
           </div>
         </div>
       {% endwith %}
       {%- with objects=objects_sample[:10] %}
-        <div class="card">
+        <div class="card mt-5">
+          <div class="card-header card-header-info">
+            <h4 class="card-title">Catalog sample</h4>
+          </div>
           <div class="card-body">
             {% include "objects/_list.html" %}
           </div>
