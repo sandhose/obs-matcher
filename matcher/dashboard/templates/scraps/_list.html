@@ -17,7 +17,7 @@
             <i class="material-icons">chevron_right</i>
           </a>
         </td>
-        <td>{{ scrap.status | upper }}</td>
+        <td><span class="badge badge-pill badge-{{ scrap.status | badge_color }}">{{ scrap.status | upper }}</span></td>
         <td>{{ scrap.date | relative_date }}</td>
         <td>{{ scrap.links_count }}</td>
         <td class="td-actions">

@@ -1,13 +1,16 @@
-{% macro attribute(list) %}
+{% macro attribute(list, limit=100) %}
   {% if list %}
-    {% for value in list[:5] %}
+    {% for value in list[:limit] %}
       {%- if loop.first -%}
         <b>{{ value }}</b>
       {%- else -%}
         {{ value }}
       {%- endif -%}
-      {%- if not loop.last %}, {% endif %}
+      {%- if not loop.last %} | {% endif %}
     {% endfor %}
+    {% if list|length > limit %}
+      | <em>etc.</em>
+    {% endif %}
   {% else %}
     <span class="text-muted">–</span>
   {% endif %}
@@ -16,10 +19,12 @@
 <table class="table">
   <thead>
     <tr>
-      <td>ID</td>
-      <td>Type</td>
-      <td>Titles</td>
-      <td>Countries</td>
+      <th>ID</th>
+      <th>Type</th>
+      <th>Titles</th>
+      <th>Country</th>
+      <th>Links</th>
+      <th></th>
     </tr>
   </thead>
   <tbody>
@@ -27,8 +32,14 @@
       <tr>
         <td>{{ object.id }}</td>
         <td><span class="badge badge-pill badge-{{ object.type | badge_color }}">{{ object.type | upper }}</span></td>
-        <td>{{ attribute(object.attributes.titles) }}</td>
+        <td>{{ attribute(object.attributes.titles, 3) }}</td>
         <td>{{ attribute(object.attributes.countries) }}</td>
+        <td>{{ object.links_count }}</td>
+        <td class="td-actions">
+          <a class="btn btn-sm btn-link" href="{{ url_for('.show_object', id=object.id) }}" rel="tooltip" title="View {{ object.type }}">
+            <i class="material-icons">arrow_forward</i>
+          </a>
+        </td>
       </tr>
     {% endfor %}
   </tbody>
