@@ -21,11 +21,10 @@ def upgrade():
 
 
 def downgrade():
-    op.add_column('platform',
-                  sa.Column('max_rating', sa.INTEGER(), autoincrement=False, nullable=True))
-    op.create_table(
-        'object_link_work_meta', sa.Column('id', sa.INTEGER(), autoincrement=False, nullable=False),
-        sa.Column('original_content', sa.BOOLEAN(), autoincrement=False, nullable=True),
-        sa.Column('rating', sa.INTEGER(), autoincrement=False, nullable=True),
-        sa.ForeignKeyConstraint(['id'], ['object_link.id'], name='object_link_work_meta_id_fkey'),
-        sa.PrimaryKeyConstraint('id', name='object_link_work_meta_pkey'))
+    op.add_column('platform', sa.Column('max_rating', sa.INTEGER(), autoincrement=False, nullable=True))
+    op.create_table('object_link_work_meta',
+                    sa.Column('id', sa.INTEGER(), autoincrement=False, nullable=False),
+                    sa.Column('original_content', sa.BOOLEAN(), autoincrement=False, nullable=True),
+                    sa.Column('rating', sa.INTEGER(), autoincrement=False, nullable=True),
+                    sa.ForeignKeyConstraint(['id'], ['object_link.id'], name='object_link_work_meta_id_fkey'),
+                    sa.PrimaryKeyConstraint('id', name='object_link_work_meta_pkey'))

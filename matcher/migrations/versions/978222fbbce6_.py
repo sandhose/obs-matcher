@@ -1,4 +1,4 @@
-"""empty message
+"""Change platform.url type to JSONB
 
 Revision ID: 978222fbbce6
 Revises: 1698fc05fa83
