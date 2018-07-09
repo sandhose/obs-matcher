@@ -15,11 +15,13 @@ cache: pip
 install:
   - pip install codecov pytest-cov
   - pip install -r requirements-dev.txt
+  - python setup.py develop
 
 before_script:
   - psql -c 'create database matcher;' -U postgres
 
 script:
+  - matcher db upgrade
   - python setup.py flake8
   - pytest --cov=./
 
