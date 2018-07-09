@@ -15,6 +15,7 @@ depends_on = None
 
 
 def upgrade():
+    op.execute("CREATE EXTENSION IF NOT EXISTS tablefunc")
     op.execute("""\
         CREATE MATERIALIZED VIEW vw_value_score AS
         SELECT
