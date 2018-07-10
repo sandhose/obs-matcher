@@ -20,7 +20,7 @@ class PlatformGroup(Base):
     """
     __tablename__ = 'platform_group'
 
-    id = Column(Integer, Sequence('platform_group_id_seq'), primary_key=True)
+    id = Column(Integer, Sequence('platform_group_id_seq', metadata=Base.metadata), primary_key=True)
     name = Column(Text, nullable=False)
 
     platforms = relationship('Platform', back_populates='group')
@@ -56,7 +56,7 @@ class Platform(Base):
         UniqueConstraint('slug'),
     )
 
-    id = Column(Integer, Sequence('platform_id_seq'), primary_key=True)
+    id = Column(Integer, Sequence('platform_id_seq', metadata=Base.metadata), primary_key=True)
     name = Column(Text, nullable=False)
     """A human readable name"""
 
@@ -157,7 +157,7 @@ class Scrap(Base):
 
     __tablename__ = 'scrap'
 
-    id = Column(Integer, Sequence('scrap_id_seq'), primary_key=True)
+    id = Column(Integer, Sequence('scrap_id_seq', metadata=Base.metadata), primary_key=True)
     platform_id = Column(Integer, ForeignKey('platform.id'), nullable=False)
 
     date = Column(DateTime)
