@@ -33,7 +33,10 @@ def app():
         yield app
 
         _db.session.remove()
-        Base.metadata.drop_all(bind=_db.engine)
+
+        # FIXME: Disabled for now, because sequences are not dropped correctly
+        # because of a bug in SQLAlchemy. See https://bitbucket.org/zzzeek/sqlalchemy/issues/4300
+        # Base.metadata.drop_all(bind=_db.engine)
 
 
 @pytest.fixture(scope="function")
