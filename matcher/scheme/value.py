@@ -42,7 +42,7 @@ class Value(Base):
     __tablename__ = 'value'
 
     id = Column(Integer,
-                Sequence('value_id_seq'),
+                Sequence('value_id_seq', metadata=Base.metadata),
                 primary_key=True)
     type = Column(Enum(ValueType, name='value_type'), nullable=False)
     external_object_id = Column(Integer,

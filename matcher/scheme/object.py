@@ -176,7 +176,7 @@ class ExternalObject(Base):
     __tablename__ = 'external_object'
 
     id = Column(Integer,
-                Sequence('external_object_id_seq'),
+                Sequence('external_object_id_seq', metadata=Base.metadata),
                 primary_key=True)
     """:obj:`int` : primary key"""
 
@@ -795,7 +795,7 @@ class ObjectLink(Base):
     __tablename__ = 'object_link'
 
     id = Column(Integer,
-                Sequence('object_link_id_seq'),
+                Sequence('object_link_id_seq', metadata=Base.metadata),
                 primary_key=True)
     """:obj:`int` : primary key"""
 
