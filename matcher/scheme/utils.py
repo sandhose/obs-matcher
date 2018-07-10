@@ -3,6 +3,7 @@ import enum
 from sqlalchemy import column
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import Query
+from sqlalchemy.schema import DDLElement
 from sqlalchemy.sql import FromClause
 
 
@@ -17,6 +18,22 @@ class CustomEnum(enum.Enum):
         if name is None:
             return None
         return getattr(cls, name.upper(), None)
+
+
+class CreateExtension(DDLElement):
+    __visit_name__ = 'create_extension'
+
+    def __init__(self, name):
+        self.name = name
+
+
+@compiles(CreateExtension, 'postgresql')
+def visit_create_extension(element, compiler, **kw):
+    return 'CREATE EXTENSION IF NOT EXISTS {name}'.format(name=element.name)
+
+
+def ensure_extension(name, metadata):
+    CreateExtension(name).execute_at('before_create', metadata)
 
 
 # Borrowed from https://github.com/makmanalp/sqlalchemy-crosstab-postgresql/blob/master/crosstab.py
