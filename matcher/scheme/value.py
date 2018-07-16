@@ -7,6 +7,8 @@ from . import Base
 from .enums import ValueType
 from .platform import Platform
 
+__all__ = ['Value', 'ValueSource']
+
 
 class Value(Base):
     __tablename__ = 'value'

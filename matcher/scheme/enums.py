@@ -31,6 +31,24 @@ class ScrapStatus(CustomEnum):
     """The job has failed"""
 
 
+class ExportFileStatus(CustomEnum):
+    """Current status of an export task"""
+
+    PROCESSING = 1
+    DONE = 2
+
+
+class ExportFilterIterator(CustomEnum):
+    PLATFORMS = 1
+    GROUPS = 2
+    COUNTRIES = 3
+
+
+class ExportRowType(CustomEnum):
+    EXTERNAL_OBJECT = 1
+    OBJECT_LINK = 2
+
+
 class ExternalObjectType(CustomEnum):
     """A type of object in database."""
 

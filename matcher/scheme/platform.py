@@ -2,8 +2,8 @@ from datetime import datetime
 
 from slugify import slugify
 from sqlalchemy import (Boolean, Column, DateTime, Enum, ForeignKey, Integer,
-                        Sequence, String, Text, UniqueConstraint, column, func,
-                        select, table,)
+                        Sequence, String, Table, Text, UniqueConstraint,
+                        column, func, select, table,)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import column_property, relationship
 
@@ -11,6 +11,8 @@ from matcher.exceptions import InvalidStatusTransition
 
 from . import Base
 from .enums import PlatformType, ScrapStatus
+
+__all__ = ['PlatformGroup', 'Platform', 'Scrap', 'Session']
 
 
 class PlatformGroup(Base):
@@ -162,6 +164,8 @@ class Scrap(Base):
     links = relationship('ObjectLink', secondary='scrap_link', back_populates='scraps')
     """Objects (to be) fetched by this job"""
 
+    sessions = relationship('Session', secondary='session_scrap', back_populates='scraps')
+
     links_count = column_property(
         select([func.count('object_link_id')]).
         select_from(table('scrap_link')).
@@ -223,3 +227,27 @@ class Scrap(Base):
 
     def __repr__(self):
         return '<Scrap ({}, {})>'.format(self.platform, self.date)
+
+
+class Session(Base):
+    """Represents a group of scraps, used for statistics and exports"""
+
+    __tablename__ = 'session'
+
+    session_id_seq = Sequence('session_id_seq', metadata=Base.metadata)
+    id = Column(Integer, session_id_seq, server_default=session_id_seq.next_value(), primary_key=True)
+
+    name = Column(String, nullable=False)
+
+    scraps = relationship(Scrap, secondary='session_scrap', back_populates='sessions')
+    """List of scraps in this session"""
+
+    files = relationship('ExportFile', back_populates='session')
+
+
+session_scrap = Table(
+    'session_scrap',
+    Base.metadata,
+    Column('session_id', ForeignKey(Session.id, ondelete='CASCADE', onupdate='CASCADE'), primary_key=True),
+    Column('scrap_id', ForeignKey(Scrap.id, ondelete='CASCADE', onupdate='CASCADE'), primary_key=True),
+)
