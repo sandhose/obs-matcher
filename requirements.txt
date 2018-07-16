@@ -144,8 +144,8 @@ six==1.11.0 \
     # via flask-restful, flask-restplus, python-dateutil
 slugify==0.0.1 \
     --hash=sha256:c5703cc11c1a6947536f3ce8bb306766b8bb5a84a53717f5a703ce0f18235e4c
-sqlalchemy==1.2.9 \
-    --hash=sha256:e21e5561a85dcdf16b8520ae4daec7401c5c24558e0ce004f9b60be75c4b6957
+sqlalchemy==1.2.10 \
+    --hash=sha256:72325e67fb85f6e9ad304c603d83626d1df684fdf0c7ab1f0352e71feeab69d8
 tqdm==4.23.4 \
     --hash=sha256:224291ee0d8c52d91b037fd90806f48c79bcd9994d3b0abc9e44b946a908fccd \
     --hash=sha256:77b8424d41b31e68f437c6dd9cd567aebc9a860507cb42fbd880a5f822d966fe
