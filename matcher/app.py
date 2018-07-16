@@ -4,7 +4,7 @@ import os
 
 from alembic.migration import MigrationContext
 from celery import Celery
-from flask import Flask, render_template, url_for
+from flask import Flask
 from flask.cli import FlaskGroup
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_injector import FlaskInjector

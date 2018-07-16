@@ -21,22 +21,32 @@ from sqlalchemy import (Column, Enum, ForeignKey, Integer,
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import (aliased, column_property, foreign, joinedload,
                             relationship,)
+from sqlalchemy.orm.session import object_session
 from tqdm import tqdm
 from unidecode import unidecode
 
-from . import Base
-from ..app import db
-from ..exceptions import (AmbiguousLinkError, ExternalIDMismatchError,
-                          InvalidMetadata, InvalidMetadataValue,
-                          InvalidRelation, LinkNotFound, LinksOverlap,
-                          ObjectTypeMismatchError, UnknownAttribute,
-                          UnknownRelation,)
-from ..utils import Lock
+from matcher.exceptions import (AmbiguousLinkError, ExternalIDMismatchError,
+                                InvalidMetadata, InvalidMetadataValue,
+                                InvalidRelation, LinkNotFound, LinksOverlap,
+                                ObjectTypeMismatchError, UnknownAttribute,
+                                UnknownRelation,)
+from matcher.utils import Lock
+
+from .base import Base
 from .enums import (ExternalObjectType, Gender, PlatformType, RoleType,
                     ValueType,)
-from .platform import Platform
-from .value import Value, ValueSource
-from .views import AttributesView
+
+# FIXME: this is an ugly wrapper to lazy-load the session. This file should
+# *not* depend on the session therefore it should be passed as an parameter of
+# each method that uses it.
+
+
+class db(object):
+    @property
+    def session():
+        from matcher.app import db
+        return db.session
+
 
 lookup_lock = Lock('lookup')
 links_lock = Lock('links')
@@ -132,6 +142,8 @@ def _normalize_attribute(type, values):
 
 def _normalize_link(link):
     """Map a link to a (platform, external_id) tuple."""
+    from .platform import Platform
+
     if isinstance(link, tuple):
         # arg can already be a tuple…
         (platform, external_id) = link
@@ -182,9 +194,12 @@ class ExternalObject(Base):
                           cascade='all, delete-orphan')
     """list of :obj:`.value.Value` : arbitrary attributes for this object"""
 
-    attributes = relationship(AttributesView,
-                              primaryjoin=(foreign(AttributesView.external_object_id) == id),
-                              uselist=False)
+    @declared_attr
+    def attributes(cls):
+        from .views import AttributesView
+        return relationship(AttributesView,
+                            primaryjoin=(foreign(AttributesView.external_object_id) == cls.id),
+                            uselist=False)
     """:obj:`.views.AttributesView` : a computed list of attributes"""
 
     links_count = column_property(
@@ -213,7 +228,7 @@ class ExternalObject(Base):
 
     @property
     def episodes(self):
-        return db.session.query(Episode).filter(Episode.series == self).\
+        return object_session(self).query(Episode).filter(Episode.series == self).\
             options(joinedload('external_object')).\
             order_by(Episode.season, Episode.episode).\
             limit(10)
@@ -253,6 +268,7 @@ class ExternalObject(Base):
             where this attribute was found
 
         """
+        from .value import Value, ValueSource
         text = str(attribute['text']).strip()
         type = attribute['type']
         if not isinstance(type, ValueType):
@@ -409,6 +425,8 @@ class ExternalObject(Base):
         # FIXME: A lot of other references needs merging (!)
         # First check if the merge is possible
 
+        session = object_session(self)
+
         if self.type is not their.type:
             raise ObjectTypeMismatchError(is_type=self.type,
                                           should_be=their.type)
@@ -424,9 +442,9 @@ class ExternalObject(Base):
         # First merge the links
         for link in list(self.links):
             link.external_object_id = their.id
-            db.session.add(link)
+            session.add(link)
 
-        db.session.commit()
+        session.commit()
 
         # Then merge the attributes
         for our_attr in self.values:
@@ -448,21 +466,21 @@ class ExternalObject(Base):
                 for our_source in list(our_attr.sources):
                     if [s for s in their_attr.sources
                             if s.platform == our_source.platform]:
-                        db.session.delete(our_source)
+                        session.delete(our_source)
                     else:
                         our_source.value = their_attr
                     # their_attr.sources.append(our_source)
 
-        for role in list(db.session.query(Role).filter(Role.external_object == self)):
+        for role in list(session.query(Role).filter(Role.external_object == self)):
             role.external_object = their
 
-        for episode in list(db.session.query(Episode).filter(Episode.external_object == self)):
-            if db.session.query(Episode).filter(Episode.external_object_id == their.id).first() is not None:
-                db.session.delete(episode)
+        for episode in list(session.query(Episode).filter(Episode.external_object == self)):
+            if session.query(Episode).filter(Episode.external_object_id == their.id).first() is not None:
+                session.delete(episode)
             else:
                 episode.external_object = their
 
-        for episode in list(db.session.query(Episode).filter(Episode.series == self)):
+        for episode in list(session.query(Episode).filter(Episode.series == self)):
             episode.series = their
 
     def merge_and_delete(self, their, session):
@@ -546,11 +564,14 @@ class ExternalObject(Base):
             other objects that are similar to this one
 
         """
+        from .value import Value
+
+        session = object_session(self)
 
         # FIXME: use other_value aliased name instead of value_1
-        db.session.execute('SELECT set_limit(0.6)')
+        session.execute('SELECT set_limit(0.6)')
         other_value = aliased(Value)
-        matches = db.session.query(
+        matches = session.query(
             other_value.external_object_id,
             func.sum(func.similarity(Value.text, other_value.text))
         )\
@@ -573,7 +594,7 @@ class ExternalObject(Base):
                            into=v[0],
                            score=v[1])
             for v in matches if not links_overlap(
-                db.session.query(ObjectLink).filter(ObjectLink.external_object_id == v[0]),
+                session.query(ObjectLink).filter(ObjectLink.external_object_id == v[0]),
                 self.links
             )
         ]
@@ -628,7 +649,7 @@ class ExternalObject(Base):
                 continue
 
             factor = 1
-            their = db.session.query(ExternalObject).get(candidate.into)
+            their = session.query(ExternalObject).get(candidate.into)
             for criteria in criterias:
                 factor *= math.pow(2, math.log2(1 + criteria(self, their)))
             yield MergeCandidate(obj=candidate.obj,
@@ -651,10 +672,11 @@ class ExternalObject(Base):
             the top level inserted object
 
         """
+        session = db.session
         obj = ExternalObject.lookup_or_create(
             obj_type=data['type'],
             links=data['links'],
-            session=db.session,
+            session=session,
         )
 
         for key, value in data['meta'].items():
@@ -662,8 +684,8 @@ class ExternalObject(Base):
                 obj.add_meta(key, value)
 
         # We need to save the object first to reload the links
-        db.session.add(obj)
-        db.session.commit()
+        session.add(obj)
+        session.commit()
 
         # This checks if we explicitly scrapped the given object by giving
         # attributes
@@ -671,7 +693,7 @@ class ExternalObject(Base):
         has_attributes = False
 
         if data['attributes'] is not None:
-            with attributes_lock, db.session.begin_nested():
+            with attributes_lock, session.begin_nested():
                 for attribute in data['attributes']:
                     has_attributes = True
                     try:
@@ -682,9 +704,9 @@ class ExternalObject(Base):
 
         if has_attributes:
             # Find the link created for this platform and add the scrap to it
-            with links_lock, db.session.begin_nested():
-                link = db.session.query(ObjectLink).filter(ObjectLink.external_object == obj,
-                                                           ObjectLink.platform == scrap.platform).first()
+            with links_lock, session.begin_nested():
+                link = session.query(ObjectLink).filter(ObjectLink.external_object == obj,
+                                                        ObjectLink.platform == scrap.platform).first()
                 if link is not None:
                     link.scraps.append(scrap)
                 else:
@@ -701,7 +723,7 @@ class ExternalObject(Base):
                 if 'relation' in child:
                     create_relationship(child['relation'], obj, child_obj)
 
-        db.session.commit()
+        session.commit()
 
         return obj
 

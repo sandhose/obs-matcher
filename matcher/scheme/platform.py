@@ -58,7 +58,6 @@ class Platform(Base):
     name = Column(Text, nullable=False)
     """A human readable name"""
 
-    # FIXME: should be unique
     slug = Column(Text, nullable=False, default=slug_default)
     """A unique identifier"""
 
