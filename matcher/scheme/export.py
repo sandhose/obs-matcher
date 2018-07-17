@@ -3,6 +3,7 @@
 import codecs
 import csv
 import gzip
+import re
 from typing import Iterator, List
 
 from jinja2 import Environment
@@ -45,9 +46,13 @@ def _quote(field: any) -> str:
         return ""
 
     field = str(field)
-    if csv_dialect.delimiter in field or csv_dialect.quotechar in field:
+    pattern = r"(" + csv_dialect.quotechar + r"|" + csv_dialect.delimiter + r"|\n|\r)"
+    if re.search(pattern, field) is not None:
+        escaped = field.replace('\n', '\\n').replace('\r', '\\r')
+        escaped = re.sub(pattern, "\\\1", escaped)
         return '{quote}{field}{quote}'.format(quote=csv_dialect.quotechar,
-                                              field=field.replace(csv_dialect.quotechar, '\\' + csv_dialect.quotechar))
+                                              field=escaped)
+
     return field
 
 
