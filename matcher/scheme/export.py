@@ -20,6 +20,21 @@ __all__ = ['ExportTemplate', 'ExportFactory', 'ExportFile']
 csv_dialect = csv.excel_tab
 
 
+class Attributes(object):
+    def __init__(self, view):
+        self.view = view
+
+    def __getattr__(self, name):
+        if self.view is None:
+            return []
+
+        attr = getattr(self.view, name)
+        if attr is None:
+            return []
+
+        return attr
+
+
 # TODO: move this
 def _quote(field: any) -> str:
     """Double-quotes a string if needed"""
@@ -68,7 +83,6 @@ class ExportTemplate(Base):
 
     def to_context(self, row) -> dict:
         """Maps a row from the `row_query` to a dict with everything needed for the template context"""
-        from .views import AttributesView
 
         needs = self.needs
 
@@ -89,8 +103,7 @@ class ExportTemplate(Base):
             context['links']['current'] = current_link.external_id
 
         if 'attributes' in needs:
-            context['attributes'] = external_object.attributes \
-                or AttributesView(titles=[], dates=[], genres=[], durations=[], names=[], countries=[])
+            context['attributes'] = Attributes(external_object.attributes)
 
         if 'zones' in needs:
             context['zones'] = _zones()  # TODO
