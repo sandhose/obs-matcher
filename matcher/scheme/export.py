@@ -46,7 +46,7 @@ def _quote(field: any) -> str:
 
     field = str(field)
     if csv_dialect.delimiter in field or csv_dialect.quotechar in field:
-        return '{quote}{field}{quote}'.format(quote=csv_dialect.quote,
+        return '{quote}{field}{quote}'.format(quote=csv_dialect.quotechar,
                                               field=field.replace(csv_dialect.quotechar, '\\' + csv_dialect.quotechar))
     return field
 
