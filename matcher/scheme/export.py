@@ -116,6 +116,7 @@ class ExportTemplate(Base):
             select([ObjectLink.external_id]).
             where(ObjectLink.platform == platform).
             where(ObjectLink.external_object_id == ExternalObject.id).
+            limit(1).
             correlate(ExternalObject).
             label(platform.slug)
             for platform in platforms
