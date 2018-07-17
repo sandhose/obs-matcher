@@ -1,7 +1,11 @@
 """Exports related models."""
 
+import codecs
+import csv
+import gzip
 from typing import Iterator, List
 
+from jinja2 import Environment
 from sqlalchemy import (Column, Enum, ForeignKey, Integer, Sequence, String,
                         select,)
 from sqlalchemy.dialects.postgresql import HSTORE, JSONB
@@ -12,6 +16,33 @@ from .enums import (ExportFileStatus, ExportFilterIterator, ExportRowType,
                     ExternalObjectType,)
 
 __all__ = ['ExportTemplate', 'ExportFactory', 'ExportFile']
+
+csv_dialect = csv.excel_tab
+
+
+# TODO: move this
+def _quote(field: any) -> str:
+    """Double-quotes a string if needed"""
+    if isinstance(field, bool):
+        return int(field)
+
+    if field is None:
+        return ""
+
+    field = str(field)
+    if csv_dialect.delimiter in field or csv_dialect.quotechar in field:
+        return '{quote}{field}{quote}'.format(quote=csv_dialect.quote,
+                                              field=field.replace(csv_dialect.quotechar, '\\' + csv_dialect.quotechar))
+    return field
+
+
+_jinja_env = Environment()
+_jinja_env.filters['quote'] = _quote
+
+
+class _zones(object):
+    def __getattr__(self, name):
+        return set()
 
 
 class ExportTemplate(Base):
@@ -44,7 +75,7 @@ class ExportTemplate(Base):
         # When iterating over the ObjectLinks, the first element of the row is the link itself
         # The rest of the columns are the same
         if self.row_type == ExportRowType.OBJECT_LINK:
-            current_link, row = row
+            current_link, *row = row
         else:
             current_link = None
 
@@ -58,10 +89,11 @@ class ExportTemplate(Base):
             context['links']['current'] = current_link.external_id
 
         if 'attributes' in needs:
-            context['attributes'] = external_object.attributes or AttributesView()
+            context['attributes'] = external_object.attributes \
+                or AttributesView(titles=[], dates=[], genres=[], durations=[], names=[], countries=[])
 
         if 'zones' in needs:
-            context['zones'] = []  # TODO
+            context['zones'] = _zones()  # TODO
 
         if 'platform' in needs:
             if current_link is None:
@@ -92,7 +124,8 @@ class ExportTemplate(Base):
         if self.row_type == ExportRowType.EXTERNAL_OBJECT:
             query = session.query(ExternalObject, *links_select)
         elif self.row_type == ExportRowType.OBJECT_LINK:
-            query = session.query(ObjectLink, ExternalObject, *links_select)
+            query = session.query(ObjectLink, ExternalObject, *links_select)\
+                .join(ExternalObject, ExternalObject.id == ObjectLink.external_object_id)
 
         if 'attributes' in needs:
             query = query.options(joinedload(ExternalObject.attributes))
@@ -106,8 +139,23 @@ class ExportTemplate(Base):
 
         return query
 
-    def row_contexts(self) -> Iterator[dict]:
-        return (self.to_context(row) for row in self.row_query)
+    def compile_template(self):
+        return _jinja_env.from_string(self.template)
+
+    @property
+    def template(self) -> str:
+        return csv_dialect.delimiter.join(
+            '{{{{ ({value}) | quote }}}}'.format(value=field['value'])
+            for field in self.fields
+        )
+
+    @property
+    def header(self) -> str:
+        return csv_dialect.delimiter.join((_quote(fields['name']) for fields in self.fields))
+
+    @property
+    def column_names(self) -> List[str]:
+        return [field['name'] for field in self.fields]
 
 
 class ExportFactory(Base):
@@ -148,3 +196,29 @@ class ExportFile(Base):
     session_id = Column(Integer, ForeignKey('session.id'), nullable=False)
 
     session = relationship('Session', back_populates='files')
+
+    @property
+    def filtered_query(self):
+        # TODO: apply filters
+        return self.template.row_query
+
+    def row_contexts(self) -> Iterator[dict]:
+        return (self.template.to_context(row) for row in self.filtered_query)
+
+    def render_rows(self) -> Iterator[str]:
+        template = self.template.compile_template()
+        for contexts in self.row_contexts():
+            yield template.render(**contexts)
+
+    def render(self) -> Iterator[str]:
+        yield self.template.header
+        yield from self.render_rows()
+
+    def process(self):
+        # FIXME: move this to a task
+        # FIXME: should we gzip on the fly? where do we store everything?
+        with gzip.open(self.path + '.gz', 'wb') as file:
+            # Write UTF16-LE BOM because Excel.
+            file.write(codecs.BOM_UTF16_LE)
+            for row in self.render():
+                file.write((row + csv_dialect.lineterminator).encode('utf-16-le'))
