@@ -56,8 +56,17 @@ _jinja_env.filters['quote'] = _quote
 
 
 class _zones(object):
-    def __getattr__(self, name):
-        return set()
+    EUROBS = set(['AL', 'AM', 'AT', 'BA', 'BE', 'BG', 'CH', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GE',
+                  'GR', 'HR', 'HU', 'IE', 'IS', 'IT', 'LI', 'LT', 'LU', 'LV', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT',
+                  'RO', 'RU', 'SE', 'SI', 'SK', 'TR'])
+    EURCOE = set(['AD', 'AL', 'AM', 'AT', 'AZ', 'BA', 'BE', 'BG', 'BY', 'CH', 'CS', 'CY', 'CZ', 'DD', 'DE', 'DK', 'EE',
+                  'ES', 'FI', 'FR', 'GB', 'GE', 'GI', 'GL', 'GR', 'HR', 'HU', 'IE', 'IS', 'IT', 'LI', 'LT', 'LU', 'LV',
+                  'MC', 'MD', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'RU', 'SE', 'SI', 'SK', 'SM', 'SU',
+                  'TR', 'UA', 'VA', 'YU'])
+    EUR28 = set(['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT',
+                 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK'])
+    EUREU = EUR28
+    US = set(['US'])
 
 
 class ExportTemplate(Base):
@@ -106,7 +115,7 @@ class ExportTemplate(Base):
             context['attributes'] = Attributes(external_object.attributes)
 
         if 'zones' in needs:
-            context['zones'] = _zones()  # TODO
+            context['zones'] = _zones
 
         if 'platform' in needs:
             if current_link is None:
