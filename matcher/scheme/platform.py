@@ -93,7 +93,8 @@ class Platform(Base):
     links_count = column_property(
         select([func.count('external_object_id')]).
         select_from(table('object_link')).
-        where(column('platform_id') == id)
+        where(column('platform_id') == id),
+        deferred=True
     )
 
     def __repr__(self):
@@ -169,7 +170,8 @@ class Scrap(Base):
     links_count = column_property(
         select([func.count('object_link_id')]).
         select_from(table('scrap_link')).
-        where(column('scrap_id') == id)
+        where(column('scrap_id') == id),
+        deferred=True
     )
 
     def to_status(self, status):

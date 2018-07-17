@@ -205,7 +205,8 @@ class ExternalObject(Base):
     links_count = column_property(
         select([func.count('platform_id')]).
         select_from(table('object_link')).
-        where(column('external_object_id') == id)
+        where(column('external_object_id') == id),
+        deferred=True
     )
 
     @property
