@@ -157,6 +157,8 @@ python-dateutil==2.7.3 \
     --hash=sha256:e27001de32f627c22380a688bcc43ce83504a7bc5da472209b4c70f02829f0b8
 python-editor==1.0.3 \
     --hash=sha256:a3c066acee22a1c94f63938341d4fb374e3fdd69366ed6603d7b24bed1efc565
+python-slugify==1.2.5 \
+    --hash=sha256:5dbb360b882b2dabe0471a1a92f604504d83c2a73c71f2098d004ab62e695534
 pytz==2018.4 \
     --hash=sha256:65ae0c8101309c45772196b21b74c46b2e5d11b6275c45d251b150d5da334555 \
     --hash=sha256:c06425302f2cf668f1bba7a0a03f3c1d34d4ebeef2c72003da308b3947c7f749
@@ -172,10 +174,8 @@ redis==2.10.6 \
 six==1.11.0 \
     --hash=sha256:70e8a77beed4562e7f14fe23a786b54f6296e34344c23bc42f07b15018ff98e9 \
     --hash=sha256:832dc0e10feb1aa2c68dcc57dbb658f1c7e65b9b61af69048abc87a2db00a0eb
-slugify==0.0.1 \
-    --hash=sha256:c5703cc11c1a6947536f3ce8bb306766b8bb5a84a53717f5a703ce0f18235e4c
-sqlalchemy==1.2.9 \
-    --hash=sha256:e21e5561a85dcdf16b8520ae4daec7401c5c24558e0ce004f9b60be75c4b6957
+sqlalchemy==1.2.8 \
+    --hash=sha256:2d5f08f714a886a1382c18be501e614bce50d362384dc089474019ce0768151c
 testfixtures==6.2.0 \
     --hash=sha256:7e4df89a8bf8b8905464160f08aff131a36f0b33654fe4f9e4387afe546eae25 \
     --hash=sha256:bcadbad77526cc5fc38bfb2ab80da810d7bde56ffe4c7fdb8e2bba122ded9620 \

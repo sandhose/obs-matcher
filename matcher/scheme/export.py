@@ -4,21 +4,27 @@ import codecs
 import csv
 import gzip
 import re
-from typing import Iterator, List
+from functools import partial
+from typing import Any, Callable, Dict, Iterator, List, Set
 
 from jinja2 import Environment
+from slugify import slugify
 from sqlalchemy import (Column, Enum, ForeignKey, Integer, Sequence, String,
-                        select,)
+                        func, or_, select,)
 from sqlalchemy.dialects.postgresql import HSTORE, JSONB
 from sqlalchemy.orm import joinedload, object_session, relationship
 
 from .base import Base
-from .enums import (ExportFileStatus, ExportFilterIterator, ExportRowType,
+from .enums import (ExportFactoryIterator, ExportFileStatus, ExportRowType,
                     ExternalObjectType,)
 
 __all__ = ['ExportTemplate', 'ExportFactory', 'ExportFile']
 
 csv_dialect = csv.excel_tab
+
+ExportFactoryTemplateContext = Dict[str, Any]
+ExportFileFilters = Dict[str, str]
+ExportFileContext = Dict[str, Any]
 
 
 class Attributes(object):
@@ -37,10 +43,10 @@ class Attributes(object):
 
 
 # TODO: move this
-def _quote(field: any) -> str:
+def _quote(field: Any) -> str:
     """Double-quotes a string if needed"""
     if isinstance(field, bool):
-        return int(field)
+        return str(int(field))
 
     if field is None:
         return ""
@@ -58,9 +64,12 @@ def _quote(field: any) -> str:
 
 _jinja_env = Environment()
 _jinja_env.filters['quote'] = _quote
+_jinja_env.filters['slugify'] = slugify
+_jinja_env.filters['pathify'] = partial(slugify, separator='_')
 
 
 class _zones(object):
+    # FIXME: those are hard-coded, but they should be either loaded from config or from DB
     EUROBS = set(['AL', 'AM', 'AT', 'BA', 'BE', 'BG', 'CH', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GE',
                   'GR', 'HR', 'HU', 'IE', 'IS', 'IT', 'LI', 'LT', 'LU', 'LV', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT',
                   'RO', 'RU', 'SE', 'SI', 'SK', 'TR'])
@@ -88,7 +97,7 @@ class ExportTemplate(Base):
     files = relationship('ExportFile', back_populates='template')
 
     @property
-    def needs(self) -> List[str]:
+    def needs(self) -> Set[str]:
         return set((need for field in self.fields for need in field['needs']))
 
     @property
@@ -197,11 +206,75 @@ class ExportFactory(Base):
     export_template_id = Column(Integer, ForeignKey(ExportTemplate.id), nullable=False)
     template = relationship(ExportTemplate, back_populates='factories')
 
-    iterator = Column(Enum(ExportFilterIterator))  # can be NULL
+    iterator = Column(Enum(ExportFactoryIterator))  # can be NULL
     file_path_template = Column(String, nullable=False)
     filters_template = Column(HSTORE, nullable=False)
 
     files = relationship('ExportFile', back_populates='factory')
+
+    def iterate(self, session=None) -> Iterator[ExportFactoryTemplateContext]:
+        from . import Platform, PlatformGroup
+        from .enums import PlatformType
+
+        if session is None:
+            session = object_session(self)
+
+        query = session.query
+
+        if self.iterator is ExportFactoryIterator.PLATFORMS:
+            platforms = query(Platform).\
+                filter(or_(Platform.type == PlatformType.TVOD, Platform.type == PlatformType.SVOD)).\
+                filter(Platform.ignore_in_exports.is_(False))
+
+            for platform in platforms:
+                yield {'platform': platform}
+
+        elif self.iterator is ExportFactoryIterator.GROUPS:
+            for group in query(PlatformGroup):
+                yield {'group': group}
+
+        elif self.iterator is ExportFactoryIterator.COUNTRIES:
+            countries = query(Platform.country).\
+                order_by(Platform.country).\
+                filter(func.char_length(Platform.country) == 2).\
+                filter(or_(Platform.type == PlatformType.TVOD, Platform.type == PlatformType.SVOD)).\
+                filter(Platform.ignore_in_exports.is_(False)).\
+                distinct()
+
+            # SQLA tends to return tuples even when there is only one column
+            for (country, ) in countries:
+                yield {'country': country}
+
+        else:
+            yield {}
+
+    def compile_filters_template(self) -> Callable[[ExportFactoryTemplateContext], ExportFileFilters]:
+        templates = [
+            (key, _jinja_env.from_string(value))
+            for (key, value) in self.filters_template.items()
+        ]
+
+        return lambda **context: {key: value.render(**context) for (key, value) in templates}
+
+    def compile_path_template(self) -> Callable[[ExportFactoryTemplateContext], str]:
+        template = _jinja_env.from_string(self.file_path_template)
+        return lambda context: template.render(**context)
+
+    def generate(self, scrap_session, session=None) -> Iterator['ExportFile']:
+        path_template = self.compile_path_template()
+        filters_template = self.compile_filters_template()
+
+        for context in self.iterate(session=session):
+            context = {
+                'session': scrap_session,
+                **context
+            }
+
+            yield ExportFile(factory=self,
+                             template=self.template,
+                             session=scrap_session,
+                             path=path_template(context),
+                             filters=filters_template(context))
 
 
 class ExportFile(Base):
@@ -230,13 +303,13 @@ class ExportFile(Base):
         # TODO: apply filters
         return self.template.row_query
 
-    def row_contexts(self) -> Iterator[dict]:
+    def row_contexts(self) -> Iterator[ExportFileContext]:
         return (self.template.to_context(row) for row in self.filtered_query)
 
     def render_rows(self) -> Iterator[str]:
         template = self.template.compile_template()
-        for contexts in self.row_contexts():
-            yield template.render(**contexts)
+        for context in self.row_contexts():
+            yield template.render(**context)
 
     def render(self) -> Iterator[str]:
         yield self.template.header

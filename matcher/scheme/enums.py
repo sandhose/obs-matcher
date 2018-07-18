@@ -38,7 +38,7 @@ class ExportFileStatus(CustomEnum):
     DONE = 2
 
 
-class ExportFilterIterator(CustomEnum):
+class ExportFactoryIterator(CustomEnum):
     PLATFORMS = 1
     GROUPS = 2
     COUNTRIES = 3

@@ -3,7 +3,7 @@ import logging
 import os
 
 from alembic.migration import MigrationContext
-from celery import Celery
+from celery import Celery, Task
 from flask import Flask
 from flask.cli import FlaskGroup
 from flask_debugtoolbar import DebugToolbarExtension
@@ -41,7 +41,7 @@ class CeleryModule(Module):
         )
         celery.conf.update(app.config)
 
-        class ContextTask(celery.Task):
+        class ContextTask(Task):
             def __call__(self, *args, **kwargs):
                 with app.app_context():
                     return self.run(*args, **kwargs)

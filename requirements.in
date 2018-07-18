@@ -10,9 +10,9 @@ Flask-SQLAlchemy
 gunicorn
 pendulum
 psycopg2-binary
+python-slugify
 raven[flask]
 redis
-slugify
 SQLAlchemy
 tqdm
 Unidecode
