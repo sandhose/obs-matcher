@@ -2,7 +2,7 @@ import enum
 
 from sqlalchemy import column
 from sqlalchemy.ext.compiler import compiles
-from sqlalchemy.orm import Query
+from sqlalchemy.orm import Query, object_session
 from sqlalchemy.schema import DDLElement
 from sqlalchemy.sql import FromClause
 
@@ -34,6 +34,17 @@ def visit_create_extension(element, compiler, **kw):
 
 def ensure_extension(name, metadata):
     CreateExtension(name).execute_at('before_create', metadata)
+
+
+def inject_session(f):
+    """Inject the session as parameters from object_session if not present"""
+
+    def wrap(self, *args, session=None, **kwargs):
+        if session is None:
+            session = object_session(self)
+        kwargs['session'] = session
+        return f(self, *args, **kwargs)
+    return wrap
 
 
 # Borrowed from https://github.com/makmanalp/sqlalchemy-crosstab-postgresql/blob/master/crosstab.py

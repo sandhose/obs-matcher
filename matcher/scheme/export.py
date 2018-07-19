@@ -12,12 +12,12 @@ from slugify import slugify
 from sqlalchemy import (Column, Enum, ForeignKey, Integer, Sequence, String,
                         func, or_, select,)
 from sqlalchemy.dialects.postgresql import HSTORE, JSONB
-from sqlalchemy.orm import (contains_eager, object_session, relationship,
-                            subqueryload,)
+from sqlalchemy.orm import contains_eager, relationship, subqueryload
 
 from .base import Base
 from .enums import (ExportFactoryIterator, ExportFileStatus, ExportRowType,
                     ExternalObjectType, PlatformType,)
+from .utils import inject_session
 
 __all__ = ['ExportTemplate', 'ExportFactory', 'ExportFile']
 
@@ -93,22 +93,25 @@ class ExportTemplate(Base):
 
     @property
     def needs(self) -> Set[str]:
-        return meta.find_undeclared_variables(self.parsed_template)
+        """Find the needed context keys from the template"""
+        return meta.find_undeclared_variables(self._parsed_template)
 
     @property
-    def parsed_template(self):
+    def _parsed_template(self):
         return _jinja_env.parse(self.template)
 
     @property
     def links(self) -> List[str]:
+        """Find links from the fields value template"""
         found_links = set()
-        for n in self.parsed_template.find_all(nodes.Getitem):
+        for n in self._parsed_template.find_all(nodes.Getitem):
+            # Check if it is the `links` variable that is being accessed
             if isinstance(n.node, nodes.Name) \
                     and getattr(n.node, 'name') == "links" \
                     and getattr(n.node, "ctx") == "load":
-                found_links.add(n.arg.value)  # It will raise if it is not a Const
+                found_links.add(n.arg.value)  # It might raise if it is not a Const
 
-        # Links are sorted because the order needs to be consistant when querying
+        # Links are sorted because the order needs to be consistent when querying
         return sorted(found_links)
 
     def to_context(self, row) -> dict:
@@ -147,11 +150,19 @@ class ExportTemplate(Base):
         return context
 
     @property
-    def row_query(self):
+    def valid_template(self):
+        allowed_fields = ["external_object", "zones", "links", "attributes"]
+
+        if self.row_type == ExportRowType.OBJECT_LINK:
+            allowed_fields.append("platform")
+
+        return all(need in allowed_fields for need in self.needs)
+
+    @inject_session
+    def get_row_query(self, session=None):
         from .object import ObjectLink, ExternalObject
         from .platform import Platform
 
-        session = object_session(self)
         needs = self.needs
 
         if 'platform' in needs and self.row_type == ExportRowType.EXTERNAL_OBJECT:
@@ -225,12 +236,10 @@ class ExportFactory(Base):
 
     files = relationship('ExportFile', back_populates='factory')
 
+    @inject_session
     def iterate(self, session=None) -> Iterator[ExportFactoryTemplateContext]:
         from . import Platform, PlatformGroup
         from .enums import PlatformType
-
-        if session is None:
-            session = object_session(self)
 
         query = session.query
 
@@ -273,6 +282,7 @@ class ExportFactory(Base):
         template = _jinja_env.from_string(self.file_path_template)
         return lambda context: template.render(**context)
 
+    @inject_session
     def generate(self, scrap_session, session=None) -> Iterator['ExportFile']:
         path_template = self.compile_path_template()
         filters_template = self.compile_filters_template()
@@ -311,12 +321,13 @@ class ExportFile(Base):
 
     session = relationship('Session', back_populates='files')
 
-    @property
-    def filtered_query(self):
+    @inject_session
+    def get_filtered_query(self, session=None):
         from .platform import Platform
 
-        # TODO: apply filters
-        query = self.template.row_query
+        assert self.template.valid_template, "invalid template"
+
+        query = self.template.get_row_query(session=session)
 
         for (key, values) in self.filters.items():
             # A filter might look like `platform.id => 19, 51`
@@ -341,7 +352,7 @@ class ExportFile(Base):
         return query
 
     def row_contexts(self) -> Iterator[ExportFileContext]:
-        return (self.template.to_context(row) for row in self.filtered_query)
+        return (self.template.to_context(row) for row in self.get_filtered_query())
 
     def render_rows(self) -> Iterator[str]:
         template = self.template.compile_template()
