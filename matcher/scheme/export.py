@@ -7,16 +7,17 @@ import re
 from functools import partial
 from typing import Any, Callable, Dict, Iterator, List, Set
 
-from jinja2 import Environment
+from jinja2 import Environment, meta, nodes
 from slugify import slugify
 from sqlalchemy import (Column, Enum, ForeignKey, Integer, Sequence, String,
                         func, or_, select,)
 from sqlalchemy.dialects.postgresql import HSTORE, JSONB
-from sqlalchemy.orm import joinedload, object_session, relationship
+from sqlalchemy.orm import (contains_eager, object_session, relationship,
+                            subqueryload,)
 
 from .base import Base
 from .enums import (ExportFactoryIterator, ExportFileStatus, ExportRowType,
-                    ExternalObjectType,)
+                    ExternalObjectType, PlatformType,)
 
 __all__ = ['ExportTemplate', 'ExportFactory', 'ExportFile']
 
@@ -29,17 +30,11 @@ ExportFileContext = Dict[str, Any]
 
 class Attributes(object):
     def __init__(self, view):
-        self.view = view
+        from .views import AttributesView
+        self.view = view or AttributesView()
 
     def __getattr__(self, name):
-        if self.view is None:
-            return []
-
-        attr = getattr(self.view, name)
-        if attr is None:
-            return []
-
-        return attr
+        return getattr(self.view, name) or []
 
 
 # TODO: move this
@@ -52,10 +47,10 @@ def _quote(field: Any) -> str:
         return ""
 
     field = str(field)
-    pattern = r"(" + csv_dialect.quotechar + r"|" + csv_dialect.delimiter + r"|\n|\r)"
+    pattern = re.compile("(" + csv_dialect.quotechar + "|" + csv_dialect.delimiter + "|\n|\r)")
     if re.search(pattern, field) is not None:
         escaped = field.replace('\n', '\\n').replace('\r', '\\r')
-        escaped = re.sub(pattern, "\\\1", escaped)
+        escaped = re.sub(pattern, r"\\\1", escaped)
         return '{quote}{field}{quote}'.format(quote=csv_dialect.quotechar,
                                               field=escaped)
 
@@ -98,11 +93,23 @@ class ExportTemplate(Base):
 
     @property
     def needs(self) -> Set[str]:
-        return set((need for field in self.fields for need in field['needs']))
+        return meta.find_undeclared_variables(self.parsed_template)
+
+    @property
+    def parsed_template(self):
+        return _jinja_env.parse(self.template)
 
     @property
     def links(self) -> List[str]:
-        return [need.split('.')[1] for need in self.needs if 'links' in need]
+        found_links = set()
+        for n in self.parsed_template.find_all(nodes.Getitem):
+            if isinstance(n.node, nodes.Name) \
+                    and getattr(n.node, 'name') == "links" \
+                    and getattr(n.node, "ctx") == "load":
+                found_links.add(n.arg.value)  # It will raise if it is not a Const
+
+        # Links are sorted because the order needs to be consistant when querying
+        return sorted(found_links)
 
     def to_context(self, row) -> dict:
         """Maps a row from the `row_query` to a dict with everything needed for the template context"""
@@ -147,6 +154,9 @@ class ExportTemplate(Base):
         session = object_session(self)
         needs = self.needs
 
+        if 'platform' in needs and self.row_type == ExportRowType.EXTERNAL_OBJECT:
+            raise Exception("Platform can't be queried when the row_type is EXTERNAL_OBJECT")
+
         platforms = [Platform.lookup(session, slug) for slug in self.links]
         links_select = [
             select([ObjectLink.external_id]).
@@ -159,40 +169,43 @@ class ExportTemplate(Base):
         ]
 
         if self.row_type == ExportRowType.EXTERNAL_OBJECT:
-            query = session.query(ExternalObject, *links_select)
+            query = (
+                session.query(ExternalObject, *links_select).
+                join(ObjectLink, ExternalObject.id == ObjectLink.external_object_id).
+                group_by(ExternalObject.id)
+            )
         elif self.row_type == ExportRowType.OBJECT_LINK:
             query = session.query(ObjectLink, ExternalObject, *links_select)\
                 .join(ExternalObject, ExternalObject.id == ObjectLink.external_object_id)
 
         if 'attributes' in needs:
-            query = query.options(joinedload(ExternalObject.attributes))
+            query = query.options(subqueryload(ExternalObject.attributes))
 
         if 'platform' in needs:
-            if self.row_type == ExportRowType.EXTERNAL_OBJECT:
-                raise Exception("Platform can't be queried when the row_type is EXTERNAL_OBJECT")
-            query = query.options(joinedload(ObjectLink.platform).joinedload(Platform.group))
+            query = (
+                query.
+                join(Platform, ObjectLink.platform_id == Platform.id).
+                options(contains_eager(ObjectLink.platform).joinedload(Platform.group))
+            )
 
         query = query.filter(ExternalObject.type == self.external_object_type)
 
         return query
 
-    def compile_template(self):
-        return _jinja_env.from_string(self.template)
+    def compile_template(self) -> Callable[[dict], str]:
+        template = _jinja_env.from_string(self.template)
+        return lambda context: template.render(**context)
 
     @property
     def template(self) -> str:
         return csv_dialect.delimiter.join(
-            '{{{{ ({value}) | quote }}}}'.format(value=field['value'])
+            '{{{{ ({value}) | quote }}}}'.format(value=field.get('value', '""'))
             for field in self.fields
         )
 
     @property
     def header(self) -> str:
-        return csv_dialect.delimiter.join((_quote(fields['name']) for fields in self.fields))
-
-    @property
-    def column_names(self) -> List[str]:
-        return [field['name'] for field in self.fields]
+        return csv_dialect.delimiter.join((_quote(field.get('name', None)) for field in self.fields))
 
 
 class ExportFactory(Base):
@@ -300,8 +313,32 @@ class ExportFile(Base):
 
     @property
     def filtered_query(self):
+        from .platform import Platform
+
         # TODO: apply filters
-        return self.template.row_query
+        query = self.template.row_query
+
+        for (key, values) in self.filters.items():
+            # A filter might look like `platform.id => 19, 51`
+            context, attribute = key.split('.')
+            # For now, we strip and uppercase each value
+            values = [v.strip().upper() for v in values.split(',')]
+
+            if context == 'platform':
+                if not hasattr(Platform, attribute):
+                    raise NotImplementedError
+
+                # Cast accordingly
+                if attribute == 'id' or attribute == 'group_id':
+                    values = [int(v) for v in values]
+                elif attribute == 'type':
+                    values = [PlatformType.from_string(v) for v in values]
+
+                query.filter(getattr(Platform, attribute).in_(values))
+            else:
+                raise NotImplementedError
+
+        return query
 
     def row_contexts(self) -> Iterator[ExportFileContext]:
         return (self.template.to_context(row) for row in self.filtered_query)
@@ -309,7 +346,7 @@ class ExportFile(Base):
     def render_rows(self) -> Iterator[str]:
         template = self.template.compile_template()
         for context in self.row_contexts():
-            yield template.render(**context)
+            yield template(context)
 
     def render(self) -> Iterator[str]:
         yield self.template.header
