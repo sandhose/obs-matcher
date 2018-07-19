@@ -1,7 +1,9 @@
+from itertools import chain
+
 from pytest import raises
 
 from matcher.scheme import ExportTemplate, ExternalObject, ObjectLink, Platform
-from matcher.scheme.enums import ExportRowType
+from matcher.scheme.enums import ExportRowType, ExternalObjectType
 from matcher.scheme.views import AttributesView
 
 
@@ -168,3 +170,110 @@ class TestExportTemplate(object):
         assert ExportTemplate(fields=[{"value": "external_object.id"},
                                       {"value": "attributes.titles[0]"}],
                               row_type=ExportRowType.EXTERNAL_OBJECT).valid_template
+
+    def test_row_query(self, session):
+        platforms = [Platform(slug='platform-' + str(i), name='Platform ' + str(i)) for i in range(4)]
+        series = [ExternalObject(type=ExternalObjectType.SERIES) for _ in range(2)]
+        movies = [ExternalObject(type=ExternalObjectType.MOVIE) for _ in range(3)]
+
+        links = [ObjectLink(platform=p, external_object=eo, external_id='link-{}-{}-{}'.format(p.slug, eo.type, index))
+                 for (index, eo) in chain(enumerate(series), enumerate(movies))
+                 for p in platforms]
+
+        session.add_all(platforms + movies + series + links)
+        session.commit()
+
+        # Start by checking the row count matches
+        assert ExportTemplate(
+            external_object_type=ExternalObjectType.MOVIE,
+            row_type=ExportRowType.EXTERNAL_OBJECT,
+            fields=[]
+        ).get_row_query(session=session).count() == len(movies)
+
+        assert ExportTemplate(
+            external_object_type=ExternalObjectType.SERIES,
+            row_type=ExportRowType.EXTERNAL_OBJECT,
+            fields=[]
+        ).get_row_query(session=session).count() == len(series)
+
+        assert ExportTemplate(
+            external_object_type=ExternalObjectType.MOVIE,
+            row_type=ExportRowType.OBJECT_LINK,
+            fields=[]
+        ).get_row_query(session=session).count() == len(movies) * len(platforms)
+
+        assert ExportTemplate(
+            external_object_type=ExternalObjectType.SERIES,
+            row_type=ExportRowType.OBJECT_LINK,
+            fields=[]
+        ).get_row_query(session=session).count() == len(series) * len(platforms)
+
+        # Results are wrapped in sets because the order is not stable
+        assert set(ExportTemplate(
+            external_object_type=ExternalObjectType.SERIES,
+            row_type=ExportRowType.EXTERNAL_OBJECT,
+            fields=[
+                {'value': 'links["platform-1"]'},
+                {'value': 'links["platform-3"]'},
+            ]
+        ).get_row_query(session=session)) == set([
+            (series[0], 'link-platform-1-series-0', 'link-platform-3-series-0'),
+            (series[1], 'link-platform-1-series-1', 'link-platform-3-series-1'),
+        ])
+
+        # Results are wrapped in sets because the order is not stable
+        assert set(ExportTemplate(
+            external_object_type=ExternalObjectType.SERIES,
+            row_type=ExportRowType.OBJECT_LINK,
+            fields=[
+                {'value': 'attributes'},
+                {'value': 'platform'},
+                {'value': 'links["platform-0"]'},
+                {'value': 'links["platform-2"]'},
+            ]
+        ).get_row_query(session=session)) == set([
+            (links[0], series[0], 'link-platform-0-series-0', 'link-platform-2-series-0'),
+            (links[1], series[0], 'link-platform-0-series-0', 'link-platform-2-series-0'),
+            (links[2], series[0], 'link-platform-0-series-0', 'link-platform-2-series-0'),
+            (links[3], series[0], 'link-platform-0-series-0', 'link-platform-2-series-0'),
+            (links[4], series[1], 'link-platform-0-series-1', 'link-platform-2-series-1'),
+            (links[5], series[1], 'link-platform-0-series-1', 'link-platform-2-series-1'),
+            (links[6], series[1], 'link-platform-0-series-1', 'link-platform-2-series-1'),
+            (links[7], series[1], 'link-platform-0-series-1', 'link-platform-2-series-1')
+        ])
+
+        # Checking the generated contexts
+        template = ExportTemplate(
+            external_object_type=ExternalObjectType.SERIES,
+            row_type=ExportRowType.OBJECT_LINK,
+            fields=[
+                {'value': 'platform'},
+                {'value': 'links["platform-0"]'},
+            ]
+        )
+
+        # dicts are not hashable, we need to sort manually
+        def sort_key(d):
+            return d['links']['current']
+
+        rows = list(template.to_context(row) for row in template.get_row_query(session=session))
+        expected = [
+            {'external_object': series[0], 'platform': platforms[0],
+             'links': {'current': links[0].external_id, 'platform-0': 'link-platform-0-series-0'}},
+            {'external_object': series[0], 'platform': platforms[1],
+             'links': {'current': links[1].external_id, 'platform-0': 'link-platform-0-series-0'}},
+            {'external_object': series[0], 'platform': platforms[2],
+             'links': {'current': links[2].external_id, 'platform-0': 'link-platform-0-series-0'}},
+            {'external_object': series[0], 'platform': platforms[3],
+             'links': {'current': links[3].external_id, 'platform-0': 'link-platform-0-series-0'}},
+            {'external_object': series[1], 'platform': platforms[0],
+             'links': {'current': links[4].external_id, 'platform-0': 'link-platform-0-series-1'}},
+            {'external_object': series[1], 'platform': platforms[1],
+             'links': {'current': links[5].external_id, 'platform-0': 'link-platform-0-series-1'}},
+            {'external_object': series[1], 'platform': platforms[2],
+             'links': {'current': links[6].external_id, 'platform-0': 'link-platform-0-series-1'}},
+            {'external_object': series[1], 'platform': platforms[3],
+             'links': {'current': links[7].external_id, 'platform-0': 'link-platform-0-series-1'}},
+        ]
+
+        assert sorted(rows, key=sort_key) == sorted(expected, key=sort_key)

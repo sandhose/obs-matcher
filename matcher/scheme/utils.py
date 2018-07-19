@@ -42,6 +42,8 @@ def inject_session(f):
     def wrap(self, *args, session=None, **kwargs):
         if session is None:
             session = object_session(self)
+
+        assert session is not None, "cannot continue without session"
         kwargs['session'] = session
         return f(self, *args, **kwargs)
     return wrap
