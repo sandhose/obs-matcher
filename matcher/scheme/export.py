@@ -7,7 +7,7 @@ import re
 from functools import partial
 from typing import Any, Callable, Dict, Iterator, List, Set
 
-from jinja2 import Environment, meta, nodes, StrictUndefined
+from jinja2 import Environment, StrictUndefined, meta, nodes
 from slugify import slugify
 from sqlalchemy import (Column, Enum, ForeignKey, Integer, Sequence, String,
                         func, or_, select,)
@@ -351,23 +351,27 @@ class ExportFile(Base):
 
         return query
 
-    def row_contexts(self) -> Iterator[ExportFileContext]:
-        return (self.template.to_context(row) for row in self.get_filtered_query())
+    @inject_session
+    def row_contexts(self, session=None) -> Iterator[ExportFileContext]:
+        return (self.template.to_context(row) for row in self.get_filtered_query(session=session))
 
-    def render_rows(self) -> Iterator[str]:
+    @inject_session
+    def render_rows(self, session=None) -> Iterator[str]:
         template = self.template.compile_template()
-        for context in self.row_contexts():
+        for context in self.row_contexts(session=session):
             yield template(context)
 
-    def render(self) -> Iterator[str]:
+    @inject_session
+    def render(self, session=None) -> Iterator[str]:
         yield self.template.header
-        yield from self.render_rows()
+        yield from self.render_rows(session=session)
 
-    def process(self):
+    @inject_session
+    def process(self, session=None):
         # FIXME: move this to a task
         # FIXME: should we gzip on the fly? where do we store everything?
         with gzip.open(self.path + '.gz', 'wb') as file:
             # Write UTF16-LE BOM because Excel.
             file.write(codecs.BOM_UTF16_LE)
-            for row in self.render():
+            for row in self.render(session=session):
                 file.write((row + csv_dialect.lineterminator).encode('utf-16-le'))
