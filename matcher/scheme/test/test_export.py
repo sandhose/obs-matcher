@@ -1,9 +1,13 @@
 from itertools import chain
 
+from jinja2.exceptions import UndefinedError
 from pytest import raises
 
-from matcher.scheme import ExportTemplate, ExternalObject, ObjectLink, Platform
-from matcher.scheme.enums import ExportRowType, ExternalObjectType
+from matcher.scheme import (ExportFactory, ExportFile, ExportTemplate,
+                            ExternalObject, ObjectLink, Platform,
+                            PlatformGroup, Session, Value, ValueSource,)
+from matcher.scheme.enums import (ExportFactoryIterator, ExportRowType,
+                                  ExternalObjectType, PlatformType, ValueType,)
 from matcher.scheme.views import AttributesView
 
 
@@ -277,3 +281,217 @@ class TestExportTemplate(object):
         ]
 
         assert sorted(rows, key=sort_key) == sorted(expected, key=sort_key)
+
+
+class TestExportFactory(object):
+    def test_iterate(self, session):
+        platforms = [
+            Platform(name='TVOD FR', type=PlatformType.TVOD, country='FR'),
+            Platform(name='TVOD GB', type=PlatformType.TVOD, country='GB'),
+            Platform(name='SVOD FR', type=PlatformType.SVOD, country='FR'),
+            Platform(name='SVOD IT', type=PlatformType.SVOD, country='IT'),
+            Platform(name='SVOD DE', type=PlatformType.SVOD, country='DE'),
+            Platform(name='SVOD Global', type=PlatformType.GLOBAL),
+            Platform(name='Ignored', type=PlatformType.TVOD, ignore_in_exports=True, country='RU'),
+            Platform(name='Info', type=PlatformType.INFO),
+            Platform(name='No group ES', type=PlatformType.TVOD, country='ES'),
+        ]
+
+        groups = [
+            PlatformGroup(name='Group TVOD', platforms=[platforms[0], platforms[1]]),
+            PlatformGroup(name='Group SVOD', platforms=[platforms[2], platforms[3], platforms[4], platforms[5]]),
+        ]
+
+        session.add_all(platforms + groups)
+        session.commit()
+
+        # FIXME: the order might not be stable
+        assert list(ExportFactory(iterator=ExportFactoryIterator.PLATFORMS).iterate(session=session)) == [
+            {'platform': platforms[0]},  # TVOD FR
+            {'platform': platforms[1]},  # TVOD GB
+            {'platform': platforms[2]},  # SVOD FR
+            {'platform': platforms[3]},  # SVOD IT
+            {'platform': platforms[4]},  # SVOD DE
+            {'platform': platforms[-1]},  # No group ES
+        ], "the PLATFORMS iterator should yield each TVOD/SVOD and non-ignored platform once"
+
+        assert list(ExportFactory(iterator=ExportFactoryIterator.GROUPS).iterate(session=session)) == [
+            {'group': groups[0]},  # Group TVOD
+            {'group': groups[1]},  # Group SVOD
+        ], "the GROUPS iterator should yield each group once"
+
+        # FIXME: this *might* be ordered alphabetically by country because of the way GROUP BY works
+        assert list(ExportFactory(iterator=ExportFactoryIterator.COUNTRIES).iterate(session=session)) == [
+            {'country': 'DE'},
+            {'country': 'ES'},
+            {'country': 'FR'},
+            {'country': 'GB'},
+            {'country': 'IT'},
+        ], "the COUNTRIES iterator should yield a country list without duplicate"
+
+        assert list(ExportFactory(iterator=None).iterate(session=session)) == [{}], \
+            "the 'None' iterator should yield one empty context"
+
+    def test_compile_filters_template(self):
+        template = ExportFactory(filters_template={}).compile_filters_template()
+        assert template({}) == {}
+
+        template = ExportFactory(filters_template={'foo': 'bar'}).compile_filters_template()
+        assert template({}) == {'foo': 'bar'}
+
+        template = ExportFactory(filters_template={'foo': '{{ bar }}'}).compile_filters_template()
+        assert template({'bar': 'baz'}) == {'foo': 'baz'}
+        assert template({'bar': 'foobar'}) == {'foo': 'foobar'}
+
+        with raises(UndefinedError):
+            template({})
+
+        template = ExportFactory(filters_template={'foo': '{{ foo }}',
+                                                   'bar': '{{ bar | upper }}',
+                                                   'baz': 'const'}).compile_filters_template()
+        assert template({'foo': 42, 'bar': 'foobar'}) == {'foo': '42', 'bar': 'FOOBAR', 'baz': 'const'}
+
+    def test_compile_path_template(self):
+        template = ExportFactory(file_path_template="foo_bar").compile_path_template()
+        assert template({}) == "foo_bar"
+
+        template = ExportFactory(file_path_template="foo_{{ bar }}").compile_path_template()
+        assert template({'bar': 'baz'}) == "foo_baz"
+
+        with raises(UndefinedError):
+            template({})
+
+        template = ExportFactory(file_path_template="foo_{{ bar | pathify }}").compile_path_template()
+        assert template({'bar': 'Bar à chat'}) == "foo_bar_a_chat"
+
+    def test_generate(self, session):
+        platforms = [
+            Platform(name='Platform 1', type=PlatformType.TVOD, country='FR'),
+            Platform(name='Platform 2', type=PlatformType.SVOD, country='GB'),
+        ]
+
+        group = PlatformGroup(name='Group Name', platforms=platforms)
+        session.add_all(platforms + [group])
+        session.commit()
+
+        scrap_session = Session()
+        template = ExportTemplate()
+        factory = ExportFactory(template=template,
+                                iterator=ExportFactoryIterator.PLATFORMS,
+                                filters_template={'platform.id': '{{ platform.id }}'},
+                                file_path_template=('{{ platform.type | upper }}_'
+                                                    '{{ platform.country | lower }}_'
+                                                    '{{ platform.name | pathify }}'))
+        files = list(factory.generate(scrap_session=scrap_session, session=session))
+
+        assert len(files) == len(platforms)
+        assert all(file.factory == factory for file in files)
+        assert all(file.template == template for file in files)
+        assert all(file.session == scrap_session for file in files)
+        assert files[0].path == 'TVOD_fr_platform_1'
+        assert files[1].path == 'SVOD_gb_platform_2'
+        assert files[0].filters == {'platform.id': str(platforms[0].id)}
+        assert files[1].filters == {'platform.id': str(platforms[1].id)}
+
+
+class TestExportFile(object):
+    def test_filtered_query(self, session):
+        platforms = [
+            Platform(name='TVOD FR', type=PlatformType.TVOD, country='FR'),
+            Platform(name='TVOD GB', type=PlatformType.TVOD, country='GB'),
+            Platform(name='SVOD FR', type=PlatformType.SVOD, country='FR'),
+            Platform(name='SVOD IT', type=PlatformType.SVOD, country='IT'),
+            Platform(name='SVOD DE', type=PlatformType.SVOD, country='DE'),
+        ]
+
+        groups = [
+            PlatformGroup(name='Group TVOD', platforms=[platforms[0], platforms[1]]),
+            PlatformGroup(name='Group SVOD', platforms=[platforms[2], platforms[3], platforms[4]]),
+        ]
+
+        objects = [
+            ExternalObject(
+                type=ExternalObjectType.MOVIE,
+                links=[
+                    ObjectLink(platform=platforms[0], external_id='tvod-fr-a'),
+                    ObjectLink(platform=platforms[1], external_id='tvod-gb-a'),
+                ],
+                values=[
+                    Value(type=ValueType.TITLE, text='A', sources=[ValueSource(platform=platforms[0])]),
+                    Value(type=ValueType.COUNTRY, text='US', sources=[ValueSource(platform=platforms[0]),
+                                                                      ValueSource(platform=platforms[1])]),
+                    Value(type=ValueType.COUNTRY, text='GB', sources=[ValueSource(platform=platforms[0])])
+                ]
+            ),
+            ExternalObject(
+                type=ExternalObjectType.MOVIE,
+                links=[
+                    ObjectLink(platform=platforms[0], external_id='tvod-fr-b'),
+                    ObjectLink(platform=platforms[3], external_id='svod-it-b'),
+                    ObjectLink(platform=platforms[4], external_id='svod-de-b'),
+                ],
+                values=[
+                    Value(type=ValueType.TITLE, text='B', sources=[ValueSource(platform=platforms[0])]),
+                ]
+            )
+        ]
+
+        # This is used to freeze the links orders
+        links = objects[0].links + objects[1].links
+
+        session.add_all(platforms + groups + objects)
+        session.commit()
+
+        # FIXME: The session is useless for now
+        scrap_session = Session()
+        template = ExportTemplate(fields=[
+            {'value': 'links["{}"]'.format(platforms[0].slug)},
+        ], external_object_type=ExternalObjectType.MOVIE)
+
+        file = ExportFile(template=template, session=scrap_session)
+
+        template.row_type = ExportRowType.OBJECT_LINK
+        file.filters = {}
+        assert set(file.get_filtered_query(session=session)) == set([
+            (links[0], objects[0], 'tvod-fr-a'),
+            (links[1], objects[0], 'tvod-fr-a'),
+            (links[2], objects[1], 'tvod-fr-b'),
+            (links[3], objects[1], 'tvod-fr-b'),
+            (links[4], objects[1], 'tvod-fr-b'),
+        ])
+
+        template.row_type = ExportRowType.EXTERNAL_OBJECT
+        file.filters = {}
+        assert set(file.get_filtered_query(session=session)) == set([
+            (objects[0], 'tvod-fr-a'),
+            (objects[1], 'tvod-fr-b'),
+        ])
+
+        template.row_type = ExportRowType.OBJECT_LINK
+        file.filters = {'platform.group_id': str(groups[0].id)}
+        assert set(file.get_filtered_query(session=session)) == set([
+            (links[0], objects[0], 'tvod-fr-a'),
+            (links[1], objects[0], 'tvod-fr-a'),
+            (links[2], objects[1], 'tvod-fr-b'),
+        ])
+
+        template.row_type = ExportRowType.EXTERNAL_OBJECT
+        file.filters = {'platform.group_id': str(groups[1].id)}
+        assert set(file.get_filtered_query(session=session)) == set([
+            (objects[1], 'tvod-fr-b'),
+        ])
+
+        template.row_type = ExportRowType.OBJECT_LINK
+        file.filters = {'platform.country': 'FR,IT'}
+        assert set(file.get_filtered_query(session=session)) == set([
+            (links[0], objects[0], 'tvod-fr-a'),
+            (links[2], objects[1], 'tvod-fr-b'),
+            (links[3], objects[1], 'tvod-fr-b'),
+        ])
+
+        template.row_type = ExportRowType.OBJECT_LINK
+        file.filters = {'platform.id': str(platforms[0].id)}
+        assert set(file.get_filtered_query(session=session)) == set([
+            (links[0], objects[0], 'tvod-fr-a'),
+            (links[2], objects[1], 'tvod-fr-b'),
+        ])

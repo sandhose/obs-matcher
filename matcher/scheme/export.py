@@ -7,7 +7,7 @@ import re
 from functools import partial
 from typing import Any, Callable, Dict, Iterator, List, Set
 
-from jinja2 import Environment, meta, nodes
+from jinja2 import Environment, meta, nodes, StrictUndefined
 from slugify import slugify
 from sqlalchemy import (Column, Enum, ForeignKey, Integer, Sequence, String,
                         func, or_, select,)
@@ -61,6 +61,7 @@ _jinja_env = Environment()
 _jinja_env.filters['quote'] = _quote
 _jinja_env.filters['slugify'] = slugify
 _jinja_env.filters['pathify'] = partial(slugify, separator='_')
+_jinja_env.undefined = StrictUndefined
 
 
 class _zones(object):
@@ -183,21 +184,19 @@ class ExportTemplate(Base):
             query = (
                 session.query(ExternalObject, *links_select).
                 join(ObjectLink, ExternalObject.id == ObjectLink.external_object_id).
+                join(Platform, ObjectLink.platform_id == Platform.id).
                 group_by(ExternalObject.id)
             )
         elif self.row_type == ExportRowType.OBJECT_LINK:
-            query = session.query(ObjectLink, ExternalObject, *links_select)\
-                .join(ExternalObject, ExternalObject.id == ObjectLink.external_object_id)
+            query = (
+                session.query(ObjectLink, ExternalObject, *links_select).
+                join(Platform, ObjectLink.platform_id == Platform.id).
+                join(ExternalObject, ObjectLink.external_object_id == ExternalObject.id).
+                options(contains_eager(ObjectLink.platform).joinedload(Platform.group))
+            )
 
         if 'attributes' in needs:
             query = query.options(subqueryload(ExternalObject.attributes))
-
-        if 'platform' in needs:
-            query = (
-                query.
-                join(Platform, ObjectLink.platform_id == Platform.id).
-                options(contains_eager(ObjectLink.platform).joinedload(Platform.group))
-            )
 
         query = query.filter(ExternalObject.type == self.external_object_type)
 
@@ -276,7 +275,7 @@ class ExportFactory(Base):
             for (key, value) in self.filters_template.items()
         ]
 
-        return lambda **context: {key: value.render(**context) for (key, value) in templates}
+        return lambda context: {key: value.render(**context) for (key, value) in templates}
 
     def compile_path_template(self) -> Callable[[ExportFactoryTemplateContext], str]:
         template = _jinja_env.from_string(self.file_path_template)
@@ -323,6 +322,7 @@ class ExportFile(Base):
 
     @inject_session
     def get_filtered_query(self, session=None):
+        # FIXME: THIS DOES NOT TAKE THE scrap_session INTO ACCOUNT
         from .platform import Platform
 
         assert self.template.valid_template, "invalid template"
@@ -345,7 +345,7 @@ class ExportFile(Base):
                 elif attribute == 'type':
                     values = [PlatformType.from_string(v) for v in values]
 
-                query.filter(getattr(Platform, attribute).in_(values))
+                query = query.filter(getattr(Platform, attribute).in_(values))
             else:
                 raise NotImplementedError
 
