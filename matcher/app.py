@@ -11,6 +11,7 @@ from flask_injector import FlaskInjector
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from injector import Injector, Module, provider, singleton
+from raven.contrib.celery import register_logger_signal, register_signal
 from raven.contrib.flask import Sentry
 
 from .commands import setup_cli
@@ -47,7 +48,20 @@ class CeleryModule(Module):
                     return self.run(*args, **kwargs)
 
         celery.Task = ContextTask
+
         return celery
+
+
+class SentryModule(Module):
+    @provider
+    @singleton
+    def provide_sentry(self, app: Flask, celery: Celery) -> Sentry:
+        sentry = Sentry(app=app, logging=True, level=logging.ERROR)
+
+        register_logger_signal(sentry.client)
+        register_signal(sentry.client)
+
+        return sentry
 
 
 def _setup_admin(app):
@@ -85,7 +99,6 @@ def create_app(info=None):
     register_filters(app)
 
     DebugToolbarExtension(app=app)
-    Sentry(app=app, logging=True, level=logging.ERROR)
     Migrate(app=app, db=db, directory=os.path.join(os.path.dirname(__file__),
                                                    'migrations'))
 
@@ -93,7 +106,8 @@ def create_app(info=None):
     with app.app_context():
         setup_routes(app)
 
-    FlaskInjector(injector=injector, app=app, modules=[SQLAlchemyModule, CeleryModule])
+    FlaskInjector(injector=injector, app=app, modules=[SQLAlchemyModule, CeleryModule, SentryModule])
+    injector.get(Sentry)
 
     return app
 
