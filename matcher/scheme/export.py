@@ -10,7 +10,7 @@ from typing import Any, Callable, Dict, Iterator, List, Set
 from jinja2 import Environment, StrictUndefined, meta, nodes
 from slugify import slugify
 from sqlalchemy import (Column, Enum, ForeignKey, Integer, Sequence, String,
-                        func, or_, select,)
+                        any_, func, or_, select,)
 from sqlalchemy.dialects.postgresql import HSTORE, JSONB
 from sqlalchemy.orm import contains_eager, relationship, subqueryload
 
@@ -132,13 +132,11 @@ class ExportTemplate(Base):
 
         context = {'external_object': external_object}
 
-        if 'platform_countries' in needs:
-            platform_countries, *row = row
-            context['platform_countries'] = platform_countries
-
-        if 'platform_names' in needs:
-            platform_names, *row = row
-            context['platform_names'] = platform_names
+        # Extract the attributes in the correct order
+        for attr in ['platform_countries', 'platform_names', 'seasons_count', 'episodes_count']:
+            if attr in needs:
+                value, *row = row
+                context[attr] = value
 
         links = row
 
@@ -170,11 +168,14 @@ class ExportTemplate(Base):
         elif self.row_type == ExportRowType.EXTERNAL_OBJECT:
             allowed_fields.extend(["platform_names", "platform_countries"])
 
+        if self.external_object_type == ExternalObjectType.SERIES:
+            allowed_fields.extend(["episodes_count", "seasons_count"])
+
         return all(need in allowed_fields for need in self.needs)
 
     @inject_session
     def get_row_query(self, session=None):
-        from .object import ObjectLink, ExternalObject
+        from .object import ObjectLink, ExternalObject, Episode
         from .platform import Platform
 
         needs = self.needs
@@ -193,24 +194,42 @@ class ExportTemplate(Base):
             for platform in platforms
         ]
 
-        special_select = []
+        def filter_platform(q, platform_id):
+            # misc function to filter on a platform, depending on the row_type
+            if self.row_type == ExportRowType.EXTERNAL_OBJECT:
+                return q.filter(platform_id == any_(func.array_agg(Platform.id)))
+            elif self.row_type == ExportRowType.OBJECT_LINK:
+                return q.filter(platform_id == Platform.id)
 
-        if 'platform_countries' in needs:
-            special_select.append(func.array_agg(func.distinct(Platform.country)))
+        extra_attributes = {
+            'platform_countries': func.array_agg(func.distinct(Platform.country)),
+            'platform_names': func.array_agg(Platform.name),
+            'seasons_count': filter_platform(
+                session.query(func.count(func.distinct(Episode.season))).
+                join(ObjectLink, Episode.external_object_id == ObjectLink.external_object_id).
+                filter(Episode.series_id == ExternalObject.id),
+                ObjectLink.platform_id
+            ).label('seasons_count'),
+            'episodes_count': filter_platform(
+                session.query(func.count(func.distinct(Episode.season, Episode.episode))).
+                join(ObjectLink, Episode.external_object_id == ObjectLink.external_object_id).
+                filter(Episode.series_id == ExternalObject.id),
+                ObjectLink.platform_id
+            ).label('episodes_count'),
+        }
 
-        if 'platform_names' in needs:
-            special_select.append(func.array_agg(Platform.name))
+        extra_select = [value for key, value in extra_attributes.items() if key in needs]
 
         if self.row_type == ExportRowType.EXTERNAL_OBJECT:
             query = (
-                session.query(ExternalObject, *special_select, *links_select).
+                session.query(ExternalObject, *extra_select, *links_select).
                 join(ObjectLink, ExternalObject.id == ObjectLink.external_object_id).
                 join(Platform, ObjectLink.platform_id == Platform.id).
                 group_by(ExternalObject.id)
             )
         elif self.row_type == ExportRowType.OBJECT_LINK:
             query = (
-                session.query(ObjectLink, ExternalObject, *special_select, *links_select).
+                session.query(ObjectLink, ExternalObject, *extra_select, *links_select).
                 join(Platform, ObjectLink.platform_id == Platform.id).
                 join(ExternalObject, ObjectLink.external_object_id == ExternalObject.id).
                 options(contains_eager(ObjectLink.platform).joinedload(Platform.group))

@@ -3,7 +3,7 @@ from itertools import chain
 from jinja2.exceptions import UndefinedError
 from pytest import raises
 
-from matcher.scheme import (ExportFactory, ExportFile, ExportTemplate,
+from matcher.scheme import (Episode, ExportFactory, ExportFile, ExportTemplate,
                             ExternalObject, ObjectLink, Platform,
                             PlatformGroup, Session, Value, ValueSource,)
 from matcher.scheme.enums import (ExportFactoryIterator, ExportRowType,
@@ -190,6 +190,10 @@ class TestExportTemplate(object):
         assert ExportTemplate(fields=[{"value": "external_object.id"},
                                       {"value": "attributes.titles[0]"}],
                               row_type=ExportRowType.EXTERNAL_OBJECT).valid_template
+        assert not ExportTemplate(fields=[{"value": "episodes_count"}],
+                                  external_object_type=ExternalObjectType.MOVIE).valid_template
+        assert ExportTemplate(fields=[{"value": "episodes_count"}],
+                              external_object_type=ExternalObjectType.SERIES).valid_template
 
     def test_row_query(self, session):
         platforms = [Platform(slug='platform-' + str(i), name='Platform ' + str(i)) for i in range(4)]
@@ -199,11 +203,21 @@ class TestExportTemplate(object):
         series = [ExternalObject(type=ExternalObjectType.SERIES) for _ in range(2)]
         movies = [ExternalObject(type=ExternalObjectType.MOVIE) for _ in range(3)]
 
+        episodes = []
+        episodes_rel = []
+        for s in series:
+            for season in range(3):
+                for episode in range(10):
+                    eo = ExternalObject(type=ExternalObjectType.EPISODE)
+                    rel = Episode(external_object=eo, series=s, episode=episode, season=season)
+                    episodes.append(eo)
+                    episodes_rel.append(rel)
+
         links = [ObjectLink(platform=p, external_object=eo, external_id='link-{}-{}-{}'.format(p.slug, eo.type, index))
-                 for (index, eo) in chain(enumerate(series), enumerate(movies))
+                 for (index, eo) in chain(enumerate(series), enumerate(movies), enumerate(episodes))
                  for p in platforms]
 
-        session.add_all(platforms + movies + series + links)
+        session.add_all(platforms + movies + series + links + episodes_rel + episodes)
         session.commit()
 
         # Start by checking the row count matches
@@ -260,6 +274,19 @@ class TestExportTemplate(object):
         assert rows[1][0] == series[1]
         assert set(rows[1][1]) == set(['FR', 'DE', None])
         assert sorted(rows[1][2]) == sorted(p.name for p in platforms)
+
+        # Export episodes and seasons count
+        assert set(ExportTemplate(
+            external_object_type=ExternalObjectType.SERIES,
+            row_type=ExportRowType.EXTERNAL_OBJECT,
+            fields=[
+                {'value': 'seasons_count'},
+                {'value': 'episodes_count'},
+            ]
+        ).get_row_query(session=session)) == set([
+            (series[0], 3, 30),
+            (series[1], 3, 30),
+        ])
 
         # Results are wrapped in sets because the order is not stable
         assert set(ExportTemplate(
