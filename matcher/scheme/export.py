@@ -61,7 +61,8 @@ _jinja_env = Environment()
 _jinja_env.filters['quote'] = _quote
 _jinja_env.filters['slugify'] = slugify
 _jinja_env.filters['pathify'] = partial(slugify, separator='_')
-_jinja_env.undefined = StrictUndefined
+
+_factory_jinja_env = _jinja_env.overlay(undefined=StrictUndefined)
 
 
 class _zones(object):
@@ -271,14 +272,14 @@ class ExportFactory(Base):
 
     def compile_filters_template(self) -> Callable[[ExportFactoryTemplateContext], ExportFileFilters]:
         templates = [
-            (key, _jinja_env.from_string(value))
+            (key, _factory_jinja_env.from_string(value))
             for (key, value) in self.filters_template.items()
         ]
 
         return lambda context: {key: value.render(**context) for (key, value) in templates}
 
     def compile_path_template(self) -> Callable[[ExportFactoryTemplateContext], str]:
-        template = _jinja_env.from_string(self.file_path_template)
+        template = _factory_jinja_env.from_string(self.file_path_template)
         return lambda context: template.render(**context)
 
     @inject_session
