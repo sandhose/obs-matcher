@@ -128,10 +128,20 @@ class ExportTemplate(Base):
         else:
             current_link = None
 
-        external_object, *links = row
+        external_object, *row = row
 
-        context = {}
-        context['external_object'] = external_object
+        context = {'external_object': external_object}
+
+        if 'platform_countries' in needs:
+            platform_countries, *row = row
+            context['platform_countries'] = platform_countries
+
+        if 'platform_names' in needs:
+            platform_names, *row = row
+            context['platform_names'] = platform_names
+
+        links = row
+
         context['links'] = dict(zip(self.links, links))
 
         if current_link is not None:
@@ -157,6 +167,8 @@ class ExportTemplate(Base):
 
         if self.row_type == ExportRowType.OBJECT_LINK:
             allowed_fields.append("platform")
+        elif self.row_type == ExportRowType.EXTERNAL_OBJECT:
+            allowed_fields.extend(["platform_names", "platform_countries"])
 
         return all(need in allowed_fields for need in self.needs)
 
@@ -181,16 +193,24 @@ class ExportTemplate(Base):
             for platform in platforms
         ]
 
+        special_select = []
+
+        if 'platform_countries' in needs:
+            special_select.append(func.array_agg(func.distinct(Platform.country)))
+
+        if 'platform_names' in needs:
+            special_select.append(func.array_agg(Platform.name))
+
         if self.row_type == ExportRowType.EXTERNAL_OBJECT:
             query = (
-                session.query(ExternalObject, *links_select).
+                session.query(ExternalObject, *special_select, *links_select).
                 join(ObjectLink, ExternalObject.id == ObjectLink.external_object_id).
                 join(Platform, ObjectLink.platform_id == Platform.id).
                 group_by(ExternalObject.id)
             )
         elif self.row_type == ExportRowType.OBJECT_LINK:
             query = (
-                session.query(ObjectLink, ExternalObject, *links_select).
+                session.query(ObjectLink, ExternalObject, *special_select, *links_select).
                 join(Platform, ObjectLink.platform_id == Platform.id).
                 join(ExternalObject, ObjectLink.external_object_id == ExternalObject.id).
                 options(contains_eager(ObjectLink.platform).joinedload(Platform.group))

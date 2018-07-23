@@ -156,6 +156,22 @@ class TestExportTemplate(object):
         assert 'zones' in context, "the context should include zone informations"
         assert 'FR' in context['zones'].EUROBS, "the zones should have some data in them"
 
+        context = ExportTemplate(
+            row_type=ExportRowType.EXTERNAL_OBJECT,
+            fields=[{"value": "platform_countries"}]
+        ).to_context((external_object, ['FR', 'GB']))
+        assert 'platform_countries' in context, "the context should include platform countries"
+        assert context['platform_countries'] == ['FR', 'GB']
+
+        context = ExportTemplate(
+            row_type=ExportRowType.EXTERNAL_OBJECT,
+            fields=[{"value": "platform_countries"}, {"value": "platform_names"}]
+        ).to_context((external_object, ['FR'], ['Platform 1', 'Platform 2']))
+        assert 'platform_countries' in context, "the context should include platform countries"
+        assert 'platform_names' in context, "the context should include platform names"
+        assert context['platform_countries'] == ['FR']
+        assert context['platform_names'] == ['Platform 1', 'Platform 2']
+
     def test_compile_template(self):
         assert ExportTemplate(fields=[]).template == ""
         assert ExportTemplate(fields=[{"value": "foo"}, {"value": "bar"}]).template \
@@ -177,6 +193,9 @@ class TestExportTemplate(object):
 
     def test_row_query(self, session):
         platforms = [Platform(slug='platform-' + str(i), name='Platform ' + str(i)) for i in range(4)]
+        platforms[0].country = 'FR'
+        platforms[1].country = 'FR'
+        platforms[2].country = 'DE'
         series = [ExternalObject(type=ExternalObjectType.SERIES) for _ in range(2)]
         movies = [ExternalObject(type=ExternalObjectType.MOVIE) for _ in range(3)]
 
@@ -224,6 +243,23 @@ class TestExportTemplate(object):
             (series[0], 'link-platform-1-series-0', 'link-platform-3-series-0'),
             (series[1], 'link-platform-1-series-1', 'link-platform-3-series-1'),
         ])
+
+        # Export platform names and countries
+        rows = list(sorted(ExportTemplate(
+            external_object_type=ExternalObjectType.SERIES,
+            row_type=ExportRowType.EXTERNAL_OBJECT,
+            fields=[
+                {'value': 'platform_names'},
+                {'value': 'platform_countries'},
+            ]
+        ).get_row_query(session=session), key=lambda r: r[0].id))
+
+        assert rows[0][0] == series[0]
+        assert set(rows[0][1]) == set(['FR', 'DE', None])
+        assert sorted(rows[0][2]) == sorted(p.name for p in platforms)
+        assert rows[1][0] == series[1]
+        assert set(rows[1][1]) == set(['FR', 'DE', None])
+        assert sorted(rows[1][2]) == sorted(p.name for p in platforms)
 
         # Results are wrapped in sets because the order is not stable
         assert set(ExportTemplate(
