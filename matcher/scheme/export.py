@@ -145,6 +145,10 @@ class ExportTemplate(Base):
         if current_link is not None:
             context['links']['current'] = current_link.external_id
 
+        if 'platform_countries' in context:
+            if None in context['platform_countries']:
+                context['platform_countries'].remove(None)
+
         if 'attributes' in needs:
             context['attributes'] = Attributes(external_object.attributes)
 
