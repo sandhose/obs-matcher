@@ -31,9 +31,10 @@ def process_file(file_id):
         file.process()
     except Exception as e:
         file.change_status(ExportFileStatus.FAILED, message=str(e))
+        db.session.add(file)
+        db.session.commit()
         raise e
-    else:
-        file.change_status(ExportFileStatus.DONE)
 
+    file.change_status(ExportFileStatus.DONE)
     db.session.add(file)
     db.session.commit()
