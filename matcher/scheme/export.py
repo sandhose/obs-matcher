@@ -9,8 +9,8 @@ from typing import Any, Callable, Dict, Iterator, List, Set
 
 from jinja2 import Environment, StrictUndefined, meta, nodes
 from slugify import slugify
-from sqlalchemy import (Column, Enum, ForeignKey, Integer, Sequence, String,
-                        any_, func, or_, select,)
+from sqlalchemy import (TIMESTAMP, Column, Enum, ForeignKey, Integer, Sequence,
+                        String, any_, func, or_, select,)
 from sqlalchemy.dialects.postgresql import HSTORE, JSONB
 from sqlalchemy.orm import contains_eager, relationship, subqueryload
 
@@ -350,7 +350,7 @@ class ExportFile(Base):
     id = Column(Integer, export_file_id_seq, server_default=export_file_id_seq.next_value(), primary_key=True)
 
     status = Column(Enum(ExportFileStatus),
-                    default=ExportFileStatus.PROCESSING, server_default='PROCESSING', nullable=False)
+                    default=ExportFileStatus.SCHEDULED, server_default='SCHEDULED', nullable=False)
     path = Column(String, nullable=False)
     filters = Column(HSTORE, nullable=False)
 
@@ -363,6 +363,7 @@ class ExportFile(Base):
     session_id = Column(Integer, ForeignKey('session.id'), nullable=False)
 
     session = relationship('Session', back_populates='files')
+    logs = relationship('ExportFileLog', back_populates='file')
 
     @inject_session
     def get_filtered_query(self, session=None):
@@ -411,11 +412,45 @@ class ExportFile(Base):
         yield from self.render_rows(session=session)
 
     @inject_session
+    def change_status(self, status, message=None, session=None):
+        if self.status == status and message is None:
+            return
+
+        self.status = status
+        self.logs.append(ExportFileLog(status=status, message=message))
+
+    @inject_session
     def process(self, session=None):
+        # FIXME: this supposes that the object is already in the session
         # FIXME: move this to a task
         # FIXME: should we gzip on the fly? where do we store everything?
         with gzip.open(self.path + '.gz', 'wb') as file:
             # Write UTF16-LE BOM because Excel.
             file.write(codecs.BOM_UTF16_LE)
-            for row in self.render(session=session):
+
+            self.change_status(ExportFileStatus.QUERYING)
+            session.add(self)
+            session.commit()
+
+            for index, row in enumerate(self.render(session=session)):
                 file.write((row + csv_dialect.lineterminator).encode('utf-16-le'))
+
+                # FIXME: quite ugly but it works
+                if index == 1:  # We passed the header row
+                    self.change_status(ExportFileStatus.PROCESSING)
+                    session.add(self)
+                    session.commit()
+
+
+class ExportFileLog(Base):
+    __tablename__ = 'export_file_log'
+
+    export_file_log_id_seq = Sequence('export_file_log_id_seq', metadata=Base.metadata)
+    id = Column(Integer, export_file_log_id_seq, server_default=export_file_log_id_seq.next_value(), primary_key=True)
+
+    export_file_id = Column(Integer, ForeignKey(ExportFile.id), nullable=False)
+    file = relationship('ExportFile', back_populates='logs')
+
+    timestamp = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
+    status = Column(Enum(ExportFileStatus), nullable=False)
+    message = Column(String)

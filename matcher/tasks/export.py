@@ -27,7 +27,13 @@ def process_file(file_id):
     file = db.session.query(ExportFile).get(file_id)
     assert file
 
-    file.process()
-    file.status = ExportFileStatus.DONE
+    try:
+        file.process()
+    except Exception as e:
+        file.change_status(ExportFileStatus.FAILED, message=str(e))
+        raise e
+    else:
+        file.change_status(ExportFileStatus.DONE)
+
     db.session.add(file)
     db.session.commit()

@@ -34,8 +34,11 @@ class ScrapStatus(CustomEnum):
 class ExportFileStatus(CustomEnum):
     """Current status of an export task"""
 
-    PROCESSING = 1
-    DONE = 2
+    SCHEDULED = 1
+    QUERYING = 2
+    PROCESSING = 3
+    DONE = 4
+    FAILED = 5
 
 
 class ExportFactoryIterator(CustomEnum):
