@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body table-responsive">
+          <table class="table">
+            <thead class="text-primary">
+              <tr>
+                <th>Status</th>
+                <th>Name</th>
+                <th>Session</th>
+                <th>Type</th>
+                <th>Object types</th>
+                <th>Factory</th>
+                <th>Filters</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for file in page.items %}
+                <tr>
+                  <td>
+                    <span class="badge badge-pill badge-{{ file.status | badge_color }}">
+                      {{ file.status | upper }}
+                    </span>
+                  </td>
+                  <td>{{ file.path.split('/')[-1] }}</td>
+                  <td>{{ file.session.name }}</td>
+                  <td>
+                    <span class="badge badge-pill badge-{{ file.template.row_type | badge_color }}">
+                      {{ file.template.row_type | upper }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge badge-pill badge-{{ file.template.external_object_type | badge_color }}">
+                      {{ file.template.external_object_type | upper }}
+                    </span>
+                  </td>
+                  <td>{{ file.factory.name or "—" }}</td>
+                  <td>{{ file.filters | tojson }}</td>
+                  <td class="td-actions">
+                    <a class="btn btn-sm btn-link" href="{{ url_for('.download_export_file', id=file.id) }}" rel="tooltip" title="Download file">
+                      <i class="material-icons">get_app</i>
+                    </a>
+                    <a class="btn btn-sm btn-link" href="{{ url_for('.show_export_file', id=file.id) }}" rel="tooltip" title="View file">
+                      <i class="material-icons">arrow_forward</i>
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="card-footer">
+          {{ m.render_pagination(page, args=query) }}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
