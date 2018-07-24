@@ -7,7 +7,7 @@ from matcher.scheme.export import ExportFactory, ExportFile
 from matcher.scheme.platform import Session
 
 
-@celery.task
+@celery.task(autoretry_for=(Exception, ), max_retries=5, acks_late=True)
 def run_factory(factory_id, session_id):
     scrap_session = db.session.query(Session).get(session_id)
     factory = db.session.query(ExportFactory).get(factory_id)
@@ -22,7 +22,7 @@ def run_factory(factory_id, session_id):
     group(process_file.s(file.id) for file in files)()
 
 
-@celery.task(autoretry_for=(Exception, ), max_retries=5)
+@celery.task(autoretry_for=(Exception, ), max_retries=5, acks_late=True)
 def process_file(file_id):
     file = db.session.query(ExportFile).get(file_id)
     assert file
