@@ -19,7 +19,7 @@ def run_factory(factory_id, session_id):
     db.session.add_all(files)
     db.session.commit()
 
-    group(process_file.s(file.id) for file in files)()
+    group(process_file.s(file.id) for file in files).apply_async()
 
 
 @celery.task(autoretry_for=(Exception, ), max_retries=5, acks_late=True)
