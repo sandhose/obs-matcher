@@ -38,7 +38,7 @@ class AttributesView(Base, ViewMixin):
         select_from(crosstab(
             select([Value.external_object_id,
                     Value.type,
-                    array_agg(aggregate_order_by(Value.text, ValueScoreView.score))]).
+                    array_agg(aggregate_order_by(Value.text, ValueScoreView.score.desc()))]).
             select_from(join(Value, ValueScoreView, Value.id == ValueScoreView.value_id)).
             where(or_(
                 Value.type == ValueType.TITLE,
