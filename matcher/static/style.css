@@ -6,3 +6,7 @@ main {
   display: flex;
   align-items: center;
 }
+
+.filters {
+  max-width: 340px;
+}
