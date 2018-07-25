@@ -33,16 +33,19 @@
         </div>
         <div class="list-group list-group-flush">
           {% for file in factory.files[-9:] %}
-            <a class="list-group-item list-group-item-action" href="{{ url_for('.show_export_file', id=file.id ) }}">
+            <a class="d-flex align-items-center justify-content-between list-group-item list-group-item-action" href="{{ url_for('.show_export_file', id=file.id ) }}">
               <div>
-                {{ file.path | filename }}
+                <div>
+                  {{ file.path | filename }}
+                </div>
+                <small>
+                  Session “{{ file.session.name }}”
+                  {% if file.last_activity %}
+                    &bull; {{ file.last_activity | relative_date }}
+                  {% endif %}
+                </small>
               </div>
-              <small>
-                Session “{{ file.session.name }}”
-                {% if file.last_activity %}
-                  &bull; {{ file.last_activity | relative_date }}
-                {% endif %}
-              </small>
+              <div class="badge badge-pill badge-{{ file.status | badge_color }}">{{ file.status | upper }}</div>
             </a>
           {% endfor %}
         </div>

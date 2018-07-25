@@ -1,5 +1,4 @@
-from wtforms import Form, SelectMultipleField, StringField
-from wtforms.ext.sqlalchemy.fields import QuerySelectMultipleField
+from wtforms import Form, SelectMultipleField
 
 from matcher.scheme.enums import (ExportFactoryIterator, ExportRowType,
                                   ExternalObjectType,)

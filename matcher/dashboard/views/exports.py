@@ -1,11 +1,10 @@
-import gzip
-
-from flask import render_template, send_file, request
+from flask import render_template, request, send_file
 from flask.views import View
 from sqlalchemy.orm import joinedload
 
 from matcher.mixins import DbMixin
 from matcher.scheme.export import ExportFactory, ExportFile, ExportTemplate
+
 from ..forms.exports import ExportFactoryListFilter
 
 __all__ = ['ExportFileListView', 'DownloadExportFileView',

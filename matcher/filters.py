@@ -1,5 +1,5 @@
 import pendulum
-from flask import request, Flask
+from flask import Flask, request
 from jinja2 import Markup, escape
 
 from matcher.scheme.enums import (ExportFactoryIterator, ExportFileStatus,
@@ -67,7 +67,9 @@ def badge_color(type_: CustomEnum) -> str:
 
 def template_highlight(template: str):
     template = escape(template)
-    return template.replace('{{', Markup('<span class="badge badge-secondary badge-pill">')).replace('}}', Markup('</span>'))
+    return template.\
+        replace('{{', Markup('<span class="badge badge-secondary badge-pill">')).\
+        replace('}}', Markup('</span>'))
 
 
 def filename(path: str) -> str:
