@@ -4,51 +4,114 @@
 {% block content %}
   <div class="row">
     <div class="col-4">
-      <dl>
-        <dt>Row type</dt>
-        <dd>
-          <span class="badge badge-pill badge-{{ file.template.row_type | badge_color }}">
-            {{ file.template.row_type | upper }}
-          </span>
-        </dd>
-        <dt>Object type</dt>
-        <dd>
-          <span class="badge badge-pill badge-{{ file.template.external_object_type | badge_color }}">
-            {{ file.template.external_object_type | upper }}
-          </span>
-        </dd>
-        <dt>Path</dt>
-        <dd>{{ file.path }}</dd>
-        <dt>Session<dt>
-        <dd>{{ file.session.name }}</dd>
-        <dt>Factory<dt>
-        <dd>{{ file.factory.name or "–" }}</dd>
-      </dl>
+      <div class="card">
+        <div class="card-body">
+          <dl>
+            <dt>Status</dt>
+            <dd>
+              <span class="badge badge-pill badge-{{ file.status | badge_color }}">
+                {{ file.status | upper }}
+              </span>
+            </dd>
+
+            <dt>Filters</dt>
+            {% for key, value in file.filters.items() %}
+              <dd class="text-monospace"><b>{{ key }}</b> = {{ value }}</dd>
+            {% endfor %}
+
+            <dt>Row type</dt>
+            <dd>
+              <span class="badge badge-pill badge-{{ file.template.row_type | badge_color }}">
+                {{ file.template.row_type | upper }}
+              </span>
+            </dd>
+
+            <dt>Object type</dt>
+            <dd>
+              <span class="badge badge-pill badge-{{ file.template.external_object_type | badge_color }}">
+                {{ file.template.external_object_type | upper }}
+              </span>
+            </dd>
+
+            <dt>Path</dt>
+            <dd>{{ file.path }}</dd>
+
+            <dt>Session</dt>
+            <dd>
+              <a href="#">
+                {{ file.session.name }}
+              </a>
+            </dd>
+
+            <dt>Factory</dt>
+            <dd>
+              {% if file.factory %}
+                <a href="{{ url_for('.show_export_factory', id=file.factory.id) }}">
+                  {{ file.factory.name }}
+                </a>
+              {% else %}
+                –
+              {% endif %}
+            </dd>
+
+            <dt>Last activity</dt>
+            <dd>
+              {% if file.last_activity %}
+                {{ file.last_activity | relative_date }}
+              {% else %}
+                –
+              {% endif %}
+            </dd>
+          </dl>
+
+          <div class="d-flex justify-content-between">
+            <a class="btn btn-danger" href="{{ url_for('.process_export_file', id=file.id) }}" rel="tooltip" title="This will destroy any previously generated file">
+              Process file
+            </a>
+            {% if file.status | string == 'done' %}
+              <a class="btn btn-primary" href="{{ url_for('.download_export_file', id=file.id) }}">
+                <i class="material-icons">get_app</i>
+                Download
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="col-6">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>Status</th>
-            <th>Message</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for log in file.logs %}
-            <tr>
-              <td>{{ log.timestamp }}</td>
-              <td>
-                <span class="badge badge-pill badge-{{ log.status | badge_color }}">
-                  {{ log.status | upper }}
-                </span>
-              </td>
-              <td>{{ log.message or "–" }}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div class="col-8">
+      <div class="card">
+        <div class="card-header card-header-danger">
+          <h4 class="card-title">Logs</h4>
+        </div>
+        <div class="card-body table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Message</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for log in file.logs %}
+                <tr>
+                  <td>{{ log.timestamp | relative_date }}</td>
+                  <td>
+                    <span class="badge badge-pill badge-{{ log.status | badge_color }}">
+                      {{ log.status | upper }}
+                    </span>
+                  </td>
+                  <td>{{ log.message or "–" }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% with template = file.template %}
+        {% include 'exports/templates/_card.html' %}
+      {% endwith %}
     </div>
   </div>
 {% endblock %}

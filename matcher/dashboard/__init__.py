@@ -24,3 +24,5 @@ blueprint.add_url_rule('/exports/files/<int:id>',
                        view_func=views.exports.ShowExportFileView.as_view('show_export_file'))
 blueprint.add_url_rule('/exports/files/<int:id>/download',
                        view_func=views.exports.DownloadExportFileView.as_view('download_export_file'))
+blueprint.add_url_rule('/exports/files/<int:id>/process',
+                       view_func=views.exports.ProcessExportFileView.as_view('process_export_file'))

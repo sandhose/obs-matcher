@@ -1,8 +1,9 @@
-from flask import render_template, request, send_file
+from flask import redirect, render_template, request, send_file, url_for
 from flask.views import View
 from sqlalchemy.orm import joinedload
 
-from matcher.mixins import DbMixin
+from matcher.mixins import DbMixin, CeleryMixin
+from matcher.scheme.enums import ExportFileStatus
 from matcher.scheme.export import ExportFactory, ExportFile, ExportTemplate
 
 from ..forms.exports import ExportFactoryListFilter
@@ -31,6 +32,19 @@ class DownloadExportFileView(View, DbMixin):
                              attachment_filename=export_file.path.split('/')[-1])
         response.headers['Content-Encoding'] = 'gzip'
         return response
+
+
+class ProcessExportFileView(View, DbMixin, CeleryMixin):
+    def dispatch_request(self, id):
+        export_file = self.query(ExportFile).get_or_404(id)
+
+        export_file.change_status(ExportFileStatus.SCHEDULED)
+        self.session.add(export_file)
+        self.session.commit()
+
+        self.celery.send_task('matcher.tasks.export.process_file', [export_file.id])
+
+        return redirect(url_for('.show_export_file', id=export_file.id))
 
 
 class ShowExportFileView(View, DbMixin):

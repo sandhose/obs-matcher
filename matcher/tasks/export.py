@@ -15,6 +15,7 @@ def run_factory(factory_id, session_id):
     assert scrap_session
     assert factory
 
+    # TODO: log when it was scheduled
     files = list(factory.generate(scrap_session=scrap_session))
     db.session.add_all(files)
     db.session.commit()
