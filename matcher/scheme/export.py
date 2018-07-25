@@ -388,7 +388,7 @@ class ExportFile(Base):
                 if attribute == 'id' or attribute == 'group_id':
                     values = [int(v) for v in values]
                 elif attribute == 'type':
-                    values = [PlatformType.from_string(v) for v in values]
+                    values = [PlatformType.from_name(v) for v in values]
 
                 query = query.filter(getattr(Platform, attribute).in_(values))
             else:
