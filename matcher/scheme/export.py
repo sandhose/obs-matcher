@@ -10,9 +10,10 @@ from typing import Any, Callable, Dict, Iterator, List, Set
 from jinja2 import Environment, StrictUndefined, meta, nodes
 from slugify import slugify
 from sqlalchemy import (TIMESTAMP, Column, Enum, ForeignKey, Integer, Sequence,
-                        String, any_, func, or_, select,)
+                        String, any_, column, func, or_, select, table,)
 from sqlalchemy.dialects.postgresql import HSTORE, JSONB
-from sqlalchemy.orm import contains_eager, relationship, subqueryload
+from sqlalchemy.orm import (column_property, contains_eager, relationship,
+                            subqueryload,)
 
 from .base import Base
 from .enums import (ExportFactoryIterator, ExportFileStatus, ExportRowType,
@@ -364,6 +365,15 @@ class ExportFile(Base):
 
     session = relationship('Session', back_populates='files')
     logs = relationship('ExportFileLog', back_populates='file')
+
+    last_activity = column_property(
+        select([column('timestamp')]).
+        select_from(table('export_file_log')).
+        where(column('export_file_id') == id).
+        order_by(column('timestamp').desc()).
+        limit(1),
+        deferred=True
+    )
 
     @inject_session
     def get_filtered_query(self, session=None):

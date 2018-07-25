@@ -1,0 +1,16 @@
+<div class="card">
+  <div class="card-header">
+    <h3>
+      Template #{{ template.id }}
+      <div class="float-right">
+        <span class="badge badge-{{ template.external_object_type | badge_color }}">{{ template.external_object_type | upper }}</span>
+        <span class="badge badge-{{ template.row_type | badge_color }}">{{ template.row_type | upper }}</span>
+      </div>
+    </h3>
+  </div>
+  <div class="card-body table-responsive">
+    {% with fields = template.fields %}
+      {% include "exports/templates/_fields.html" %}
+    {% endwith %}
+  </div>
+</div>

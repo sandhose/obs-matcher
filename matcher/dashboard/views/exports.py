@@ -2,6 +2,7 @@ import gzip
 
 from flask import render_template, send_file, request
 from flask.views import View
+from sqlalchemy.orm import joinedload
 
 from matcher.mixins import DbMixin
 from matcher.scheme.export import ExportFactory, ExportFile, ExportTemplate
@@ -67,7 +68,10 @@ class ExportFactoryListView(View, DbMixin):
 
 class ShowExportFactoryView(View, DbMixin):
     def dispatch_request(self, id):
-        export_factory = self.query(ExportFactory).get_or_404(id)
+        export_factory = self.query(ExportFactory)\
+            .options(joinedload(ExportFactory.files).joinedload(ExportFile.session),
+                     joinedload(ExportFactory.files).undefer(ExportFile.last_activity))\
+            .get_or_404(id)
 
         ctx = {}
         ctx['factory'] = export_factory

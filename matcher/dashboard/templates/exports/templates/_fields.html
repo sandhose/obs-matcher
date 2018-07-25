@@ -1,0 +1,16 @@
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th>Column name</th>
+      <th>Template</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for field in fields %}
+      <tr>
+        <td>{{ field.name }}</td>
+        <td><pre class="m-0"><code>{{ field.value }}</code></pre></td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
