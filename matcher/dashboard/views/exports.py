@@ -1,8 +1,8 @@
-from flask import redirect, render_template, request, send_file, url_for
+from flask import flash, redirect, render_template, request, send_file, url_for
 from flask.views import View
 from sqlalchemy.orm import joinedload
 
-from matcher.mixins import DbMixin, CeleryMixin
+from matcher.mixins import CeleryMixin, DbMixin
 from matcher.scheme.enums import ExportFileStatus
 from matcher.scheme.export import ExportFactory, ExportFile, ExportTemplate
 
@@ -41,6 +41,8 @@ class ProcessExportFileView(View, DbMixin, CeleryMixin):
         export_file.change_status(ExportFileStatus.SCHEDULED)
         self.session.add(export_file)
         self.session.commit()
+
+        flash('Export started, the file will be available soon')
 
         self.celery.send_task('matcher.tasks.export.process_file', [export_file.id])
 

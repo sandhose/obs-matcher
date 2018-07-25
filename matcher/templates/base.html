@@ -30,6 +30,14 @@
     $(document).ready(function() {
       $(".select2").select2();
     });
+
+    var flashes = {{ get_flashed_messages() | tojson }};
+    for (var i in flashes) {
+      $.notify({
+        icon: 'notifications',
+        message: flashes[i],
+      });
+    }
   </script>
   {% block script %}{% endblock %}
 </body>
