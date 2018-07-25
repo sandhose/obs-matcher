@@ -1,8 +1,11 @@
 import pendulum
-from flask import request
+from flask import request, Flask
 from jinja2 import Markup, escape
 
-from matcher.scheme.enums import ExternalObjectType, PlatformType, ScrapStatus
+from matcher.scheme.enums import (ExportFactoryIterator, ExportFileStatus,
+                                  ExportRowType, ExternalObjectType,
+                                  PlatformType, ScrapStatus,)
+from matcher.scheme.utils import CustomEnum
 
 
 def relative_date(dt):
@@ -29,26 +32,52 @@ def query():
     return dict(query=query)
 
 
-def badge_color(type_):
+def badge_color(type_: CustomEnum) -> str:
     return {
         ExternalObjectType.MOVIE: 'primary',
         ExternalObjectType.SERIES: 'success',
         ExternalObjectType.EPISODE: 'info',
         ExternalObjectType.PERSON: 'secondary',
+
         PlatformType.GLOBAL: 'secondary',
         PlatformType.INFO: 'info',
         PlatformType.SVOD: 'danger',
         PlatformType.TVOD: 'primary',
+
         ScrapStatus.SCHEDULED: 'secondary',
         ScrapStatus.RUNNING: 'primary',
         ScrapStatus.SUCCESS: 'success',
         ScrapStatus.ABORTED: 'warning',
         ScrapStatus.FAILED: 'danger',
+
+        ExportFileStatus.SCHEDULED: 'secondary',
+        ExportFileStatus.QUERYING: 'info',
+        ExportFileStatus.PROCESSING: 'primary',
+        ExportFileStatus.DONE: 'success',
+        ExportFileStatus.FAILED: 'danger',
+
+        ExportRowType.EXTERNAL_OBJECT: 'primary',
+        ExportRowType.OBJECT_LINK: 'info',
+
+        ExportFactoryIterator.PLATFORMS: 'info',
+        ExportFactoryIterator.GROUPS: 'success',
+        ExportFactoryIterator.COUNTRIES: 'primary',
     }.get(type_, 'secondary')
 
 
-def register(app):
+def template_highlight(template: str):
+    template = escape(template)
+    return template.replace('{{', Markup('<span class="badge badge-secondary badge-pill">')).replace('}}', Markup('</span>'))
+
+
+def filename(path: str) -> str:
+    return path.split('/')[-1]
+
+
+def register(app: Flask):
     """Register the filters and context processors for jinja"""
     app.jinja_env.filters['relative_date'] = relative_date
     app.jinja_env.filters['badge_color'] = badge_color
+    app.jinja_env.filters['template_highlight'] = template_highlight
+    app.jinja_env.filters['filename'] = filename
     app.context_processor(query)

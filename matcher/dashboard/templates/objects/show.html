@@ -6,5 +6,5 @@
     {{ object.attributes.titles[0] }}
     <span class="badge badge-{{ object.type | badge_color }}">{{ object.type | upper }}</span>
   </h3>
-  <span class="text-monospace">// TODO.</span>
+  {{ m.todo() }}
 {% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-3">
+      <div class="card">
+        <div class="card-header card-header-primary">
+          <h4 class="card-title">Filters</h4>
+        </div>
+        {% call m.render_form(filter_form, class_="card-body", action="GET") %}
+          {{ m.render_field(filter_form.row_type, field_class="select2") }}
+          {{ m.render_field(filter_form.iterator, field_class="select2") }}
+          {{ m.render_field(filter_form.external_object_type, field_class="select2") }}
+        {% endcall %}
+      </div>
+    </div>
+    <div class="col-9">
+      <div class="card">
+        <div class="card-body table-responsive">
+          <table class="table">
+            <thead class="text-primary">
+              <tr>
+                <th>Name</th>
+                <th>File</th>
+                <th>Type</th>
+                <th>Iterator</th>
+                <th>Objects</th>
+                <th>Filters</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for factory in page.items %}
+                <tr>
+                  <td>{{ factory.name }}</td>
+                  <td>{{ factory.file_path_template | filename | template_highlight }}</td>
+                  <td>
+                    <span class="badge badge-pill badge-{{ factory.template.row_type | badge_color }}">
+                      {{ factory.template.row_type | upper }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge badge-pill badge-{{ factory.iterator | badge_color }}">
+                      {{ factory.iterator | upper }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge badge-pill badge-{{ factory.template.external_object_type | badge_color }}">
+                      {{ factory.template.external_object_type | upper }}
+                    </span>
+                  </td>
+                  <td>
+                      {% for key, value in factory.filters_template.items() %}
+                        <div class="text-monospace"><b>{{ key }}</b> = {{ value | template_highlight }}</div>
+                      {% endfor %}
+                  </td>
+                  <td>
+                    <a class="btn btn-sm btn-link" href="{{ url_for('.show_export_factory', id=factory.id) }}" rel="tooltip" title="View factory">
+                      <i class="material-icons">arrow_forward</i>
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="card-footer">
+          {{ m.render_pagination(page, args=query) }}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

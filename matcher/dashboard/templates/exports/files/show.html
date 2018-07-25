@@ -7,22 +7,22 @@
       <dl>
         <dt>Row type</dt>
         <dd>
-          <span class="badge badge-pill badge-{{ export_file.template.row_type | badge_color }}">
-            {{ export_file.template.row_type | upper }}
+          <span class="badge badge-pill badge-{{ file.template.row_type | badge_color }}">
+            {{ file.template.row_type | upper }}
           </span>
         </dd>
         <dt>Object type</dt>
         <dd>
-          <span class="badge badge-pill badge-{{ export_file.template.external_object_type | badge_color }}">
-            {{ export_file.template.external_object_type | upper }}
+          <span class="badge badge-pill badge-{{ file.template.external_object_type | badge_color }}">
+            {{ file.template.external_object_type | upper }}
           </span>
         </dd>
         <dt>Path</dt>
-        <dd>{{ export_file.path }}</dd>
+        <dd>{{ file.path }}</dd>
         <dt>Session<dt>
-        <dd>{{ export_file.session.name }}</dd>
+        <dd>{{ file.session.name }}</dd>
         <dt>Factory<dt>
-        <dd>{{ export_file.factory.name or "–" }}</dd>
+        <dd>{{ file.factory.name or "–" }}</dd>
       </dl>
     </div>
 
@@ -36,7 +36,7 @@
           </tr>
         </thead>
         <tbody>
-          {% for log in export_file.logs %}
+          {% for log in file.logs %}
             <tr>
               <td>{{ log.timestamp }}</td>
               <td>
