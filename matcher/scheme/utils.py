@@ -24,13 +24,18 @@ class Transition(object):
         current_state = getattr(model, model._state_machine_field)
         next_state = enum(self.to_state)
 
-        if getattr(current_state, 'value', None) not in self.from_states:
+        if not self.can_apply(model):
             raise InvalidTransition(current_state, next_state)
 
         self.call_hooks(model, 'before', *args, **kwargs)
         setattr(model, model._state_machine_field, next_state)
         self.call_hooks(model, 'after', *args, **kwargs)
         return model
+
+    def can_apply(self, model) -> bool:
+        current_state = getattr(model, model._state_machine_field)
+
+        return getattr(current_state, 'value', None) in self.from_states
 
     def call_hooks(self, model, hook_type, *args, **kwargs):
         hooks = model._state_machine_hooks[hook_type]
@@ -80,9 +85,16 @@ class CustomEnum(enum.Enum):
             def apply(self, transition, *args, **kwargs):
                 return transition.apply(self, *args, **kwargs)
 
+            def gen_can_apply(transition):
+                @property
+                def can_apply(self):
+                    return transition.can_apply(self)
+                return can_apply
+
             # Generate the `obj.{transition}()` methods
             for transition in cls.__transitions__:
                 setattr(model, transition.name, partialmethod(apply, transition))
+                setattr(model, 'can_{name}'.format(name=transition.name), gen_can_apply(transition))
 
             # Generate the `is_{state}` properties
             def gen_is_state(elem):

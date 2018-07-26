@@ -65,10 +65,12 @@
           </dl>
 
           <div class="d-flex justify-content-between">
-            <a class="btn btn-danger" href="{{ url_for('.process_export_file', id=file.id) }}" rel="tooltip" title="This will destroy any previously generated file">
-              Process file
-            </a>
-            {% if file.status | string == 'done' %}
+            {% if file.can_scheduled %}
+              <a class="btn btn-danger" href="{{ url_for('.process_export_file', id=file.id) }}" rel="tooltip" title="This will destroy any previously generated file">
+                Process file
+              </a>
+            {% endif %}
+            {% if file.is_done %}
               <a class="btn btn-primary" href="{{ url_for('.download_export_file', id=file.id) }}">
                 <i class="material-icons">get_app</i>
                 Download

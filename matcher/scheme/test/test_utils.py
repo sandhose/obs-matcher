@@ -43,6 +43,65 @@ class TestCustomEnum():
         machine.schedule().run().success()
         assert machine.my_state == TestEnum.SUCCESS
 
+    def test_can_apply(self):
+        class State(CustomEnum):
+            NOT_STARTED = 1
+            RUNNING = 2
+            STOPPED = 3
+            FINISHED = 4
+
+            __transitions__ = [
+                Transition('run', RUNNING, [NOT_STARTED]),
+                Transition('stop', STOPPED, [RUNNING]),
+                Transition('finish', FINISHED, [RUNNING]),
+                Transition('restart', RUNNING, [STOPPED, FINISHED]),
+            ]
+
+        @State.act_as_statemachine
+        class TestMachine(object):
+            state = State.NOT_STARTED
+
+        machine = TestMachine()
+
+        assert machine.state == State.NOT_STARTED
+        assert machine.is_not_started
+        assert machine.can_run
+        assert not machine.can_stop
+        assert not machine.can_finish
+        assert not machine.can_restart
+
+        machine.run()
+        assert machine.state == State.RUNNING
+        assert machine.is_running
+        assert not machine.can_run
+        assert machine.can_stop
+        assert machine.can_finish
+        assert not machine.can_restart
+
+        machine.stop()
+        assert machine.state == State.STOPPED
+        assert machine.is_stopped
+        assert not machine.can_run
+        assert not machine.can_stop
+        assert not machine.can_finish
+        assert machine.can_restart
+
+        machine.restart()
+        assert machine.state == State.RUNNING
+        assert machine.is_running
+        assert not machine.can_run
+        assert machine.can_stop
+        assert machine.can_finish
+        assert not machine.can_restart
+
+        machine.finish()
+        assert machine.state == State.FINISHED
+        assert machine.is_finished
+        assert not machine.can_run
+        assert not machine.can_stop
+        assert not machine.can_finish
+        assert machine.can_restart
+
     def test_is_state(self):
         class TestEnum(CustomEnum):
             FIRST = 1
