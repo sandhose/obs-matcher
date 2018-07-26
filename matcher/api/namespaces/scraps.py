@@ -39,7 +39,7 @@ class ScrapList(DbResource):
     def post(self):
         """Create a new scrap
 
-        :raises InvalidStatusTransition:
+        :raises InvalidTransition:
         """
         args = scrap_arguments.parse_args()
 
@@ -82,7 +82,7 @@ class ScrapItem(DbResource):
     def put(self, scrap):
         """Edit a scrap
 
-        :raises InvalidStatusTransition:
+        :raises InvalidTransition:
         """
         args = edit_scrap_arguments.parse_args()
 

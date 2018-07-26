@@ -74,7 +74,7 @@ def test_create(client, session, platform):
         response = client.post("/api/scraps/", data={'platform': platform.id,
                                                      'status': status})
         assert response.status_code == HTTPStatus.BAD_REQUEST
-        assert response.json['type'] == 'invalid_status_transition'
+        assert response.json['type'] == 'invalid_transition'
 
     # Invalid parameter
     response = client.post("/api/scraps/")
@@ -172,4 +172,4 @@ def test_put_transitions(from_status, to_status, valid, client, session, platfor
         assert scrap.status == ScrapStatus.from_name(to_status)
     else:
         assert response.status_code == HTTPStatus.BAD_REQUEST
-        assert response.json['type'] == 'invalid_status_transition'
+        assert response.json['type'] == 'invalid_transition'

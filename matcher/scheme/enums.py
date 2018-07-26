@@ -2,7 +2,7 @@ import re
 from functools import partial
 
 from ..countries import lookup
-from .utils import CustomEnum
+from .utils import CustomEnum, Transition
 
 
 class PlatformType(CustomEnum):
@@ -30,6 +30,14 @@ class ScrapStatus(CustomEnum):
     FAILED = 5
     """The job has failed"""
 
+    __transitions__ = [
+        Transition('reschedule', SCHEDULED, [ABORTED, FAILED]),
+        Transition('run', RUNNING, [SCHEDULED]),
+        Transition('succeeded', SUCCESS, [RUNNING]),
+        Transition('failed', FAILED, [RUNNING]),
+        Transition('abort', ABORTED, [RUNNING]),
+    ]
+
 
 class ExportFileStatus(CustomEnum):
     """Current status of an export task"""
@@ -39,6 +47,14 @@ class ExportFileStatus(CustomEnum):
     PROCESSING = 3
     DONE = 4
     FAILED = 5
+
+    __transitions__ = [
+        Transition('schedule', SCHEDULED, [FAILED, None]),
+        Transition('querying', QUERYING, [SCHEDULED]),
+        Transition('process', PROCESSING, [QUERYING]),
+        Transition('done', DONE, [PROCESSING, QUERYING]),
+        Transition('failed', FAILED, [SCHEDULED, QUERYING, PROCESSING, DONE]),
+    ]
 
 
 class ExportFactoryIterator(CustomEnum):

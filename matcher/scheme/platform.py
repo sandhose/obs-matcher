@@ -7,10 +7,9 @@ from sqlalchemy import (Boolean, Column, DateTime, Enum, ForeignKey, Integer,
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import column_property, relationship
 
-from matcher.exceptions import InvalidStatusTransition
-
 from . import Base
 from .enums import PlatformType, ScrapStatus
+from .utils import before
 
 __all__ = ['PlatformGroup', 'Platform', 'Scrap', 'Session']
 
@@ -137,6 +136,7 @@ class Platform(Base):
         ExternalObject.match_objects(objs)
 
 
+@ScrapStatus.act_as_statemachine('status')
 class Scrap(Base):
     """Represents one job
 
@@ -186,39 +186,16 @@ class Scrap(Base):
                 self.run()
             elif status is ScrapStatus.SCHEDULED:
                 self.reschedule()
-            else:
-                self.finish(status)
+            elif status is ScrapStatus.SUCCESS:
+                self.succeeded()
+            elif status is ScrapStatus.FAILED:
+                self.failed()
+            elif status is ScrapStatus.ABORTED:
+                self.abort()
 
-    def finish(self, status):
-        """Set the status to one of the finished status"""
-        if self.status is not ScrapStatus.RUNNING:
-            raise InvalidStatusTransition(from_status=self.status, to_status=status)
-
-        if not any(s == status
-                   for s in [ScrapStatus.SUCCESS, ScrapStatus.FAILED, ScrapStatus.ABORTED]):
-            # FIXME: custom exception
-            raise Exception('"{}" is not a finished state'.format(status))
-
-        self.status = status
-
-    def run(self):
-        """Mark the job as running"""
-        if self.status is not ScrapStatus.SCHEDULED:
-            raise InvalidStatusTransition(from_status=self.status, to_status=ScrapStatus.RUNNING)
-
+    @before('run')
+    def before_run(self):
         self.date = datetime.now()
-        self.status = ScrapStatus.RUNNING
-
-    def reschedule(self):
-        """Reschedule a job"""
-
-        # FIXME: This maybe should duplicate itself when not RUNNING or ABORTED
-        if self.status is ScrapStatus.SUCCESS or \
-           self.status is ScrapStatus.SCHEDULED or \
-           self.status is ScrapStatus.RUNNING:
-            raise InvalidStatusTransition(from_status=self.status, to_status=ScrapStatus.SCHEDULED)
-
-        self.status = ScrapStatus.SCHEDULED
 
     def match_objects(self):
         """Try to match objects that where found in this scrap"""

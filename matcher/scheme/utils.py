@@ -1,10 +1,43 @@
 import enum
+import inspect
+import itertools
+from functools import partialmethod
+from typing import Callable, Optional
 
 from sqlalchemy import column
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import Query, object_session
 from sqlalchemy.schema import DDLElement
 from sqlalchemy.sql import FromClause
+
+from matcher.exceptions import InvalidTransition
+
+
+class Transition(object):
+    def __init__(self, name, to_state, from_states=[]):
+        self.name = name
+        self.to_state = to_state
+        self.from_states = from_states
+
+    def apply(self, model):
+        enum = model._state_machine_enum
+        current_state = getattr(model, model._state_machine_field)
+        next_state = enum(self.to_state)
+
+        if getattr(current_state, 'value', None) not in self.from_states:
+            raise InvalidTransition(current_state, next_state)
+
+        self.call_hooks(model, 'before')
+        setattr(model, model._state_machine_field, next_state)
+        self.call_hooks(model, 'after')
+        return model
+
+    def call_hooks(self, model, hook_type):
+        hooks = model._state_machine_hooks[hook_type]
+
+        for hook in hooks:
+            if hook.transition == self.name or hook.transition is None:
+                hook(model)
 
 
 class CustomEnum(enum.Enum):
@@ -18,6 +51,104 @@ class CustomEnum(enum.Enum):
         if name is None:
             return None
         return getattr(cls, name.upper(), None)
+
+    @classmethod
+    def act_as_statemachine(cls, arg):
+        """Create a state machine from this enum"""
+        assert cls.__transitions__
+
+        def wrapper(model):
+            assert hasattr(model, field)
+
+            # Discover the hooks defined by the @before and @after decorators
+            hooks = {'before': [], 'after': []}
+            for attr in dir(model):
+                if not attr.startswith('__'):
+                    hook = getattr(model, attr)
+                    if isinstance(hook, Hook):
+                        hooks[hook.hook_type].append(hook)
+
+            # Re-order the hooks by order of definition using their order attribute
+            for key in hooks:
+                hooks[key] = sorted(hooks[key])
+
+            # Save the name of the field, the enum base class and the hook list inside the class
+            setattr(model, '_state_machine_field', field)
+            setattr(model, '_state_machine_enum', cls)
+            setattr(model, '_state_machine_hooks', hooks)
+
+            def apply(self, transition):
+                return transition.apply(self)
+
+            # Generate the `obj.{transition}()` methods
+            for transition in cls.__transitions__:
+                setattr(model, transition.name, partialmethod(apply, transition))
+
+            # Generate the `is_{state}` properties
+            def gen_is_state(elem):
+                @property
+                def is_state(self):
+                    return getattr(self, field) == elem
+                return is_state
+
+            for elem in cls:
+                setattr(model, 'is_{name}'.format(name=str(elem)), gen_is_state(elem))
+
+            return model
+
+        if inspect.isclass(arg):
+            field = 'state'
+            return wrapper(arg)
+
+        field = arg
+        return wrapper
+
+
+# Counter used to get the order of definition
+_hook_counter = itertools.count()
+
+
+class Hook(object):
+    def __init__(self, hook_type: str, transition: Transition, func: Callable[..., Optional[bool]]) -> None:
+        self.hook_type = hook_type
+        self.transition = transition
+        self.func = func
+        self.order = next(_hook_counter)
+
+    # Implement ordering
+    def __lt__(self, other):
+        return self.order.__lt__(other.order)
+
+    def __call__(self, instance_self) -> None:
+        result = self.func(instance_self)
+        if result is False:
+            raise Exception('{} hook failed'.format(self.hook_type))
+
+
+def before(arg):
+    if callable(arg):
+        transition = None
+        func = arg
+        return Hook('before', transition, func)
+    else:
+        transition = arg
+
+        def decorator(func):
+            return Hook('before', transition, func)
+        return decorator
+
+
+def after(arg):
+    if callable(arg):
+        name = None
+        func = arg
+        return Hook('after', name, func)
+    else:
+        name = arg
+
+        def decorator(func):
+            return Hook('after', arg, func)
+        return decorator
 
 
 class CreateExtension(DDLElement):

@@ -144,26 +144,25 @@ class UnknownAttribute(Exception):
         return "Unknown attribute {!r}".format(self.name)
 
 
-class InvalidStatusTransition(Exception):
-    """Raised when the scrap status change fails.
+class InvalidTransition(Exception):
+    """Raised when a state machine transition change fails.
 
     Attributes
     ----------
-    from_status : :obj:`.scheme.platform.ScrapStatus`
-        The current scrap status
-    to_status : :obj:`.scheme.platform.ScrapStatus`
-        The status that was tried to be set to
+    from_state : :obj:`.scheme.utils.CustomEnum`
+        The current state
+    to_state : :obj:`.scheme.utils.CustomEnum`
+        The state that was tried to be set to
 
     """
 
-    def __init__(self, from_status, to_status):
-        """Raise with the current and next status."""
-        self.from_status = from_status
-        self.to_status = to_status
+    def __init__(self, from_state, to_state):
+        self.from_state = from_state
+        self.to_state = to_state
 
     def __str__(self):
-        return "Invalid transition from {!r} to {!r}".format(self.from_status,
-                                                             self.to_status)
+        return "Invalid transition from {!r} to {!r}".format(self.from_state,
+                                                             self.to_state)
 
 
 class LinkNotFound(Exception):
