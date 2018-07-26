@@ -49,9 +49,9 @@ class ExportFileStatus(CustomEnum):
     FAILED = 5
 
     __transitions__ = [
-        Transition('schedule', SCHEDULED, [FAILED, None]),
+        Transition('scheduled', SCHEDULED, [SCHEDULED, FAILED, None]),
         Transition('querying', QUERYING, [SCHEDULED]),
-        Transition('process', PROCESSING, [QUERYING]),
+        Transition('processing', PROCESSING, [QUERYING]),
         Transition('done', DONE, [PROCESSING, QUERYING]),
         Transition('failed', FAILED, [SCHEDULED, QUERYING, PROCESSING, DONE]),
     ]

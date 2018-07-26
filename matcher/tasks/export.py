@@ -2,7 +2,6 @@ from celery import group
 
 from matcher import celery
 from matcher.app import db
-from matcher.scheme.enums import ExportFileStatus
 from matcher.scheme.export import ExportFactory, ExportFile
 from matcher.scheme.platform import Session
 
@@ -31,11 +30,11 @@ def process_file(file_id):
     try:
         file.process()
     except Exception as e:
-        file.change_status(ExportFileStatus.FAILED, message=str(e))
+        file.failed(message=str(e))
         db.session.add(file)
         db.session.commit()
         raise e
 
-    file.change_status(ExportFileStatus.DONE)
+    file.done()
     db.session.add(file)
     db.session.commit()

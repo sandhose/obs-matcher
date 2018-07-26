@@ -19,7 +19,7 @@ class Transition(object):
         self.to_state = to_state
         self.from_states = from_states
 
-    def apply(self, model):
+    def apply(self, model, *args, **kwargs):
         enum = model._state_machine_enum
         current_state = getattr(model, model._state_machine_field)
         next_state = enum(self.to_state)
@@ -27,17 +27,17 @@ class Transition(object):
         if getattr(current_state, 'value', None) not in self.from_states:
             raise InvalidTransition(current_state, next_state)
 
-        self.call_hooks(model, 'before')
+        self.call_hooks(model, 'before', *args, **kwargs)
         setattr(model, model._state_machine_field, next_state)
-        self.call_hooks(model, 'after')
+        self.call_hooks(model, 'after', *args, **kwargs)
         return model
 
-    def call_hooks(self, model, hook_type):
+    def call_hooks(self, model, hook_type, *args, **kwargs):
         hooks = model._state_machine_hooks[hook_type]
 
         for hook in hooks:
             if hook.transition == self.name or hook.transition is None:
-                hook(model)
+                hook(model, *args, **kwargs)
 
 
 class CustomEnum(enum.Enum):
@@ -77,8 +77,8 @@ class CustomEnum(enum.Enum):
             setattr(model, '_state_machine_enum', cls)
             setattr(model, '_state_machine_hooks', hooks)
 
-            def apply(self, transition):
-                return transition.apply(self)
+            def apply(self, transition, *args, **kwargs):
+                return transition.apply(self, *args, **kwargs)
 
             # Generate the `obj.{transition}()` methods
             for transition in cls.__transitions__:
@@ -119,9 +119,10 @@ class Hook(object):
     def __lt__(self, other):
         return self.order.__lt__(other.order)
 
-    def __call__(self, instance_self) -> None:
-        result = self.func(instance_self)
+    def __call__(self, *args, **kwargs) -> None:
+        result = self.func(*args, **kwargs)
         if result is False:
+            # TODO: custom exception
             raise Exception('{} hook failed'.format(self.hook_type))
 
 

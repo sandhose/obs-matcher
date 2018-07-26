@@ -109,17 +109,17 @@ class TestCustomEnum():
 
         machine = TestMachine()
         machine.first()
-        machine.second()
+        machine.second('arg', key='value')
 
         assert parent.mock_calls == [
             call.before_each(machine),
             call.before_first(machine),
             call.after_each(machine),
             call.after_first(machine),
-            call.before_each(machine),
-            call.before_second(machine),
-            call.after_each(machine),
-            call.after_second(machine),
+            call.before_each(machine, 'arg', key='value'),
+            call.before_second(machine, 'arg', key='value'),
+            call.after_each(machine, 'arg', key='value'),
+            call.after_second(machine, 'arg', key='value'),
         ]
 
     def test_hook_return(self):

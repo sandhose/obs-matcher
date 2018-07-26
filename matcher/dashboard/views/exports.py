@@ -3,7 +3,6 @@ from flask.views import View
 from sqlalchemy.orm import joinedload
 
 from matcher.mixins import CeleryMixin, DbMixin
-from matcher.scheme.enums import ExportFileStatus
 from matcher.scheme.export import ExportFactory, ExportFile, ExportTemplate
 
 from ..forms.exports import ExportFactoryListFilter
@@ -38,7 +37,7 @@ class ProcessExportFileView(View, DbMixin, CeleryMixin):
     def dispatch_request(self, id):
         export_file = self.query(ExportFile).get_or_404(id)
 
-        export_file.change_status(ExportFileStatus.SCHEDULED)
+        export_file.scheduled()
         self.session.add(export_file)
         self.session.commit()
 

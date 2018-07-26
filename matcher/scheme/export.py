@@ -20,7 +20,7 @@ from matcher.utils import open_export
 from .base import Base
 from .enums import (ExportFactoryIterator, ExportFileStatus, ExportRowType,
                     ExternalObjectType, PlatformType,)
-from .utils import inject_session
+from .utils import after, inject_session
 
 __all__ = ['ExportTemplate', 'ExportFactory', 'ExportFile']
 
@@ -346,6 +346,7 @@ class ExportFactory(Base):
                              filters=filters_template(context))
 
 
+@ExportFileStatus.act_as_statemachine('status')
 class ExportFile(Base):
     __tablename__ = 'export_file'
 
@@ -423,13 +424,9 @@ class ExportFile(Base):
         yield self.template.header
         yield from self.render_rows(session=session)
 
-    @inject_session
-    def change_status(self, status, message=None, session=None):
-        if self.status == status and message is None:
-            return
-
-        self.status = status
-        self.logs.append(ExportFileLog(status=status, message=message))
+    @after
+    def log_status(self, message=None):
+        self.logs.append(ExportFileLog(status=self.status, message=message))
 
     def open(self, *args, **kwargs):
         return open_export('{id}.csv.gz'.format(id=self.id), *args, **kwargs)
@@ -443,7 +440,7 @@ class ExportFile(Base):
             # Write UTF16-LE BOM because Excel.
             file.write(codecs.BOM_UTF16_LE)
 
-            self.change_status(ExportFileStatus.QUERYING)
+            self.querying()
             session.add(self)
             session.commit()
 
@@ -452,7 +449,7 @@ class ExportFile(Base):
 
                 # FIXME: quite ugly but it works
                 if index == 1:  # We passed the header row
-                    self.change_status(ExportFileStatus.PROCESSING)
+                    self.processing()
                     session.add(self)
                     session.commit()
 
