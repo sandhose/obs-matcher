@@ -15,6 +15,8 @@ from sqlalchemy.dialects.postgresql import HSTORE, JSONB
 from sqlalchemy.orm import (column_property, contains_eager, relationship,
                             subqueryload,)
 
+from matcher.utils import open_export
+
 from .base import Base
 from .enums import (ExportFactoryIterator, ExportFileStatus, ExportRowType,
                     ExternalObjectType, PlatformType,)
@@ -429,12 +431,15 @@ class ExportFile(Base):
         self.status = status
         self.logs.append(ExportFileLog(status=status, message=message))
 
+    def open(self, *args, **kwargs):
+        return open_export('{id}.csv.gz'.format(id=self.id), *args, **kwargs)
+
     @inject_session
     def process(self, session=None):
         # FIXME: this supposes that the object is already in the session
         # FIXME: move this to a task
         # FIXME: should we gzip on the fly? where do we store everything?
-        with gzip.open(self.path + '.gz', 'wb') as file:
+        with gzip.open(self.open(mode='wb'), 'wb') as file:
             # Write UTF16-LE BOM because Excel.
             file.write(codecs.BOM_UTF16_LE)
 

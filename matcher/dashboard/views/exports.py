@@ -26,7 +26,7 @@ class DownloadExportFileView(View, DbMixin):
     def dispatch_request(self, id):
         export_file = self.query(ExportFile).get_or_404(id)
 
-        response = send_file(export_file.path + ".gz",
+        response = send_file(export_file.open(mode='rb'),
                              mimetype="text/csv",
                              as_attachment=True,
                              attachment_filename=export_file.path.split('/')[-1])
