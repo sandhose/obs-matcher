@@ -55,6 +55,7 @@ def badge_color(type_: CustomEnum) -> str:
         ExportFileStatus.PROCESSING: 'primary',
         ExportFileStatus.DONE: 'success',
         ExportFileStatus.FAILED: 'danger',
+        ExportFileStatus.ABSENT: 'danger',
 
         ExportRowType.EXTERNAL_OBJECT: 'primary',
         ExportRowType.OBJECT_LINK: 'info',
@@ -63,6 +64,13 @@ def badge_color(type_: CustomEnum) -> str:
         ExportFactoryIterator.GROUPS: 'success',
         ExportFactoryIterator.COUNTRIES: 'primary',
     }.get(type_, 'secondary')
+
+
+def transition_color(method):
+    if hasattr(method, 'transition'):
+        return badge_color(method.transition.to_state)
+    else:
+        return 'secondary'
 
 
 def template_highlight(template: str):
@@ -80,6 +88,7 @@ def register(app: Flask):
     """Register the filters and context processors for jinja"""
     app.jinja_env.filters['relative_date'] = relative_date
     app.jinja_env.filters['badge_color'] = badge_color
+    app.jinja_env.filters['transition_color'] = transition_color
     app.jinja_env.filters['template_highlight'] = template_highlight
     app.jinja_env.filters['filename'] = filename
     app.context_processor(query)

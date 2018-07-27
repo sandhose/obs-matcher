@@ -15,10 +15,10 @@ class TestCustomEnum():
             FAILED = 4
 
             __transitions__ = [
-                Transition('schedule', SCHEDULED, [FAILED, None]),
-                Transition('run', RUNNING, [SCHEDULED]),
-                Transition('success', SUCCESS, [RUNNING]),
-                Transition('fail', FAILED, [RUNNING]),
+                Transition('schedule', [FAILED, None], SCHEDULED),
+                Transition('run', [SCHEDULED], RUNNING),
+                Transition('success', [RUNNING], SUCCESS),
+                Transition('fail', [RUNNING], FAILED),
             ]
 
         @TestEnum.act_as_statemachine('my_state')
@@ -51,10 +51,10 @@ class TestCustomEnum():
             FINISHED = 4
 
             __transitions__ = [
-                Transition('run', RUNNING, [NOT_STARTED]),
-                Transition('stop', STOPPED, [RUNNING]),
-                Transition('finish', FINISHED, [RUNNING]),
-                Transition('restart', RUNNING, [STOPPED, FINISHED]),
+                Transition('run', [NOT_STARTED], RUNNING),
+                Transition('stop', [RUNNING], STOPPED),
+                Transition('finish', [RUNNING], FINISHED),
+                Transition('restart', [STOPPED, FINISHED], RUNNING),
             ]
 
         @State.act_as_statemachine
@@ -109,7 +109,7 @@ class TestCustomEnum():
             THIRD = 3
 
             __transitions__ = [
-                Transition('first', FIRST, [None])
+                Transition('first', [None], FIRST)
             ]
 
         @TestEnum.act_as_statemachine
@@ -143,8 +143,8 @@ class TestCustomEnum():
             SECOND_STATE = 2
 
             __transitions__ = [
-                Transition('first', FIRST_STATE, [SECOND_STATE]),
-                Transition('second', SECOND_STATE, [FIRST_STATE]),
+                Transition('first', [SECOND_STATE], FIRST_STATE),
+                Transition('second', [FIRST_STATE], SECOND_STATE),
             ]
 
         parent = Mock()
@@ -188,9 +188,9 @@ class TestCustomEnum():
             THIRD_STATE = 2
 
             __transitions__ = [
-                Transition('first', FIRST_STATE, [SECOND_STATE, None]),
-                Transition('second', SECOND_STATE, [FIRST_STATE]),
-                Transition('third', THIRD_STATE, [FIRST_STATE, SECOND_STATE]),
+                Transition('first', [SECOND_STATE, None], FIRST_STATE),
+                Transition('second', [FIRST_STATE], SECOND_STATE),
+                Transition('third', [FIRST_STATE, SECOND_STATE], THIRD_STATE),
             ]
 
         parent = Mock()

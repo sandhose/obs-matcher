@@ -1,5 +1,3 @@
-from celery import group
-
 from matcher import celery
 from matcher.app import db
 from matcher.scheme.export import ExportFactory, ExportFile
@@ -14,12 +12,11 @@ def run_factory(factory_id, session_id):
     assert scrap_session
     assert factory
 
-    # TODO: log when it was scheduled
-    files = list(factory.generate(scrap_session=scrap_session))
-    db.session.add_all(files)
-    db.session.commit()
+    for file in factory.generate(scrap_session=scrap_session):
+        file.schedule(celery=celery)
+        db.session.add(file)
 
-    group(process_file.s(file.id) for file in files).apply_async()
+    db.session.commit()
 
 
 @celery.task(autoretry_for=(Exception, ), max_retries=5, acks_late=True)
@@ -28,8 +25,8 @@ def process_file(file_id):
     assert file
 
     try:
-        file.process()
-    except Exception as e:
+        file.start()
+    except Exception as e:  # FIXME: be more specific?
         file.failed(message=str(e))
         db.session.add(file)
         db.session.commit()

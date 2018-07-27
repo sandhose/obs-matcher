@@ -65,11 +65,11 @@
           </dl>
 
           <div class="d-flex justify-content-between">
-            {% if file.can_scheduled %}
-              <a class="btn btn-danger" href="{{ url_for('.process_export_file', id=file.id) }}" rel="tooltip" title="This will destroy any previously generated file">
-                Process file
-              </a>
-            {% endif %}
+            {{ m.transition(file, 'schedule', url_for('.process_export_file', id=file.id)) }}
+            {% call m.transition(file, 'delete', url_for('.delete_export_file', id=file.id)) %}
+              <i class="material-icons">delete</i>
+              Delete
+            {% endcall %}
             {% if file.is_done %}
               <a class="btn btn-primary" href="{{ url_for('.download_export_file', id=file.id) }}">
                 <i class="material-icons">get_app</i>

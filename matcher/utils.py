@@ -28,8 +28,12 @@ class Lock():
             fcntl.lockf(self.fd, fcntl.LOCK_UN)
 
 
-def open_export(path, *args, **kwargs):
+def export_path(path):
     prefix = Path(current_app.config['EXPORTS_LOCATION'])
-    path = prefix / path
+    return prefix / path
+
+
+def open_export(path, *args, **kwargs):
+    path = export_path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     return path.open(*args, **kwargs)

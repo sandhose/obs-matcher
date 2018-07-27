@@ -1,10 +1,10 @@
 import enum
+import functools
 import inspect
 import itertools
-from functools import partialmethod
-from typing import Callable, Optional
+from typing import Callable, List, Optional, Type
 
-from sqlalchemy import column
+from sqlalchemy import column, event
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import Query, object_session
 from sqlalchemy.schema import DDLElement
@@ -14,35 +14,13 @@ from matcher.exceptions import InvalidTransition
 
 
 class Transition(object):
-    def __init__(self, name, to_state, from_states=[]):
+    __slots__ = 'name', 'to_state', 'from_states', '__doc__'
+
+    def __init__(self, name: str, from_states: List[Optional[int]], to_state: int, doc: str="") -> None:
         self.name = name
         self.to_state = to_state
         self.from_states = from_states
-
-    def apply(self, model, *args, **kwargs):
-        enum = model._state_machine_enum
-        current_state = getattr(model, model._state_machine_field)
-        next_state = enum(self.to_state)
-
-        if not self.can_apply(model):
-            raise InvalidTransition(current_state, next_state)
-
-        self.call_hooks(model, 'before', *args, **kwargs)
-        setattr(model, model._state_machine_field, next_state)
-        self.call_hooks(model, 'after', *args, **kwargs)
-        return model
-
-    def can_apply(self, model) -> bool:
-        current_state = getattr(model, model._state_machine_field)
-
-        return getattr(current_state, 'value', None) in self.from_states
-
-    def call_hooks(self, model, hook_type, *args, **kwargs):
-        hooks = model._state_machine_hooks[hook_type]
-
-        for hook in hooks:
-            if hook.transition == self.name or hook.transition is None:
-                hook(model, *args, **kwargs)
+        self.__doc__ = str(doc)
 
 
 class CustomEnum(enum.Enum):
@@ -57,6 +35,28 @@ class CustomEnum(enum.Enum):
             return None
         return getattr(cls, name.upper(), None)
 
+    @staticmethod
+    def _gen_apply(transition):
+        def apply(self, *args, **kwargs):
+            return transition.apply(self, *args, **kwargs)
+        apply.transition = transition
+        apply.__doc__ = transition.__doc__
+        return apply
+
+    @staticmethod
+    def _gen_can_apply(transition):
+        @property
+        def can_apply(self):
+            return transition.can_apply(self)
+        return can_apply
+
+    @staticmethod
+    def _gen_is_state(elem, field):
+        @property
+        def is_state(self):
+            return getattr(self, field) == elem
+        return is_state
+
     @classmethod
     def act_as_statemachine(cls, arg):
         """Create a state machine from this enum"""
@@ -66,7 +66,7 @@ class CustomEnum(enum.Enum):
             assert hasattr(model, field)
 
             # Discover the hooks defined by the @before and @after decorators
-            hooks = {'before': [], 'after': []}
+            hooks = {'before': [], 'after': [], 'after_save': []}
             for attr in dir(model):
                 if not attr.startswith('__'):
                     hook = getattr(model, attr)
@@ -77,34 +77,27 @@ class CustomEnum(enum.Enum):
             for key in hooks:
                 hooks[key] = sorted(hooks[key])
 
+            def listener(mapper, connection, target):
+                while target._state_machine_save_queue:
+                    target._state_machine_save_queue.pop(0)()
+
+            event.listens_for(model, 'after_insert')(listener)
+            event.listens_for(model, 'after_update')(listener)
+
             # Save the name of the field, the enum base class and the hook list inside the class
             setattr(model, '_state_machine_field', field)
-            setattr(model, '_state_machine_enum', cls)
             setattr(model, '_state_machine_hooks', hooks)
-
-            def apply(self, transition, *args, **kwargs):
-                return transition.apply(self, *args, **kwargs)
-
-            def gen_can_apply(transition):
-                @property
-                def can_apply(self):
-                    return transition.can_apply(self)
-                return can_apply
+            setattr(model, '_state_machine_save_queue', [])
 
             # Generate the `obj.{transition}()` methods
             for transition in cls.__transitions__:
-                setattr(model, transition.name, partialmethod(apply, transition))
-                setattr(model, 'can_{name}'.format(name=transition.name), gen_can_apply(transition))
+                transition = BoundTransition(transition, cls)
+                setattr(model, transition.name, cls._gen_apply(transition))
+                setattr(model, 'can_{name}'.format(name=transition.name), cls._gen_can_apply(transition))
 
             # Generate the `is_{state}` properties
-            def gen_is_state(elem):
-                @property
-                def is_state(self):
-                    return getattr(self, field) == elem
-                return is_state
-
             for elem in cls:
-                setattr(model, 'is_{name}'.format(name=str(elem)), gen_is_state(elem))
+                setattr(model, 'is_{name}'.format(name=str(elem)), cls._gen_is_state(elem, field))
 
             return model
 
@@ -114,6 +107,48 @@ class CustomEnum(enum.Enum):
 
         field = arg
         return wrapper
+
+
+class BoundTransition(object):
+    __slots__ = 'name', 'to_state', 'from_states', '__doc__'
+
+    def __init__(self, transition: Transition, enum: Type[CustomEnum]) -> None:
+        self.__doc__ = transition.__doc__
+        self.name = transition.name
+        self.to_state = enum(transition.to_state)
+        self.from_states = [None if state is None else enum(state) for state in transition.from_states]
+
+    def apply(self, model, *args, **kwargs):
+        current_state = getattr(model, model._state_machine_field)
+
+        if not self.can_apply(model):
+            raise InvalidTransition(current_state, self.to_state)
+
+        for hook in self.hook_list(model, 'before'):
+            hook(model, *args, **kwargs)
+
+        setattr(model, model._state_machine_field, self.to_state)
+
+        for hook in self.hook_list(model, 'after'):
+            hook(model, *args, **kwargs)
+
+        for hook in self.hook_list(model, 'after_save'):
+            bound_hook = functools.partial(hook, model, *args, **kwargs)
+            model._state_machine_save_queue.append(bound_hook)
+
+        return model
+
+    def can_apply(self, model) -> bool:
+        current_state = getattr(model, model._state_machine_field)
+
+        return current_state in self.from_states
+
+    def hook_list(self, model, hook_type):
+        hooks = model._state_machine_hooks[hook_type]
+
+        for hook in hooks:
+            if hook.transition == self.name or hook.transition is None:
+                yield hook
 
 
 # Counter used to get the order of definition
@@ -161,6 +196,19 @@ def after(arg):
 
         def decorator(func):
             return Hook('after', arg, func)
+        return decorator
+
+
+def after_save(arg):
+    if callable(arg):
+        name = None
+        func = arg
+        return Hook('after_save', name, func)
+    else:
+        name = arg
+
+        def decorator(func):
+            return Hook('after_save', arg, func)
         return decorator
 
 

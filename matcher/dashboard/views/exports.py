@@ -33,17 +33,24 @@ class DownloadExportFileView(View, DbMixin):
         return response
 
 
+class DeleteExportFileView(View, DbMixin):
+    def dispatch_request(self, id):
+        export_file = self.query(ExportFile).get_or_404(id)
+        export_file.delete()
+        self.session.add(export_file)
+        self.session.commit()
+        return redirect(url_for('.show_export_file', id=export_file.id))
+
+
 class ProcessExportFileView(View, DbMixin, CeleryMixin):
     def dispatch_request(self, id):
         export_file = self.query(ExportFile).get_or_404(id)
 
-        export_file.scheduled()
+        export_file.schedule(celery=self.celery)
         self.session.add(export_file)
         self.session.commit()
 
         flash('Export started, the file will be available soon')
-
-        self.celery.send_task('matcher.tasks.export.process_file', [export_file.id])
 
         return redirect(url_for('.show_export_file', id=export_file.id))
 

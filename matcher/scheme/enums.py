@@ -31,11 +31,11 @@ class ScrapStatus(CustomEnum):
     """The job has failed"""
 
     __transitions__ = [
-        Transition('reschedule', SCHEDULED, [ABORTED, FAILED]),
-        Transition('run', RUNNING, [SCHEDULED]),
-        Transition('succeeded', SUCCESS, [RUNNING]),
-        Transition('failed', FAILED, [RUNNING]),
-        Transition('abort', ABORTED, [RUNNING]),
+        Transition('reschedule', [ABORTED, FAILED], SCHEDULED),
+        Transition('run', [SCHEDULED], RUNNING),
+        Transition('succeeded', [RUNNING], SUCCESS),
+        Transition('failed', [RUNNING], FAILED),
+        Transition('abort', [RUNNING], ABORTED),
     ]
 
 
@@ -43,17 +43,30 @@ class ExportFileStatus(CustomEnum):
     """Current status of an export task"""
 
     SCHEDULED = 1
+    """The job is scheduled to be processed as soon as possible"""
+
     QUERYING = 2
+    """The job was started and is now querying the data"""
+
     PROCESSING = 3
+    """The file being processed"""
+
     DONE = 4
+    """The file is done and ready to download"""
+
     FAILED = 5
+    """The job failed"""
+
+    ABSENT = 6
+    """The file was empty or was deleted"""
 
     __transitions__ = [
-        Transition('scheduled', SCHEDULED, [SCHEDULED, FAILED, None]),
-        Transition('querying', QUERYING, [SCHEDULED]),
-        Transition('processing', PROCESSING, [QUERYING]),
-        Transition('done', DONE, [PROCESSING, QUERYING]),
-        Transition('failed', FAILED, [SCHEDULED, QUERYING, PROCESSING, DONE]),
+        Transition('schedule', [SCHEDULED, FAILED, ABSENT, None], SCHEDULED, doc="Process this file"),
+        Transition('start', [SCHEDULED], QUERYING),
+        Transition('processing', [QUERYING], PROCESSING),
+        Transition('done', [PROCESSING, QUERYING], DONE),
+        Transition('failed', [SCHEDULED, QUERYING, PROCESSING, DONE], FAILED),
+        Transition('delete', [DONE, PROCESSING], ABSENT, doc="Delete this file"),
     ]
 
 

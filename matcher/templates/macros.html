@@ -86,3 +86,15 @@
 {% macro todo() -%}
   <p class="text-monospace">// TODO.</p>
 {%- endmacro %}
+
+{% macro transition(model, name, url='#', class='btn') %}
+  {% if model['can_' + name] %}
+    <a href="{{ url }}" title="{{ model[name].__doc__ }}" class="{{ class }} btn-{{ model[name] | transition_color }}" rel="tooltip">
+      {% if caller %}
+        {{ caller() }}
+      {% else %}
+        {{ name | title }}
+      {% endif %}
+    </a>
+  {% endif %}
+{% endmacro %}

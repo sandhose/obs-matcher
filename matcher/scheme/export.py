@@ -7,6 +7,7 @@ import re
 from functools import partial
 from typing import Any, Callable, Dict, Iterator, List, Set
 
+from celery import Celery
 from jinja2 import Environment, StrictUndefined, meta, nodes
 from slugify import slugify
 from sqlalchemy import (TIMESTAMP, Column, Enum, ForeignKey, Integer, Sequence,
@@ -15,12 +16,12 @@ from sqlalchemy.dialects.postgresql import HSTORE, JSONB
 from sqlalchemy.orm import (column_property, contains_eager, relationship,
                             subqueryload,)
 
-from matcher.utils import open_export
+from matcher.utils import export_path, open_export
 
 from .base import Base
 from .enums import (ExportFactoryIterator, ExportFileStatus, ExportRowType,
                     ExternalObjectType, PlatformType,)
-from .utils import after, inject_session
+from .utils import after, after_save, before, inject_session
 
 __all__ = ['ExportTemplate', 'ExportFactory', 'ExportFile']
 
@@ -353,8 +354,7 @@ class ExportFile(Base):
     export_file_id_seq = Sequence('export_file_id_seq', metadata=Base.metadata)
     id = Column(Integer, export_file_id_seq, server_default=export_file_id_seq.next_value(), primary_key=True)
 
-    status = Column(Enum(ExportFileStatus),
-                    default=ExportFileStatus.SCHEDULED, server_default='SCHEDULED', nullable=False)
+    status = Column(Enum(ExportFileStatus), default=None, nullable=False)
     path = Column(String, nullable=False)
     filters = Column(HSTORE, nullable=False)
 
@@ -424,13 +424,27 @@ class ExportFile(Base):
         yield self.template.header
         yield from self.render_rows(session=session)
 
-    @after
-    def log_status(self, message=None):
-        self.logs.append(ExportFileLog(status=self.status, message=message))
+    @property
+    def real_name(self):
+        return '{id}.csv.gz'.format(id=self.id)
 
     def open(self, *args, **kwargs):
-        return open_export('{id}.csv.gz'.format(id=self.id), *args, **kwargs)
+        return open_export(self.real_name, *args, **kwargs)
 
+    @before('delete')
+    def delete_file(self, *_, **__):
+        export_path(self.real_name).unlink()
+
+    @after_save('schedule')
+    def schedule_task(self, celery, *_, **__):
+        assert isinstance(celery, Celery)
+        celery.send_task('matcher.tasks.export.process_file', [self.id])
+
+    @after
+    def log_status(self, message=None, *_, **__):
+        self.logs.append(ExportFileLog(status=self.status, message=message))
+
+    @after('start')
     @inject_session
     def process(self, session=None):
         # FIXME: this supposes that the object is already in the session
@@ -439,10 +453,6 @@ class ExportFile(Base):
         with gzip.open(self.open(mode='wb'), 'wb') as file:
             # Write UTF16-LE BOM because Excel.
             file.write(codecs.BOM_UTF16_LE)
-
-            self.querying()
-            session.add(self)
-            session.commit()
 
             for index, row in enumerate(self.render(session=session)):
                 file.write((row + csv_dialect.lineterminator).encode('utf-16-le'))
