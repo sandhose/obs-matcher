@@ -1,7 +1,7 @@
 from flask import flash, redirect, render_template, request, send_file, url_for
 from flask.views import View
 from sqlalchemy import func, or_
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, undefer
 
 from matcher.mixins import CeleryMixin, DbMixin
 from matcher.scheme.enums import PlatformType
@@ -14,9 +14,14 @@ __all__ = ['ExportFileListView', 'DownloadExportFileView', 'NewExportFileView',
            'ShowExportFileView', 'ExportFactoryListView', 'ShowExportFactoryView']
 
 
+class ExportIndexView(View):
+    def dispatch_request(self):
+        return render_template('exports/index.html')
+
+
 class ExportFileListView(View, DbMixin):
     def dispatch_request(self):
-        query = self.query(ExportFile)
+        query = self.query(ExportFile).options(undefer(ExportFile.last_activity))
 
         ctx = {}
         ctx['page'] = query.paginate()

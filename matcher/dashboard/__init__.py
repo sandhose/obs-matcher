@@ -15,6 +15,7 @@ blueprint.add_url_rule('/platforms/<slug>', view_func=views.platforms.ShowPlatfo
 blueprint.add_url_rule('/objects', view_func=views.objects.ObjectListView.as_view('object_list'))
 blueprint.add_url_rule('/objects/<int:id>', view_func=views.objects.ShowObjectView.as_view('show_object'))
 
+blueprint.add_url_rule('/exports/', view_func=views.exports.ExportIndexView.as_view('exports'))
 blueprint.add_url_rule('/exports/factories',
                        view_func=views.exports.ExportFactoryListView.as_view('export_factory_list'),
                        methods=['GET', 'POST'])

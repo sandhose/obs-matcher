@@ -1,15 +1,19 @@
-{% extends "base.html" %}
+{% extends "base-fluid.html" %}
 {% import "macros.html" as m %}
 
 {% block content %}
   <div class="row">
     <div class="col-12">
       <div class="card">
+        <div class="card-header">
+          <a class="btn btn-primary float-right" href="{{ url_for(".new_export_file") }}">New export file</a>
+        </div>
         <div class="card-body table-responsive">
           <table class="table">
             <thead class="text-primary">
               <tr>
                 <th>Status</th>
+                <th>Last activity</th>
                 <th>Name</th>
                 <th>Session</th>
                 <th>Type</th>
@@ -27,7 +31,8 @@
                       {{ file.status | upper }}
                     </span>
                   </td>
-                  <td>{{ file.path.split('/')[-1] }}</td>
+                  <td>{{ file.last_activity | relative_date }}</td>
+                  <td>{{ file.path | filename }}</td>
                   <td>{{ file.session.name }}</td>
                   <td>
                     <span class="badge badge-pill badge-{{ file.template.row_type | badge_color }}">
@@ -40,7 +45,11 @@
                     </span>
                   </td>
                   <td>{{ file.factory.name or "—" }}</td>
-                  <td>{{ file.filters | tojson }}</td>
+                  <td>
+                    {% for key, value in file.filters.items() %}
+                      <div class="text-monospace"><b>{{ key }}</b> = {{ value }}</div>
+                    {% endfor %}
+                  </td>
                   <td class="td-actions">
                     <a class="btn btn-sm btn-link" href="{{ url_for('.download_export_file', id=file.id) }}" rel="tooltip" title="Download file">
                       <i class="material-icons">get_app</i>
