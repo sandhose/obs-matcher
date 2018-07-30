@@ -383,12 +383,14 @@ class ExportFile(Base):
 
     @inject_session
     def get_filtered_query(self, session=None):
-        # FIXME: THIS DOES NOT TAKE THE scrap_session INTO ACCOUNT
-        from .platform import Platform
-
         assert self.template.valid_template, "invalid template"
 
         query = self.template.get_row_query(session=session)
+        return self.filter_query(query)
+
+    def filter_query(self, query):
+        # FIXME: THIS DOES NOT TAKE THE scrap_session INTO ACCOUNT
+        from .platform import Platform
 
         for (key, values) in self.filters.items():
             # A filter might look like `platform.id => 19, 51`
@@ -411,6 +413,15 @@ class ExportFile(Base):
                 raise NotImplementedError
 
         return query
+
+    @inject_session
+    def count_links(self, session=None):
+        from .object import ObjectLink, ExternalObject
+        query = session.query(ExternalObject)\
+            .join(ExternalObject.links)\
+            .join(ObjectLink.platform)\
+            .filter(ExternalObject.type == self.template.external_object_type)
+        return self.filter_query(query).count()
 
     @inject_session
     def row_contexts(self, session=None) -> Iterator[ExportFileContext]:

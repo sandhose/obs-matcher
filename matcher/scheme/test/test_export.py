@@ -458,6 +458,22 @@ class TestExportFactory(object):
 
 
 class TestExportFile(object):
+    def test_count_links(self, session):
+        external_object = ExternalObject(type=ExternalObjectType.MOVIE)
+        empty_platform = Platform(name='empty', type=PlatformType.TVOD)
+        linked_platform = Platform(name='linked', type=PlatformType.TVOD)
+        link = ObjectLink(external_object=external_object, platform=linked_platform, external_id='link')
+        session.add_all([external_object, empty_platform, linked_platform, link])
+        session.commit()
+
+        template = ExportTemplate(external_object_type=ExternalObjectType.MOVIE)
+
+        assert ExportFile(template=template, filters={}).count_links(session=session) == 1
+        assert ExportFile(template=template,
+                          filters={'platform.id': str(linked_platform.id)}).count_links(session=session) == 1
+        assert ExportFile(template=template,
+                          filters={'platform.id': str(empty_platform.id)}).count_links(session=session) == 0
+
     def test_filtered_query(self, session):
         platforms = [
             Platform(name='TVOD FR', type=PlatformType.TVOD, country='FR'),

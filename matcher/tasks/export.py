@@ -13,8 +13,9 @@ def run_factory(factory_id, session_id):
     assert factory
 
     for file in factory.generate(scrap_session=scrap_session):
-        file.schedule(celery=celery)
-        db.session.add(file)
+        if file.links_count() > 0:
+            file.schedule(celery=celery)
+            db.session.add(file)
 
     db.session.commit()
 
