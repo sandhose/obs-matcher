@@ -10,3 +10,10 @@ main {
 .filters {
   max-width: 340px;
 }
+
+.nested-form-field th {
+  width: 140px;
+}
+.nested-form-field .select2 {
+  width: 100%;
+}

@@ -106,6 +106,9 @@ class ExportTemplate(Base):
     def _parsed_template(self):
         return _jinja_env.parse(self.template)
 
+    def __str__(self):
+        return 'Template #{id} on `{external_object_type}` using `{row_type}`'.format(**vars(self))
+
     @property
     def links(self) -> List[str]:
         """Find links from the fields value template"""
@@ -438,7 +441,7 @@ class ExportFile(Base):
     @after_save('schedule')
     def schedule_task(self, celery, *_, **__):
         assert isinstance(celery, Celery)
-        celery.send_task('matcher.tasks.export.process_file', [self.id])
+        celery.send_task('matcher.tasks.export.process_file', [self.id], countdown=3)
 
     @after
     def log_status(self, message=None, *_, **__):

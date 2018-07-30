@@ -21,6 +21,9 @@ blueprint.add_url_rule('/exports/factories',
 blueprint.add_url_rule('/exports/factories/<int:id>',
                        view_func=views.exports.ShowExportFactoryView.as_view('show_export_factory'))
 blueprint.add_url_rule('/exports/files', view_func=views.exports.ExportFileListView.as_view('export_file_list'))
+blueprint.add_url_rule('/exports/files/new',
+                       view_func=views.exports.NewExportFileView.as_view('new_export_file'),
+                       methods=['GET', 'POST'])
 blueprint.add_url_rule('/exports/files/<int:id>',
                        view_func=views.exports.ShowExportFileView.as_view('show_export_file'))
 blueprint.add_url_rule('/exports/files/<int:id>/download',

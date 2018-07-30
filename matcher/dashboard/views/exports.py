@@ -1,14 +1,16 @@
 from flask import flash, redirect, render_template, request, send_file, url_for
 from flask.views import View
+from sqlalchemy import func, or_
 from sqlalchemy.orm import joinedload
 
 from matcher.mixins import CeleryMixin, DbMixin
+from matcher.scheme.enums import PlatformType
 from matcher.scheme.export import ExportFactory, ExportFile, ExportTemplate
-from matcher.scheme.platform import Session
+from matcher.scheme.platform import Platform, PlatformGroup, Session
 
-from ..forms.exports import ExportFactoryListFilter
+from ..forms.exports import ExportFactoryListFilter, NewExportFileForm
 
-__all__ = ['ExportFileListView', 'DownloadExportFileView',
+__all__ = ['ExportFileListView', 'DownloadExportFileView', 'NewExportFileView',
            'ShowExportFileView', 'ExportFactoryListView', 'ShowExportFactoryView']
 
 
@@ -54,6 +56,41 @@ class ProcessExportFileView(View, DbMixin, CeleryMixin):
         flash('Export started, the file will be available soon')
 
         return redirect(url_for('.show_export_file', id=export_file.id))
+
+
+class NewExportFileView(View, DbMixin, CeleryMixin):
+    def dispatch_request(self):
+        form = NewExportFileForm(request.form)
+        form.template.query = self.query(ExportTemplate)
+        form.session.query = self.query(Session)
+        form.filters.platform_id.query = self.query(Platform)
+        form.filters.platform_group_id.query = self.query(PlatformGroup)
+        form.filters.platform_country.choices = [
+            (v, v) for (v, ) in
+            self.query(Platform.country).
+            order_by(Platform.country).
+            filter(func.char_length(Platform.country) == 2).
+            filter(or_(Platform.type == PlatformType.TVOD, Platform.type == PlatformType.SVOD)).
+            filter(Platform.ignore_in_exports.is_(False)).
+            distinct()
+        ]
+
+        if request.method == 'POST' and form.validate():
+            file = ExportFile(
+                path=form.path.data,
+                session=form.session.data,
+                template=form.template.data,
+                filters=form.filters.render(),
+            )
+            file.schedule(celery=self.celery)
+            self.session.add(file)
+            self.session.commit()
+            return redirect(url_for('.show_export_file', id=file.id))
+
+        ctx = {}
+        ctx['form'] = form
+
+        return render_template('exports/files/new.html', **ctx)
 
 
 class ShowExportFileView(View, DbMixin):
