@@ -65,7 +65,7 @@ class ExportFileStatus(CustomEnum):
         Transition('start', [SCHEDULED], QUERYING),
         Transition('processing', [QUERYING], PROCESSING),
         Transition('done', [PROCESSING, QUERYING], DONE),
-        Transition('failed', [SCHEDULED, QUERYING, PROCESSING, DONE], FAILED),
+        Transition('failed', [SCHEDULED, QUERYING, PROCESSING, FAILED, DONE], FAILED),
         Transition('delete', [DONE, PROCESSING], ABSENT, doc="Delete this file"),
     ]
 

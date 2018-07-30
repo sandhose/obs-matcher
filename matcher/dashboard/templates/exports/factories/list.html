@@ -16,59 +16,118 @@
       </div>
     </div>
     <div class="col-md col-12">
-      <div class="card">
-        <div class="card-body table-responsive">
-          <table class="table">
-            <thead class="text-primary">
-              <tr>
-                <th>Name</th>
-                <th>File</th>
-                <th>Type</th>
-                <th>Iterator</th>
-                <th>Objects</th>
-                <th>Filters</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for factory in page.items %}
+      <form method="POST">
+        <div class="card">
+          <div class="card-body table-responsive">
+            <table class="table">
+              <thead class="text-primary">
                 <tr>
-                  <td>{{ factory.name }}</td>
-                  <td>{{ factory.file_path_template | filename | template_highlight }}</td>
-                  <td>
-                    <span class="badge badge-pill badge-{{ factory.template.row_type | badge_color }}">
-                      {{ factory.template.row_type | upper }}
-                    </span>
-                  </td>
-                  <td>
-                    <span class="badge badge-pill badge-{{ factory.iterator | badge_color }}">
-                      {{ factory.iterator | upper }}
-                    </span>
-                  </td>
-                  <td>
-                    <span class="badge badge-pill badge-{{ factory.template.external_object_type | badge_color }}">
-                      {{ factory.template.external_object_type | upper }}
-                    </span>
-                  </td>
-                  <td>
-                      {% for key, value in factory.filters_template.items() %}
-                        <div class="text-monospace"><b>{{ key }}</b> = {{ value | template_highlight }}</div>
-                      {% endfor %}
-                  </td>
-                  <td>
-                    <a class="btn btn-sm btn-link" href="{{ url_for('.show_export_factory', id=factory.id) }}" rel="tooltip" title="View factory">
-                      <i class="material-icons">arrow_forward</i>
-                    </a>
-                  </td>
+                  <th>
+                    <input class="check-all" type="checkbox">
+                  </th>
+                  <th>Name</th>
+                  <th>File</th>
+                  <th>Type</th>
+                  <th>Iterator</th>
+                  <th>Objects</th>
+                  <th>Filters</th>
+                  <th></th>
                 </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {% for factory in page.items %}
+                  <tr>
+                    <td>
+                      <input type="checkbox" name="factories" value="{{ factory.id }}">
+                    </td>
+                    <td>{{ factory.name }}</td>
+                    <td>{{ factory.file_path_template | filename | template_highlight }}</td>
+                    <td>
+                      <span class="badge badge-pill badge-{{ factory.template.row_type | badge_color }}">
+                        {{ factory.template.row_type | upper }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="badge badge-pill badge-{{ factory.iterator | badge_color }}">
+                        {{ factory.iterator | upper }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="badge badge-pill badge-{{ factory.template.external_object_type | badge_color }}">
+                        {{ factory.template.external_object_type | upper }}
+                      </span>
+                    </td>
+                    <td>
+                        {% for key, value in factory.filters_template.items() %}
+                          <div class="text-monospace"><b>{{ key }}</b> = {{ value | template_highlight }}</div>
+                        {% endfor %}
+                    </td>
+                    <td>
+                      <a class="btn btn-sm btn-link" href="{{ url_for('.show_export_factory', id=factory.id) }}" rel="tooltip" title="View factory">
+                        <i class="material-icons">arrow_forward</i>
+                      </a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer">
+            {{ m.render_pagination(page, args=query) }}
+            <div class="form-inline">
+              <select name="session" class="form-control mr-2" style="min-width: 120px;" required>
+                <option selected disabled value="">Session</option>
+                {% for session in sessions %}
+                  <option value="{{ session.id }}">{{ session.name }}</option>
+                {% endfor %}
+              </select>
+              <button class="btn btn-primary" type="submit" name="action" value="run">Run selected factories</button>
+            </div>
+          </div>
         </div>
-        <div class="card-footer">
-          {{ m.render_pagination(page, args=query) }}
-        </div>
-      </div>
+      </form>
     </div>
   </div>
+{% endblock %}
+
+{% block script %}
+ <script type="text/javascript">
+   $(document).ready(function() {
+     var checkboxes = $("table tbody tr input[type=checkbox][name=factories]");
+     var checkAll = $(".check-all");
+
+     checkAll.change(function() {
+       var checked = this.checked;
+       checkboxes.each(function() {
+         this.checked = checked;
+       });
+     });
+
+     checkboxes.change(function() {
+       var none = true;
+       var all = true;
+
+       checkboxes.each(function() {
+         if (this.checked) {
+           none = false;
+         } else {
+           all = false;
+         }
+       });
+
+       console.log(none, all);
+
+       if (none) {
+         checkAll.prop("checked", false);
+         console.log("setting not checked");
+       } else if (all) {
+         checkAll.prop("checked", true);
+         console.log("setting checked");
+       } else {
+         checkAll.prop("indeterminate", true);
+         console.log("setting indeterminate");
+       }
+     });
+   });
+ </script>
 {% endblock %}

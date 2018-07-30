@@ -4,6 +4,7 @@ from sqlalchemy.orm import joinedload
 
 from matcher.mixins import CeleryMixin, DbMixin
 from matcher.scheme.export import ExportFactory, ExportFile, ExportTemplate
+from matcher.scheme.platform import Session
 
 from ..forms.exports import ExportFactoryListFilter
 
@@ -65,9 +66,21 @@ class ShowExportFileView(View, DbMixin):
         return render_template('exports/files/show.html', **ctx)
 
 
-class ExportFactoryListView(View, DbMixin):
+class ExportFactoryListView(View, DbMixin, CeleryMixin):
     def dispatch_request(self):
         query = self.query(ExportFactory).join(ExportFactory.template)
+
+        if request.method == 'POST':
+            if request.form.get('action') == 'run':
+                factories = [self.query(ExportFactory).get_or_404(factory_id)
+                             for factory_id in request.form.getlist('factories', type=int)]
+                session = self.query(Session).get_or_404(request.form.get('session', type=int))
+
+                for factory in factories:
+                    self.celery.send_task('matcher.tasks.export.run_factory', (factory.id, session.id))
+
+                flash('Exports were scheduled')
+
         form = ExportFactoryListFilter(request.args)
 
         if form.validate():
@@ -83,6 +96,7 @@ class ExportFactoryListView(View, DbMixin):
         ctx = {}
         ctx['filter_form'] = form
         ctx['page'] = query.paginate()
+        ctx['sessions'] = self.query(Session)
 
         return render_template('exports/factories/list.html', **ctx)
 
