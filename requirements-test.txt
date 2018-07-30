@@ -27,9 +27,9 @@ billiard==3.5.0.3 \
     --hash=sha256:abd9ce008c9a71ccde2c816f8daa36246e92a21e6a799831b887d88277187ecd
 blinker==1.4 \
     --hash=sha256:471aee25f3992bd325afa3772f1063dbdbbca947a041b8b89466dc00d606f8b6
-celery==4.2.0 \
-    --hash=sha256:2082cbd82effa8ac8a8a58977d70bb203a9f362817e3b66f4578117b9f93d8a9 \
-    --hash=sha256:ff727c115533edbc7b81b2b4ba1ec88d1c2fc4836e1e2f4c3c33a76ff53e5d7f
+celery==4.2.1 \
+    --hash=sha256:77dab4677e24dc654d42dfbdfed65fa760455b6bb563a0877ecc35f4cfcfc678 \
+    --hash=sha256:ad7a7411772b80a4d6c64f2f7f723200e39fb66cf614a7fdfab76d345acc7b13
 click==6.7 \
     --hash=sha256:29f99fc6125fbc931b758dc053b3114e55c77a6e4c6c3a2674a2dc986016381d \
     --hash=sha256:f15516df478d5a56180fbf80e68f206010e6d160fc39fa508b65e035fd75130b
@@ -58,9 +58,9 @@ flask-sqlalchemy==2.3.2 \
 flask==1.0.2 \
     --hash=sha256:2271c0070dbcb5275fad4a82e29f23ab92682dc45f9dfbc22c02ba9b9322ce48 \
     --hash=sha256:a080b744b7e345ccfcbc77954861cb05b3c63786e93f2b3875e0913d44b43f05
-gunicorn==19.8.1 \
-    --hash=sha256:7ef2b828b335ed58e3b64ffa84caceb0a7dd7c5ca12f217241350dec36a1d5dc \
-    --hash=sha256:bc59005979efb6d2dd7d5ba72d99f8a8422862ad17ff3a16e900684630dd2a10
+gunicorn==19.9.0 \
+    --hash=sha256:aa8e0b40b4157b36a5df5e599f45c9c76d6af43845ba3b3b0efe2c70473c2471 \
+    --hash=sha256:fa2662097c66f920f53f70621c6c58ca4a3c4d3434205e608e121b5b3b71f4f3
 injector==0.13.4 \
     --hash=sha256:53031bdd3472108ab81e69c44cd4c2b6dad059f692b255dfd17ee7852afa58a0 \
     --hash=sha256:f10435d05c552731a49e8221b079f4783da679b75a1ad28ebbdf06370f11c690
@@ -149,9 +149,9 @@ pyflakes==1.6.0 \
     --hash=sha256:08bd6a50edf8cffa9fa09a463063c425ecaaf10d1eb0335a7e8b1401aef89e6f \
     --hash=sha256:8d616a382f243dbf19b54743f280b80198be0bca3a5396f1d2e1fca6223e8805 \
     # via flake8
-pytest==3.6.3 \
-    --hash=sha256:0453c8676c2bee6feb0434748b068d5510273a916295fd61d306c4f22fbfd752 \
-    --hash=sha256:4b208614ae6d98195430ad6bde03641c78553acee7c83cec2e85d613c0cd383d
+pytest==3.6.4 \
+    --hash=sha256:341ec10361b64a24accaec3c7ba5f7d5ee1ca4cebea30f76fad3dd12db9f0541 \
+    --hash=sha256:952c0389db115437f966c4c2079ae9d54714b9455190e56acebe14e8c38a7efa
 python-dateutil==2.7.3 \
     --hash=sha256:1adb80e7a782c12e52ef9a8182bebeb73f1d7e24e374397af06fb4956c8dc5c0 \
     --hash=sha256:e27001de32f627c22380a688bcc43ce83504a7bc5da472209b4c70f02829f0b8
@@ -174,8 +174,8 @@ six==1.11.0 \
     --hash=sha256:832dc0e10feb1aa2c68dcc57dbb658f1c7e65b9b61af69048abc87a2db00a0eb
 slugify==0.0.1 \
     --hash=sha256:c5703cc11c1a6947536f3ce8bb306766b8bb5a84a53717f5a703ce0f18235e4c
-sqlalchemy==1.2.9 \
-    --hash=sha256:e21e5561a85dcdf16b8520ae4daec7401c5c24558e0ce004f9b60be75c4b6957
+sqlalchemy==1.2.10 \
+    --hash=sha256:72325e67fb85f6e9ad304c603d83626d1df684fdf0c7ab1f0352e71feeab69d8
 testfixtures==6.2.0 \
     --hash=sha256:7e4df89a8bf8b8905464160f08aff131a36f0b33654fe4f9e4387afe546eae25 \
     --hash=sha256:bcadbad77526cc5fc38bfb2ab80da810d7bde56ffe4c7fdb8e2bba122ded9620 \
