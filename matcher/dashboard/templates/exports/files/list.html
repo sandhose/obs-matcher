@@ -3,7 +3,15 @@
 
 {% block content %}
   <div class="row">
-    <div class="col-12">
+    <div class="col-md-4 col-12 filters">
+      <div class="card">
+        <div class="card-header card-header-primary">
+          <h4 class="card-title">Filters</h4>
+        </div>
+        {{ m.render_form(filter_form, class_="card-body", action="GET") }}
+      </div>
+    </div>
+    <div class="col-md col-12">
       <div class="card">
         <div class="card-header">
           <a class="btn btn-primary float-right" href="{{ url_for(".new_export_file") }}">New export file</a>
@@ -33,7 +41,14 @@
                   </td>
                   <td>{{ file.last_activity | relative_date }}</td>
                   <td>{{ file.path | filename }}</td>
-                  <td>{{ file.session.name }}</td>
+                  <td>
+                    <div class="td-actions">
+                      {{ file.session.name }}
+                      <a class="btn btn-sm btn-link" href="#" rel="tooltip" title="Show session">
+                        <i class="material-icons">chevron_right</i>
+                      </a>
+                    </div>
+                  </td>
                   <td>
                     <span class="badge badge-pill badge-{{ file.template.row_type | badge_color }}">
                       {{ file.template.row_type | upper }}
@@ -44,7 +59,18 @@
                       {{ file.template.external_object_type | upper }}
                     </span>
                   </td>
-                  <td>{{ file.factory.name or "—" }}</td>
+                  <td>
+                    {% if file.factory %}
+                      <div class="td-actions">
+                        {{ file.factory.name }}
+                        <a class="btn btn-sm btn-link" href="{{ url_for('.show_export_factory', id=file.factory.id) }}" rel="tooltip" title="Show factory">
+                          <i class="material-icons">chevron_right</i>
+                        </a>
+                      </div>
+                    {% else %}
+                      –
+                    {% endif %}
+                  </td>
                   <td>
                     {% for key, value in file.filters.items() %}
                       <div class="text-monospace"><b>{{ key }}</b> = {{ value }}</div>

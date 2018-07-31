@@ -3,8 +3,9 @@ from wtforms import (Form, FormField, SelectMultipleField, StringField,
 from wtforms.ext.sqlalchemy.fields import (QuerySelectField,
                                            QuerySelectMultipleField,)
 
-from matcher.scheme.enums import (ExportFactoryIterator, ExportRowType,
-                                  ExternalObjectType, PlatformType,)
+from matcher.scheme.enums import (ExportFactoryIterator, ExportFileStatus,
+                                  ExportRowType, ExternalObjectType,
+                                  PlatformType,)
 
 
 class ExportFactoryListFilter(Form):
@@ -38,3 +39,15 @@ class NewExportFileForm(Form):
     session = QuerySelectField("Session", get_label='name', render_kw={'class': 'form-control select2'})
     filters = FormField(ExportFilter)
     template = QuerySelectField("Template", render_kw={'class': 'form-control select2'})
+
+
+class ExportFileFilter(Form):
+    status = SelectMultipleField("Status", choices=[(v.name, v.name) for v in ExportFileStatus],
+                                 render_kw={'class': 'form-control select2'})
+    session = QuerySelectMultipleField("Session", get_label='name', render_kw={'class': 'form-control select2'})
+    factory = QuerySelectMultipleField("Factory", get_label='name', render_kw={'class': 'form-control select2'})
+    template = QuerySelectMultipleField("Template", render_kw={'class': 'form-control select2'})
+    row_type = SelectMultipleField("Type", choices=[(v.name, v.name) for v in ExportRowType],
+                                   render_kw={'class': 'form-control select2'})
+    external_object_type = SelectMultipleField("Objects type", choices=[(v.name, v.name) for v in ExternalObjectType],
+                                               render_kw={'class': 'form-control select2'})

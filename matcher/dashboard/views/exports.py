@@ -8,10 +8,12 @@ from matcher.scheme.enums import PlatformType
 from matcher.scheme.export import ExportFactory, ExportFile, ExportTemplate
 from matcher.scheme.platform import Platform, PlatformGroup, Session
 
-from ..forms.exports import ExportFactoryListFilter, NewExportFileForm
+from ..forms.exports import (ExportFactoryListFilter, ExportFileFilter,
+                             NewExportFileForm,)
 
-__all__ = ['ExportFileListView', 'DownloadExportFileView', 'NewExportFileView',
-           'ShowExportFileView', 'ExportFactoryListView', 'ShowExportFactoryView']
+__all__ = ['ExportIndexView', 'ExportFileListView', 'DownloadExportFileView',
+           'NewExportFileView', 'ShowExportFileView', 'ExportFactoryListView',
+           'ShowExportFactoryView']
 
 
 class ExportIndexView(View):
@@ -21,10 +23,35 @@ class ExportIndexView(View):
 
 class ExportFileListView(View, DbMixin):
     def dispatch_request(self):
-        query = self.query(ExportFile).options(undefer(ExportFile.last_activity))
+        form = ExportFileFilter(request.args)
+        form.factory.query = self.query(ExportFactory)
+        form.template.query = self.query(ExportTemplate)
+        form.session.query = self.query(Session)
+
+        query = self.query(ExportFile).join(ExportFile.template).options(undefer(ExportFile.last_activity))
+
+        if form.validate():
+            if form.status.data:
+                query = query.filter(ExportFile.status.in_(form.status.data))
+
+            if form.row_type.data:
+                query = query.filter(ExportTemplate.row_type.in_(form.row_type.data))
+
+            if form.external_object_type.data:
+                query = query.filter(ExportTemplate.external_object_type.in_(form.external_object_type.data))
+
+            if form.template.data:
+                query = query.filter(ExportFile.export_template_id.in_(t.id for t in form.template.data))
+
+            if form.factory.data:
+                query = query.filter(ExportFile.export_factory_id.in_(f.id for f in form.factory.data))
+
+            if form.session.data:
+                query = query.filter(ExportFile.session_id.in_(s.id for s in form.session.data))
 
         ctx = {}
         ctx['page'] = query.paginate()
+        ctx['filter_form'] = form
 
         return render_template('exports/files/list.html', **ctx)
 
@@ -33,6 +60,7 @@ class DownloadExportFileView(View, DbMixin):
     def dispatch_request(self, id):
         export_file = self.query(ExportFile).get_or_404(id)
 
+        # FIXME: not every client supports gzip, we should look at the Accept-Encoding header
         response = send_file(export_file.open(mode='rb'),
                              mimetype="text/csv",
                              as_attachment=True,
