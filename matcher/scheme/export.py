@@ -33,7 +33,7 @@ ExportFileFilters = Dict[str, str]
 ExportFileContext = Dict[str, Any]
 
 
-class Attributes(object):
+class AttributesWrapper(object):
     def __init__(self, view):
         from .views import AttributesView
         self.view = view or AttributesView()
@@ -158,7 +158,7 @@ class ExportTemplate(Base):
                 context['platform_countries'].remove(None)
 
         if 'attributes' in needs:
-            context['attributes'] = Attributes(external_object.attributes)
+            context['attributes'] = AttributesWrapper(external_object.attributes)
 
         if 'zones' in needs:
             context['zones'] = _zones

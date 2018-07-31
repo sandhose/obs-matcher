@@ -2,9 +2,139 @@
 {% import "macros.html" as m %}
 
 {% block content %}
-  <h3>
-    {{ object.attributes.titles[0] }}
-    <span class="badge badge-{{ object.type | badge_color }}">{{ object.type | upper }}</span>
-  </h3>
-  {{ m.todo() }}
+  <div class="row">
+    <div class="col-6">
+      <div class="card">
+        <div class="card-header card-header-primary">
+          <h3 class="card-title d-flex justify-content-between align-items-center">
+            {{ attributes.titles[0] or "–" }}
+            <div class="badge badge-light">{{ object.type | upper }}</div>
+          </h3>
+        </div>
+
+        <div class="card-body">
+          <dl>
+            {% for attr in ['titles', 'dates', 'countries', 'genres', 'durations'] %}
+              {% if attributes | attr(attr) %}
+                <dt>{{ attr | title }}</dt>
+                {% for value in (attributes | attr(attr))[:3] %}
+                  <dd>{{ value }}</dd>
+                {% endfor %}
+              {% endif %}
+            {% endfor %}
+
+            {% if object.type | string == 'series' %}
+              <dt>Series info</dt>
+              <dd>
+                {% set seasons_count =  episodes | map(attribute='season') | unique | list | length  %}
+                {% set episodes_count =  episodes | length %}
+                {{ seasons_count }} season{{ seasons_count | pluralize }},
+                {{ episodes_count }} episode{{ episodes_count | pluralize }}
+              </dd>
+            {% elif object.type | string == 'episode' %}
+              <dt>Season</dt>
+              <dd>{{ episode.season or '—' }}</dd>
+              <dt>Episode</dt>
+              <dd>{{ episode.episode or '–' }}</dd>
+
+              <dt>Series</dt>
+              <dd>
+                <a href="{{ url_for('.show_object', id=series.id) }}">
+                  {% if series.attributes and series.attributes.titles %}
+                    {{ series.attributes.titles[0] }}
+                  {% else %}
+                    <i>Series #{{ series.id or "[unknown]" }}</i>
+                  {% endif %}
+                </a>
+              </dd>
+            {% endif %}
+          </dl>
+        </div>
+        <div class="card-footer">
+          <span class="text-muted">See bellow for details</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6">
+      <div class="card">
+        <div class="card-header card-header-info d-flex justify-content-between align-items-center">
+          <h4 class="card-title">Presence</h4>
+          <a class="btn btn-white btn-sm" href="#">
+            Details
+          </a>
+        </div>
+        <div class="card-body table-responsive">
+          <table class="table">
+            <tbody>
+              {% for link in object.links %}
+                <tr>
+                  <td>
+                    <a href="{{ url_for('.show_platform', slug=link.platform.slug) }}">
+                      {{ link.platform.name }}
+                    </a>
+                  </td>
+                  <td class="td-actions">
+                    <span class="text-monospace">
+                      {{ link.external_id }}
+                    </span>
+                    {% if link.url %}
+                      <a href="{{ link.url }}" class="btn btn-sm btn-link">
+                        <i class="material-icons">arrow_forward</i>
+                      </a>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="card card-plain">
+        <div class="card-header card-header-success">
+          <h4>Value list</h4>
+          <p class="card-category">The raw values as found on various platforms</p>
+        </div>
+        <div class="card-body table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Value</th>
+                <th>Seen on</th>
+                <th>Score</th>
+              </tr>
+            <tbody>
+              {% for value in object.values %}
+                <tr>
+                  <td>
+                    <span class="badge badge-{{ value.type | badge_color }}">
+                      {{ value.type | upper }}
+                    </span>
+                  </td>
+                  <td>
+                    {{ value.text }}
+                  </td>
+                  <td>
+                    {% for source in value.sources %}
+                      <span title="{{ source.score }}">{{ source.platform.name }}</span>
+                      {%- if not loop.last %}, {% endif %}
+                    {% endfor %}
+                  </td>
+                  <td>
+                    <i>{{ value.score }}</i>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}

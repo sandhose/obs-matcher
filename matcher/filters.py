@@ -84,6 +84,13 @@ def filename(path: str) -> str:
     return path.split('/')[-1]
 
 
+def pluralize(number, singular='', plural='s'):
+    if number == 1:
+        return singular
+    else:
+        return plural
+
+
 def register(app: Flask):
     """Register the filters and context processors for jinja"""
     app.jinja_env.filters['relative_date'] = relative_date
@@ -91,4 +98,5 @@ def register(app: Flask):
     app.jinja_env.filters['transition_color'] = transition_color
     app.jinja_env.filters['template_highlight'] = template_highlight
     app.jinja_env.filters['filename'] = filename
+    app.jinja_env.filters['pluralize'] = pluralize
     app.context_processor(query)
