@@ -14,7 +14,9 @@ __all__ = ['ObjectListView']
 class ObjectListView(View, DbMixin):
     def dispatch_request(self):
         ctx = {}
+        # FIXME: ignore PERSONs for now
         ctx['page'] = self.query(ExternalObject).\
+            filter(ExternalObject.type != ExternalObjectType.PERSON).\
             options(joinedload(ExternalObject.attributes),
                     undefer(ExternalObject.links_count)).\
             paginate()
