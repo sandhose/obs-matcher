@@ -4,6 +4,7 @@ import codecs
 import csv
 import gzip
 import re
+from collections import OrderedDict
 from functools import partial
 from typing import Any, Callable, Dict, Iterator, List, Set
 
@@ -139,7 +140,7 @@ class ExportTemplate(Base):
 
         context = {'external_object': external_object}
 
-        # Extract the attributes in the correct order
+        # Extract the attributes in the correct order (see WARN in `get_row_query`)
         for attr in ['platform_countries', 'platform_names', 'seasons_count', 'episodes_count']:
             if attr in needs:
                 value, *row = row
@@ -212,24 +213,28 @@ class ExportTemplate(Base):
             elif self.row_type == ExportRowType.OBJECT_LINK:
                 return q.filter(platform_id == Platform.id)
 
-        extra_attributes = {
-            'platform_countries': func.array_agg(func.distinct(Platform.country)),
-            'platform_names': func.array_agg(Platform.name),
-            'seasons_count': filter_platform(
+        # WARN: this needs to be an ordered dict, because python3.5 does not
+        # keep the order on defaultdict while python3.6 does.
+        extra_attributes = OrderedDict([
+            ('platform_countries', func.array_agg(func.distinct(Platform.country))),
+            ('platform_names', func.array_agg(Platform.name)),
+            ('seasons_count', filter_platform(
                 session.query(func.count(func.distinct(Episode.season))).
                 join(ObjectLink, Episode.external_object_id == ObjectLink.external_object_id).
                 filter(Episode.series_id == ExternalObject.id),
                 ObjectLink.platform_id
-            ).label('seasons_count'),
-            'episodes_count': filter_platform(
+            )),
+            ('episodes_count', filter_platform(
                 session.query(func.count(func.distinct(Episode.season, Episode.episode))).
                 join(ObjectLink, Episode.external_object_id == ObjectLink.external_object_id).
                 filter(Episode.series_id == ExternalObject.id),
                 ObjectLink.platform_id
-            ).label('episodes_count'),
-        }
+            )),
+        ])
 
-        extra_select = [value for key, value in extra_attributes.items() if key in needs]
+        extra_select = [value.label(key)
+                        for key, value in extra_attributes.items()
+                        if key in needs]
 
         if self.row_type == ExportRowType.EXTERNAL_OBJECT:
             query = (
