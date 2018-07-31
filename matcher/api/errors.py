@@ -1,7 +1,7 @@
 from flask_restplus import fields
 from sqlalchemy.exc import IntegrityError
 
-from matcher.exceptions import InvalidStatusTransition
+from matcher.exceptions import InvalidTransition
 
 
 def install_error_handlers(app, api):
@@ -18,16 +18,16 @@ def install_error_handlers(app, api):
         """Database integrity error"""
         return error, 400
 
-    error = api.model('InvalidStatusTransition', {
+    error = api.model('InvalidTransition', {
         'type': fields.ClassName(dash=True),
         'message': fields.String(attribute=lambda e: str(e)),
-        'from': fields.String(attribute='from_status'),
-        'to': fields.String(attribute='to_status'),
+        'from': fields.String(attribute='from_state'),
+        'to': fields.String(attribute='to_state'),
     })
 
-    @app.errorhandler(InvalidStatusTransition)
-    @api.errorhandler(InvalidStatusTransition)
+    @app.errorhandler(InvalidTransition)
+    @api.errorhandler(InvalidTransition)
     @api.marshal_with(error, code=400)
-    def invalid_status_transition(error):
-        """Raised when the scrap status is invalid"""
+    def invalid_transition(error):
+        """Raised when the state transition is invalid is invalid"""
         return error, 400

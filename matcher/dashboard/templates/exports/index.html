@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-4">
+      <a href="{{ url_for(".export_file_list") }}" class="card">
+        <div class="card-body">
+          <h2>Files</h2>
+        </div>
+      </a>
+    </div>
+    <div class="col-4">
+      <a href="{{ url_for(".export_factory_list") }}" class="card">
+        <div class="card-body">
+          <h2>Factories</h2>
+        </div>
+      </a>
+    </div>
+    <div class="col-4">
+      <a href="#" class="card">
+        <div class="card-body">
+          <h2>Templates</h2>
+        </div>
+      </a>
+    </div>
+  </div>
+{% endblock %}

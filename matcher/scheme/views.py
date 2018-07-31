@@ -4,9 +4,10 @@ from sqlalchemy.dialects.postgresql import (ARRAY, aggregate_order_by, array,
                                             array_agg,)
 
 from . import Base
+from .enums import ValueType
 from .mixins import ViewMixin
 from .utils import crosstab
-from .value import Value, ValueSource, ValueType
+from .value import Value, ValueSource
 
 
 class ValueScoreView(Base, ViewMixin):
@@ -37,7 +38,7 @@ class AttributesView(Base, ViewMixin):
         select_from(crosstab(
             select([Value.external_object_id,
                     Value.type,
-                    array_agg(aggregate_order_by(Value.text, ValueScoreView.score))]).
+                    array_agg(aggregate_order_by(Value.text, ValueScoreView.score.desc()))]).
             select_from(join(Value, ValueScoreView, Value.id == ValueScoreView.value_id)).
             where(or_(
                 Value.type == ValueType.TITLE,

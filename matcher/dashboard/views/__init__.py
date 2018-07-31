@@ -1,3 +1,9 @@
-from . import home
+from . import exports, home, objects, platforms, scraps
 
-__all__ = ['home']
+__all__ = [
+    'exports',
+    'home',
+    'objects',
+    'platforms',
+    'scraps',
+]

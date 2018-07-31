@@ -4,12 +4,14 @@ from pathlib import Path
 import click
 from flask.cli import with_appcontext
 
+from matcher.scheme.enums import ExternalObjectType, PlatformType, ValueType
+
 
 class ValueTypeParamType(click.ParamType):
     name = 'type'
 
     def convert(self, value, param, ctx):
-        from .scheme.value import ValueType
+        from .scheme.enums import ValueType
         t = ValueType.from_name(value)
 
         if t is None:
@@ -37,7 +39,6 @@ class PlatformTypeParamType(click.ParamType):
     name = 'type'
 
     def convert(self, value, param, ctx):
-        from .scheme.platform import PlatformType
         p = PlatformType.from_name(value)
 
         if p is None:
@@ -50,7 +51,6 @@ class ExternalObjectParamType(click.ParamType):
     name = 'type'
 
     def convert(self, value, param, ctx):
-        from .scheme.object import ExternalObjectType
         t = ExternalObjectType.from_name(value)
 
         if t is None:
@@ -120,8 +120,7 @@ def nuke():
 def match(scrap=None, platform=None, exclude=None, offset=None, type=None, limit=None, all=False):
     """Try to match ExternalObjects with each other"""
     from .scheme.platform import Scrap
-    from .scheme.object import ExternalObject, ExternalObjectType, \
-        ObjectLink, scrap_link
+    from .scheme.object import ExternalObject, ObjectLink, scrap_link
     from .app import db
 
     db.session.add_all((x for x in [scrap, platform] if x))
@@ -380,7 +379,7 @@ def download_countries():
 def fix_titles():
     """Fix countries attributes with no ISO codes"""
     import re
-    from .scheme.value import Value, ValueType, ValueSource
+    from .scheme.value import Value, ValueSource
     from .app import db
     from tqdm import tqdm
 
@@ -420,7 +419,7 @@ def fix_titles():
 def fix_countries():
     """Fix countries attributes with no ISO codes"""
     from sqlalchemy.sql.expression import func
-    from .scheme.value import Value, ValueType, ValueSource
+    from .scheme.value import Value, ValueSource
     from .app import db
     from .countries import lookup
     from tqdm import tqdm
@@ -455,261 +454,8 @@ def fix_countries():
     print("Fixed {} countries out of {}".format(added, len(values)))
 
 
-@click.command()  # noqa: C901
-@with_appcontext
-@click.option('--offset', '-o', type=int)
-@click.option('--limit', '-l', type=int)
-@click.option('--platform', '-p', multiple=True, type=PLATFORM)
-@click.option('--cap', '-c', type=PLATFORM)
-@click.option('--group', '-g', type=PLATFORM_TYPE)
-@click.option('--type', '-t', type=EXTERNAL_OBJECT_TYPE)
-@click.option('--name', '-n')
-@click.option('--ignore', '-i', multiple=True, type=PLATFORM)
-@click.option('--exclude', '-e', type=click.File('r'))
-@click.option('--progress/--no-progress', default=True)
-@click.option('--explode/--no-explode', default=False)
-@click.option('--with-country/--no-with-country', default=False)
-@click.option('--count-countries/--no-count-countries', default=False)
-def export(offset=None, limit=None, platform=[], cap=None, group=None,
-           ignore=[], progress=True, explode=False, with_country=False,
-           name=None, exclude=None, type=None, count_countries=False):
-    """Export ExternalObjects to CSV"""
-    import csv
-    import sys
-    from tqdm import tqdm
-    from .scheme.object import ExternalObject, ObjectLink, \
-        ExternalObjectType, Episode
-    from .scheme.platform import Platform, PlatformType
-    from .scheme.value import Value, ValueType
-    from .app import db
-
-    EUR28 = ['DE', 'AT', 'BE', 'BG', 'CY', 'HR', 'DK', 'ES', 'EE', 'FI',
-             'FR', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'MT', 'LU', 'NL',
-             'PL', 'PT', 'CZ', 'RO', 'GB', 'SK', 'SI', 'SE']
-    EUROBS = ['AL', 'AM', 'AT', 'BA', 'BE', 'BG', 'CH', 'CY', 'CZ', 'DE',
-              'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GE', 'GR', 'HR', 'HU',
-              'IE', 'IS', 'IT', 'LI', 'LT', 'LU', 'LV', 'ME', 'MK', 'MT',
-              'NL', 'NO', 'PL', 'PT', 'RO', 'RU', 'SE', 'SI', 'SK', 'TR']
-
-    if offset is not None and limit is not None:
-        limit = offset + limit
-
-    include_list = db.session.query(ObjectLink.external_object_id)
-
-    if group:
-        platform = db.session.query(Platform).\
-            filter(Platform.type == group)
-
-    platform_ids = [p.id for p in platform]
-    ignore_ids = [p.id for p in ignore]
-
-    ignore_ids += [id for (id,) in db.session.query(Platform.id).
-                   filter(Platform.ignore_in_exports._is(True)).
-                   all()]
-
-    if platform_ids:
-        include_list = include_list.\
-            filter(ObjectLink.platform_id.in_(platform_ids))
-
-    if ignore_ids:
-        include_list = include_list.\
-            filter(~ObjectLink.platform_id.in_(ignore_ids))
-
-    if type is None:
-        type = ExternalObjectType.MOVIE
-
-    query = db.session.query(ExternalObject).\
-        filter(ExternalObject.type == type).\
-        filter(ExternalObject.id.in_(include_list)).\
-        order_by(ExternalObject.id)
-
-    if exclude:
-        query = query.filter(~ExternalObject.id.
-                             in_([int(line) for line in exclude]))
-
-    it = query[offset:limit]
-
-    if progress:
-        it = tqdm(it)
-
-    fieldnames = ['IMDb', 'LUMIERE/TVDB', 'TMDB', 'Year', 'Total count',
-                  'Geo coverage', 'Countries', 'Total European OBS',
-                  '100% national productions', 'National co-productions',
-                  'Non-National European OBS', 'EU 28',
-                  'EU 28 co-productions', 'European OBS co-productions',
-                  'International', 'US', 'Other International',
-                  'International co-productions', 'US co-productions',
-                  'Title', 'SVOD', 'TVOD', 'Platform Country',
-                  'Platform Name', 'Scrap ID']
-
-    def generate_flags(total_count, countries, national_production):
-        [country, *_] = countries + [None]
-        coprod = len(countries) > 1
-
-        def flag(f):
-            return total_count if f else 0
-
-        def cflag(f):
-            return flag(country is not None and f)
-
-        return {
-            'Total count': total_count,
-            'Geo coverage': 1 if len(countries) > 0 else 0,
-            'Countries': ','.join(countries),
-            'Total European OBS': cflag(country in EUROBS),
-            '100% national productions': cflag(national_production and not coprod),
-            'National co-productions': cflag(national_production and coprod),
-            'Non-National European OBS': cflag(not national_production and country in EUROBS),
-            'EU 28': cflag(country in EUR28),
-            'EU 28 co-productions': cflag(country in EUR28 and coprod),
-            'European OBS co-productions': cflag(country in EUROBS and coprod),
-            'International': cflag(country not in EUROBS),
-            'US': cflag(country == 'US'),
-            'Other International': cflag(country not in (EUROBS + ['US'])),
-            'International co-productions': cflag(country not in (EUROBS + ['US']) and coprod),
-            'US co-productions': cflag(country == 'US' and coprod),
-        }
-
-    writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames)
-    writer.writeheader()
-
-    imdb = db.session.query(Platform).filter(Platform.slug == 'imdb').one()
-    tmdb = db.session.query(Platform).filter(Platform.slug == 'tmdb').one()
-
-    if type == ExternalObjectType.SERIES:
-        lumieretvdb = db.session.query(Platform).filter(Platform.slug == 'tvdb').one()
-    else:
-        lumieretvdb = db.session.query(Platform).filter(Platform.slug == 'lumiere').one()
-
-    for e in it:
-        countries = db.session.query(Value.text).\
-            filter(Value.external_object == e).\
-            filter(Value.type == ValueType.COUNTRY).\
-            order_by(Value.score.desc()).\
-            all()
-
-        countries = [c[0] for c in countries if len(c[0]) == 2]
-        [country, *_] = countries + [None]
-
-        if not country and with_country:
-            continue
-
-        def pl_id(platform):
-            return next((l.external_id for l in e.links
-                         if l.platform == platform), None)
-
-        imdb_id = pl_id(imdb)
-        tmdb_id = pl_id(tmdb)
-        lumieretvdb_id = pl_id(lumieretvdb)
-
-        titles = db.session.query(Value.text).\
-            filter(Value.external_object == e).\
-            filter(Value.type == ValueType.TITLE).\
-            order_by(Value.score.desc()).\
-            all()
-        title = next((t[0] for t in titles), None)
-
-        dates = db.session.query(Value.text).\
-            filter(Value.external_object == e).\
-            filter(Value.type == ValueType.DATE).\
-            order_by(Value.score.desc()).\
-            all()
-        date = next((d[0] for d in dates if len(d[0]) == 4), None)
-
-        def get_real_links(links):
-            seen = set()
-            for link in links:
-                if link.platform_id in platform_ids and \
-                   link.platform_id not in seen and \
-                   link.platform_id not in ignore_ids:
-                    seen.add(link.platform_id)
-                    yield link
-
-        real_links = list(get_real_links(e.links))
-
-        links_countries = set([link.platform.country for link in real_links])
-
-        national_production = any(l.platform.country for l in real_links
-                                  if l.platform.country == country)
-
-        if type == ExternalObjectType.SERIES:
-            # FIXME: should count_countries do something for seriess?
-            total_count = db.session.query(Episode.episode, Episode.season).\
-                filter(Episode.series == e).\
-                join(ObjectLink, ObjectLink.external_object_id == Episode.external_object_id).\
-                filter(ObjectLink.platform_id.in_(platform_ids)).\
-                group_by(Episode.episode, Episode.season).\
-                count()
-
-            if cap is not None:
-                capped_count = db.session.query(Episode.episode, Episode.season).\
-                    filter(Episode.series == e).\
-                    join(ObjectLink, ObjectLink.external_object_id == Episode.external_object_id).\
-                    filter(ObjectLink.platform_id == cap.id).\
-                    group_by(Episode.episode, Episode.season).\
-                    count()
-
-                if capped_count > 0 and capped_count < total_count:
-                    total_count = capped_count
-        else:
-            total_count = len(links_countries) if count_countries else len(real_links)
-
-        if total_count == 0:
-            continue
-
-        # TODO: Clean up this mess
-        data = {
-            **generate_flags(total_count, countries, national_production),
-            'IMDb': imdb_id,
-            'LUMIERE/TVDB': lumieretvdb_id,
-            'TMDB': tmdb_id,
-            'Year': date,
-            'Title': title,
-            'SVOD': next((total_count for p in platform for l in e.links
-                          if p.type == PlatformType.SVOD and l.platform == p), 0),
-            'TVOD': next((total_count for p in platform for l in e.links
-                          if p.type == PlatformType.TVOD and l.platform == p), 0),
-            'Platform Country': ','.join(links_countries),
-            'Platform Name': name,
-            'Scrap ID': e.id
-        }
-
-        if explode:
-            for link in real_links:
-                if type == ExternalObjectType.SERIES:
-                    total_count = db.session.query(ObjectLink.platform_id, ObjectLink.external_object_id).\
-                        select_from(Episode).\
-                        filter(Episode.series == e).\
-                        join(ObjectLink, ObjectLink.external_object_id == Episode.external_object_id).\
-                        filter(ObjectLink.platform_id == link.platform_id).\
-                        group_by(ObjectLink.platform_id, ObjectLink.external_object_id).\
-                        count()
-
-                    if cap is not None and capped_count > 0 and capped_count < total_count:
-                        total_count = capped_count
-                else:
-                    total_count = 1
-
-                if total_count == 0:
-                    continue
-
-                national_production = link.platform.country == country
-                writer.writerow({
-                    **data,
-                    **generate_flags(total_count, countries, national_production),
-                    'Total count': total_count,
-                    'SVOD': total_count if link.platform.type is PlatformType.SVOD else 0,
-                    'TVOD': total_count if link.platform.type is PlatformType.TVOD else 0,
-                    'Platform Country': link.platform.country,
-                    'Platform Name': link.platform.name
-                })
-        else:
-            writer.writerow(data)
-
-
 def setup_cli(app):
     app.cli.add_command(download_countries)
-    app.cli.add_command(export)
     app.cli.add_command(fix_attributes)
     app.cli.add_command(fix_countries)
     app.cli.add_command(fix_titles)

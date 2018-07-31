@@ -24,8 +24,10 @@ class DropView(DDLElement):
 
 @compiler.compiles(CreateView)
 def compile_create_view(element, compiler, **kw):
-    return "CREATE OR REPLACE {type} {name} AS {selectable}".format(
-        type=('MATERIALIZED VIEW' if element.materialized else 'VIEW'),
+    f = "CREATE MATERIALIZED VIEW IF NOT EXISTS {name} AS {selectable}" if element.materialized \
+        else "CREATE VIEW OR REPLACE {name} AS {selectable}"
+
+    return f.format(
         name=element.name,
         selectable=compiler.sql_compiler.process(element.selectable)
     )
@@ -91,5 +93,5 @@ class ViewMixin(object):
             raise Exception('only materialized views should be refreshed')
         session.flush()
         session.execute('REFRESH MATERIALIZED VIEW{opts} {name}'
-                        .format(opts=('CONCURRENTLY' if concurrently else ''),
+                        .format(opts=(' CONCURRENTLY' if concurrently else ''),
                                 name=cls.__table__.fullname))

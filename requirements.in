@@ -1,7 +1,6 @@
 alembic_autogenerate_enums
 celery
 Flask
-Flask-Admin
 Flask-Injector
 Flask-Migrate
 Flask-RESTful
@@ -10,9 +9,10 @@ Flask-SQLAlchemy
 gunicorn
 pendulum
 psycopg2-binary
+python-slugify
 raven[flask]
 redis
-slugify
 SQLAlchemy
 tqdm
 Unidecode
+WTForms

@@ -13,7 +13,7 @@ python:
 cache: pip
 
 install:
-  - pip install codecov pytest-cov
+  - pip install codecov
   - pip install -r requirements-dev.txt
   - python setup.py develop
 

@@ -1,5 +1,8 @@
 import fcntl
 import os
+from pathlib import Path
+
+from flask import current_app
 
 bypass = bool(os.environ.get('BYPASS_LOCKS', None))
 
@@ -11,7 +14,6 @@ class Lock():
 
     @property
     def fd(self):
-        from flask import current_app
         if self._fd is None:
             self._fd = current_app.open_instance_resource(self.name + '.lock', 'w')
 
@@ -24,3 +26,14 @@ class Lock():
     def __exit__(self, *args):
         if not bypass:
             fcntl.lockf(self.fd, fcntl.LOCK_UN)
+
+
+def export_path(path):
+    prefix = Path(current_app.config['EXPORTS_LOCATION'])
+    return prefix / path
+
+
+def open_export(path, *args, **kwargs):
+    path = export_path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path.open(*args, **kwargs)

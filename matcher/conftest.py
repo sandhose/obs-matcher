@@ -2,6 +2,7 @@ import pytest
 from flask import Flask, request
 from flask_injector import FlaskInjector
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import text
 
 from matcher.app import db as _db
 from matcher.app import setup_routes
@@ -16,7 +17,7 @@ def app():
 
     _db.init_app(app)
 
-    setup_routes(app, admin=False)
+    setup_routes(app)
 
     def configure(binder):
         binder.bind(
@@ -28,15 +29,14 @@ def app():
     FlaskInjector(app=app, modules=[configure])
 
     with app.app_context():
+        _db.engine.execute(text('CREATE EXTENSION IF NOT EXISTS tablefunc'))
         Base.metadata.create_all(bind=_db.engine)
 
         yield app
 
         _db.session.remove()
 
-        # FIXME: Disabled for now, because sequences are not dropped correctly
-        # because of a bug in SQLAlchemy. See https://bitbucket.org/zzzeek/sqlalchemy/issues/4300
-        # Base.metadata.drop_all(bind=_db.engine)
+        Base.metadata.drop_all(bind=_db.engine)
 
 
 @pytest.fixture(scope="function")

@@ -1,0 +1,109 @@
+{% macro render_pagination(pagination, endpoint=request.url_rule.endpoint, args={}) %}
+  <nav>
+    {{ query }}
+    <ul class="pagination">
+    {%- for page in pagination.iter_pages() %}
+      {% if page %}
+        <li class="page-item{% if page == pagination.page %} active{% endif %}">
+          <a class="page-link" href="{{ url_for(endpoint, page=page, per_page=pagination.per_page, **args) }}">{{ page }}</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><a href="#" class="page-link">…</a></li>
+      {% endif %}
+    {%- endfor %}
+    </ul>
+  </nav>
+{% endmacro %}
+
+{% macro render_field(field, label_visible=true) -%}
+  <div class="form-group {% if field.errors %}has-error{% endif %} {{ kwargs.pop('class_', '') }}">
+    {% if (field.type != 'HiddenField' and field.type !='CSRFTokenField') and label_visible %}
+      <label for="{{ field.id }}" class="control-label">{{ field.label }}</label>
+    {% endif %}
+    {{ field(class_='form-control ' + kwargs.pop('field_class', ''), **kwargs) }}
+    {% if field.errors %}
+      {% for e in field.errors %}
+        <p class="help-block">{{ e }}</p>
+      {% endfor %}
+    {% endif %}
+  </div>
+{%- endmacro %}
+
+{% macro render_table_field(field) -%}
+  <fieldset class="nested-form-field">
+    <legend>{{ field.label }}</legend>
+    {{ field() }}
+  </fieldset>
+{%- endmacro %}
+
+{% macro render_checkbox_field(field) -%}
+  <div class="checkbox">
+    <label>
+      {{ field(type='checkbox', **kwargs) }} {{ field.label }}
+    </label>
+  </div>
+{%- endmacro %}
+
+{% macro render_radio_field(field) -%}
+  {% for value, label, _ in field.iter_choices() %}
+    <div class="radio">
+      <label>
+        <input type="radio" name="{{ field.id }}" id="{{ field.id }}" value="{{ value }}">{{ label }}
+      </label>
+    </div>
+  {% endfor %}
+{%- endmacro %}
+
+{% macro render_form(form, action_url='', action='POST', action_text='Submit', class_='', btn_class='btn btn-default') -%}
+  <form method="{{ action }}" action="{{ action_url }}" role="form" class="{{ class_ }}">
+    {{ form.hidden_tag() if form.hidden_tag }}
+    {% if caller %}
+      {{ caller() }}
+    {% else %}
+      {% for f in form %}
+        {% if f.type == 'BooleanField' %}
+          {{ render_checkbox_field(f) }}
+        {% elif f.type == 'RadioField' %}
+          {{ render_radio_field(f) }}
+        {% elif f.type == 'FormField' %}
+          {{ render_table_field(f) }}
+        {% else %}
+          {{ render_field(f) }}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+    <button type="submit" class="{{ btn_class }}">{{ action_text }}</button>
+  </form>
+{%- endmacro %}
+
+{% macro stat(count, name, plural=None) -%}
+  {%- if plural is none -%}
+    {% set plural = name + 's' %}
+  {%- elif not plural -%}
+    {% set plural = name %}
+  {%- endif -%}
+  <b>
+    {{- count | default(0) -}}
+  </b>&nbsp;
+  {%- if count == 1 -%}
+    {{ name }}
+  {%- else -%}
+    {{ plural }}
+  {%- endif -%}
+{%- endmacro %}
+
+{% macro todo() -%}
+  <p class="text-monospace">// TODO.</p>
+{%- endmacro %}
+
+{% macro transition(model, name, url='#', class='btn') %}
+  {% if model['can_' + name] %}
+    <a href="{{ url }}" title="{{ model[name].__doc__ }}" class="{{ class }} btn-{{ model[name] | transition_color }}" rel="tooltip">
+      {% if caller %}
+        {{ caller() }}
+      {% else %}
+        {{ name | title }}
+      {% endif %}
+    </a>
+  {% endif %}
+{% endmacro %}

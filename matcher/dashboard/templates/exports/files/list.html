@@ -1,0 +1,98 @@
+{% extends "base-fluid.html" %}
+{% import "macros.html" as m %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-md-4 col-12 filters">
+      <div class="card">
+        <div class="card-header card-header-primary">
+          <h4 class="card-title">Filters</h4>
+        </div>
+        {{ m.render_form(filter_form, class_="card-body", action="GET") }}
+      </div>
+    </div>
+    <div class="col-md col-12">
+      <div class="card">
+        <div class="card-header">
+          <a class="btn btn-primary float-right" href="{{ url_for(".new_export_file") }}">New export file</a>
+        </div>
+        <div class="card-body table-responsive">
+          <table class="table">
+            <thead class="text-primary">
+              <tr>
+                <th>Status</th>
+                <th>Last activity</th>
+                <th>Name</th>
+                <th>Session</th>
+                <th>Type</th>
+                <th>Object types</th>
+                <th>Factory</th>
+                <th>Filters</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for file in page.items %}
+                <tr>
+                  <td>
+                    <span class="badge badge-pill badge-{{ file.status | badge_color }}">
+                      {{ file.status | upper }}
+                    </span>
+                  </td>
+                  <td>{{ file.last_activity | relative_date }}</td>
+                  <td>{{ file.path | filename }}</td>
+                  <td>
+                    <div class="td-actions">
+                      {{ file.session.name }}
+                      <a class="btn btn-sm btn-link" href="#" rel="tooltip" title="Show session">
+                        <i class="material-icons">chevron_right</i>
+                      </a>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge badge-pill badge-{{ file.template.row_type | badge_color }}">
+                      {{ file.template.row_type | upper }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge badge-pill badge-{{ file.template.external_object_type | badge_color }}">
+                      {{ file.template.external_object_type | upper }}
+                    </span>
+                  </td>
+                  <td>
+                    {% if file.factory %}
+                      <div class="td-actions">
+                        {{ file.factory.name }}
+                        <a class="btn btn-sm btn-link" href="{{ url_for('.show_export_factory', id=file.factory.id) }}" rel="tooltip" title="Show factory">
+                          <i class="material-icons">chevron_right</i>
+                        </a>
+                      </div>
+                    {% else %}
+                      –
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% for key, value in file.filters.items() %}
+                      <div class="text-monospace"><b>{{ key }}</b> = {{ value }}</div>
+                    {% endfor %}
+                  </td>
+                  <td class="td-actions">
+                    <a class="btn btn-sm btn-link" href="{{ url_for('.download_export_file', id=file.id) }}" rel="tooltip" title="Download file">
+                      <i class="material-icons">get_app</i>
+                    </a>
+                    <a class="btn btn-sm btn-link" href="{{ url_for('.show_export_file', id=file.id) }}" rel="tooltip" title="View file">
+                      <i class="material-icons">arrow_forward</i>
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="card-footer">
+          {{ m.render_pagination(page, args=query) }}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

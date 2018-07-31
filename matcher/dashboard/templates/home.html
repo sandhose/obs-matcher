@@ -1,20 +1,5 @@
 {% extends "base.html" %}
-
-{% macro stat(count, name, plural=None) -%}
-  {%- if plural is none -%}
-    {% set plural = name + 's' %}
-  {%- elif not plural -%}
-    {% set plural = name %}
-  {%- endif -%}
-  <b>
-    {{- count | default(0) -}}
-  </b>&nbsp;
-  {%- if count == 1 -%}
-    {{ name }}
-  {%- else -%}
-    {{ plural }}
-  {%- endif -%}
-{%- endmacro %}
+{% import "macros.html" as m %}
 
 {% block content %}
   <div class="row">
@@ -26,8 +11,8 @@
           </div>
           <p class="card-category">Discovered content</p>
           <h4 class="card-title">
-            {{ stat(external_object_stats['MOVIE'], 'movie') }}
-            & {{ stat(external_object_stats['SERIES'], 'series', plural=False) }}
+            {{ m.stat(external_object_stats['MOVIE'], 'movie') }}
+            & {{ m.stat(external_object_stats['SERIES'], 'series', plural=False) }}
           </h4>
         </div>
         <div class="card-footer">
@@ -48,7 +33,7 @@
         <div class="card-footer">
           <div class="stats">
             <i class="material-icons">notes</i>
-            {{ platforms_stats['SVOD'] }} SVOD, 
+            {{ platforms_stats['SVOD'] }} SVOD,
             {{ platforms_stats['TVOD'] }} TVOD and
             {{ platforms_stats['INFO'] }} INFO
           </div>
@@ -111,29 +96,12 @@
         </div>
         <hr />
         <div class="card-body table-responsive">
-          <table class="table">
-            <thead class="text-primary">
-              <tr>
-                <th>Platform</th>
-                <th>Status</th>
-                <th>Date</th>
-                <th>Links</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for scrap in last_scraps | reverse %}
-                <tr>
-                  <td>{{ scrap.platform.name }}</td>
-                  <td>{{ scrap.status | upper }}</td>
-                  <td>{{ scrap.date | relative_date }}</td>
-                  <td>{{ scrap.links_count }}</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+          {% with scraps=last_scraps | reverse %}
+            {% include "scraps/_list.html" %}
+          {% endwith %}
           <div class="d-flex justify-content-end">
             <a href="#" class="btn btn-secondary">New scrap</a>
-            <a href="#" class="btn btn-primary">See all</a>
+            <a href="{{ url_for('.scrap_list') }}" class="btn btn-primary">See all</a>
           </div>
         </div>
         <div class="card-footer">

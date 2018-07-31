@@ -2,15 +2,16 @@ from datetime import datetime
 
 from slugify import slugify
 from sqlalchemy import (Boolean, Column, DateTime, Enum, ForeignKey, Integer,
-                        Sequence, String, Text, UniqueConstraint, column, func,
-                        select, table,)
+                        Sequence, String, Table, Text, UniqueConstraint,
+                        column, func, select, table,)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import column_property, relationship
 
-from matcher.exceptions import InvalidStatusTransition
-
 from . import Base
-from .utils import CustomEnum
+from .enums import PlatformType, ScrapStatus
+from .utils import before
+
+__all__ = ['PlatformGroup', 'Platform', 'Scrap', 'Session']
 
 
 class PlatformGroup(Base):
@@ -44,13 +45,6 @@ def slug_default(context):
         return None
 
 
-class PlatformType(CustomEnum):
-    INFO = 1  # Platforms like IMDb
-    GLOBAL = 2  # Platforms for global IDs
-    TVOD = 3  # Renting VOD
-    SVOD = 4  # Subscription based VOD
-
-
 class Platform(Base):
     """Represents one platform"""
 
@@ -65,7 +59,6 @@ class Platform(Base):
     name = Column(Text, nullable=False)
     """A human readable name"""
 
-    # FIXME: should be unique
     slug = Column(Text, nullable=False, default=slug_default)
     """A unique identifier"""
 
@@ -99,7 +92,8 @@ class Platform(Base):
     links_count = column_property(
         select([func.count('external_object_id')]).
         select_from(table('object_link')).
-        where(column('platform_id') == id)
+        where(column('platform_id') == id),
+        deferred=True
     )
 
     def __repr__(self):
@@ -126,6 +120,14 @@ class Platform(Base):
 
         return q.one_or_none()
 
+    @classmethod
+    def search_filter(cls, term):
+        return (
+            (func.to_tsvector('simple', cls.name).op('||')(func.to_tsvector('simple', cls.slug))).
+            op('@@')
+            (func.to_tsquery('simple', "'" + term + "':*"))
+        )
+
     def match_objects(self):
         """Try to match objects that where found in this platform"""
         from ..scheme.object import ExternalObject
@@ -134,25 +136,7 @@ class Platform(Base):
         ExternalObject.match_objects(objs)
 
 
-class ScrapStatus(CustomEnum):
-    """Enum representing the current status of a given scrap"""
-
-    SCHEDULED = 1
-    """The job isn't started, and waiting to be picked up"""
-
-    RUNNING = 2
-    """The job has been picked up by a worker"""
-
-    ABORTED = 3
-    """The job was aborted while running or pending"""
-
-    SUCCESS = 4
-    """The job has succedded"""
-
-    FAILED = 5
-    """The job has failed"""
-
-
+@ScrapStatus.act_as_statemachine('status')
 class Scrap(Base):
     """Represents one job
 
@@ -181,10 +165,13 @@ class Scrap(Base):
     links = relationship('ObjectLink', secondary='scrap_link', back_populates='scraps')
     """Objects (to be) fetched by this job"""
 
+    sessions = relationship('Session', secondary='session_scrap', back_populates='scraps')
+
     links_count = column_property(
         select([func.count('object_link_id')]).
         select_from(table('scrap_link')).
-        where(column('scrap_id') == id)
+        where(column('scrap_id') == id),
+        deferred=True
     )
 
     def to_status(self, status):
@@ -199,39 +186,16 @@ class Scrap(Base):
                 self.run()
             elif status is ScrapStatus.SCHEDULED:
                 self.reschedule()
-            else:
-                self.finish(status)
+            elif status is ScrapStatus.SUCCESS:
+                self.succeeded()
+            elif status is ScrapStatus.FAILED:
+                self.failed()
+            elif status is ScrapStatus.ABORTED:
+                self.abort()
 
-    def finish(self, status):
-        """Set the status to one of the finished status"""
-        if self.status is not ScrapStatus.RUNNING:
-            raise InvalidStatusTransition(from_status=self.status, to_status=status)
-
-        if not any(s == status
-                   for s in [ScrapStatus.SUCCESS, ScrapStatus.FAILED, ScrapStatus.ABORTED]):
-            # FIXME: custom exception
-            raise Exception('"{}" is not a finished state'.format(status))
-
-        self.status = status
-
-    def run(self):
-        """Mark the job as running"""
-        if self.status is not ScrapStatus.SCHEDULED:
-            raise InvalidStatusTransition(from_status=self.status, to_status=ScrapStatus.RUNNING)
-
+    @before('run')
+    def before_run(self):
         self.date = datetime.now()
-        self.status = ScrapStatus.RUNNING
-
-    def reschedule(self):
-        """Reschedule a job"""
-
-        # FIXME: This maybe should duplicate itself when not RUNNING or ABORTED
-        if self.status is ScrapStatus.SUCCESS or \
-           self.status is ScrapStatus.SCHEDULED or \
-           self.status is ScrapStatus.RUNNING:
-            raise InvalidStatusTransition(from_status=self.status, to_status=ScrapStatus.SCHEDULED)
-
-        self.status = ScrapStatus.SCHEDULED
 
     def match_objects(self):
         """Try to match objects that where found in this scrap"""
@@ -242,3 +206,27 @@ class Scrap(Base):
 
     def __repr__(self):
         return '<Scrap ({}, {})>'.format(self.platform, self.date)
+
+
+class Session(Base):
+    """Represents a group of scraps, used for statistics and exports"""
+
+    __tablename__ = 'session'
+
+    session_id_seq = Sequence('session_id_seq', metadata=Base.metadata)
+    id = Column(Integer, session_id_seq, server_default=session_id_seq.next_value(), primary_key=True)
+
+    name = Column(String, nullable=False)
+
+    scraps = relationship(Scrap, secondary='session_scrap', back_populates='sessions')
+    """List of scraps in this session"""
+
+    files = relationship('ExportFile', back_populates='session')
+
+
+session_scrap = Table(
+    'session_scrap',
+    Base.metadata,
+    Column('session_id', ForeignKey(Session.id, ondelete='CASCADE', onupdate='CASCADE'), primary_key=True),
+    Column('scrap_id', ForeignKey(Scrap.id, ondelete='CASCADE', onupdate='CASCADE'), primary_key=True),
+)

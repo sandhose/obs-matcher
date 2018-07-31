@@ -1,0 +1,28 @@
+{% extends "base-fluid.html" %}
+{% import "macros.html" as m %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-md-4 col-12 filters">
+      <div class="card">
+        <div class="card-header card-header-primary">
+          <h4 class="card-title">Filters</h4>
+        </div>
+        <div class="card-body">No filter for now.</div>
+      </div>
+    </div>
+
+    <div class="col-md col-12">
+      <div class="card">
+        <div class="card-body table-responsive">
+          {% with objects=page.items %}
+            {% include "objects/_list.html" %}
+          {% endwith %}
+        </div>
+        <div class="card-footer">
+          {{ m.render_pagination(page, args=query) }}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -3,10 +3,12 @@ import datetime
 from flask import render_template
 from flask.views import View
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 
 from matcher.mixins import DbMixin
+from matcher.scheme.enums import ScrapStatus
 from matcher.scheme.object import ExternalObject, ObjectLink
-from matcher.scheme.platform import Platform, Scrap, ScrapStatus
+from matcher.scheme.platform import Platform, Scrap
 
 __all__ = ['HomeView']
 
@@ -41,5 +43,5 @@ class HomeView(View, DbMixin):
             'year': successful_scrap(datetime.timedelta(days=365)),
         }
 
-        ctx['last_scraps'] = self.query(Scrap).join(Scrap.platform)[-9:]
+        ctx['last_scraps'] = self.query(Scrap).options(joinedload(Scrap.platform))[-9:]
         return render_template('home.html', **ctx)

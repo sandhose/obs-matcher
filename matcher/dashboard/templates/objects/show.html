@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+
+{% block content %}
+  <h3>
+    {{ object.attributes.titles[0] }}
+    <span class="badge badge-{{ object.type | badge_color }}">{{ object.type | upper }}</span>
+  </h3>
+  {{ m.todo() }}
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base-fluid.html" %}
+{% import "macros.html" as m %}
+
+{% block content %}
+  <h3>
+    Scrap list
+    <small class="text-muted">(total: {{ page.total }})</small>
+  </h3>
+
+  <div class="row">
+    <div class="col-12 col-md-4 filters">
+      <div class="card">
+        <div class="card-header card-header-primary">
+          <h4 class="card-title">Filters</h4>
+        </div>
+
+        {% call m.render_form(filter_form, class_="card-body", action="GET") %}
+          {{ m.render_field(filter_form.platforms, field_class="select2-platforms") }}
+          {{ m.render_field(filter_form.status, field_class="select2") }}
+        {% endcall %}
+      </div>
+    </div>
+
+    <div class="col-12 col-md">
+      <div class="card">
+        <div class="card-body table-responsive">
+          {% with scraps=page.items %}
+            {% include "scraps/_list.html" %}
+          {% endwith %}
+        </div>
+        <div class="card-footer">
+          {{ m.render_pagination(page, args=query) }}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block script %}
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $(".select2-platforms").select2({
+        ajax: {
+          url: '{{ url_for("api.platforms_platform_list") }}',
+          dataType: "json",
+          data: ({ term, page }) => ({ q: term, page: page || 1 }),
+          processResults: ({ items, pagination }) => ({
+            results: items.map(({ slug, name }) => ({ id: slug, text: name })),
+            pagination: {
+              more: pagination.has_next
+            }
+          })
+        }
+      });
+    });
+  </script>
+{% endblock %}

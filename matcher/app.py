@@ -1,16 +1,15 @@
-import contextlib
 import logging
 import os
 
-from alembic.migration import MigrationContext
-from celery import Celery
-from flask import Flask, render_template, url_for
+from celery import Celery, Task
+from flask import Flask
 from flask.cli import FlaskGroup
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_injector import FlaskInjector
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from injector import Injector, Module, provider, singleton
+from raven.contrib.celery import register_logger_signal, register_signal
 from raven.contrib.flask import Sentry
 
 from .commands import setup_cli
@@ -41,43 +40,34 @@ class CeleryModule(Module):
         )
         celery.conf.update(app.config)
 
-        class ContextTask(celery.Task):
+        class ContextTask(Task):
             def __call__(self, *args, **kwargs):
                 with app.app_context():
                     return self.run(*args, **kwargs)
 
         celery.Task = ContextTask
+
         return celery
 
 
-def _setup_admin(app):
-    from .admin import setup_admin
-    setup_admin(app)
+class SentryModule(Module):
+    @provider
+    @singleton
+    def provide_sentry(self, app: Flask, celery: Celery) -> Sentry:
+        sentry = Sentry(app=app, logging=True, level=logging.ERROR)
+
+        register_logger_signal(sentry.client)
+        register_signal(sentry.client)
+
+        return sentry
 
 
-def setup_routes(app, admin=True):
+def setup_routes(app):
     from .api import blueprint as api
     from .dashboard import blueprint as dashboard
 
     app.register_blueprint(api, url_prefix='/api')
-    app.register_blueprint(dashboard, url_prefix='/dashboard')
-
-    if admin:
-        # Do not install admin if upgrades are pending
-        with contextlib.closing(db.engine.connect()) as con:
-            migration_context = MigrationContext.configure(con)
-            revision = migration_context.get_current_revision()
-            heads = migration_context.get_current_heads()
-
-            if revision in heads:
-                _setup_admin(app)
-
-    @app.route('/')
-    def index():
-        return render_template('index.html', navigation=[
-            {'url': url_for('admin.index'), 'caption': 'Admin'},
-            {'url': url_for('api.root'), 'caption': 'API'},
-        ])
+    app.register_blueprint(dashboard, url_prefix='/')
 
 
 def create_app(info=None):
@@ -92,7 +82,6 @@ def create_app(info=None):
     register_filters(app)
 
     DebugToolbarExtension(app=app)
-    Sentry(app=app, logging=True, level=logging.ERROR)
     Migrate(app=app, db=db, directory=os.path.join(os.path.dirname(__file__),
                                                    'migrations'))
 
@@ -100,7 +89,8 @@ def create_app(info=None):
     with app.app_context():
         setup_routes(app)
 
-    FlaskInjector(injector=injector, app=app, modules=[SQLAlchemyModule, CeleryModule])
+    FlaskInjector(injector=injector, app=app, modules=[SQLAlchemyModule, CeleryModule, SentryModule])
+    injector.get(Sentry)
 
     return app
 

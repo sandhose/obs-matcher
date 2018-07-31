@@ -1,3 +1,19 @@
 main {
   margin-top: 2rem;
 }
+
+.td-actions {
+  display: flex;
+  align-items: center;
+}
+
+.filters {
+  max-width: 340px;
+}
+
+.nested-form-field th {
+  width: 140px;
+}
+.nested-form-field .select2 {
+  width: 100%;
+}

@@ -63,6 +63,8 @@ class Config(object):
     SECRET_KEY = env_var('SECRET_KEY',
                          'Something reeaaally secret (wow, spooky.)')
 
+    EXPORTS_LOCATION = env_var('EXPORTS_LOCATION')
+
 
 class TestConfig(Config):
     SQLALCHEMY_DATABASE_URI = env_var('SQLALCHEMY_TEST_DATABASE_URI', postgres_test_url)

@@ -31,8 +31,6 @@ click==6.7 \
     --hash=sha256:29f99fc6125fbc931b758dc053b3114e55c77a6e4c6c3a2674a2dc986016381d \
     --hash=sha256:f15516df478d5a56180fbf80e68f206010e6d160fc39fa508b65e035fd75130b \
     # via flask
-flask-admin==1.5.1 \
-    --hash=sha256:e3a8268fdb6c271a44196de7f2a85faff886df18061d337e66b4b3c80e9c4f23
 flask-injector==0.10.1 \
     --hash=sha256:df12eee64027f86fd6ca46f1e324d938277035ded79a104426bf93eadac2a9a8 \
     --hash=sha256:e5436ba5637ce049e72bf2868ad0fe086beeb7e00b1bd47d6b356931be4f8076
@@ -124,6 +122,8 @@ python-dateutil==2.7.3 \
 python-editor==1.0.3 \
     --hash=sha256:a3c066acee22a1c94f63938341d4fb374e3fdd69366ed6603d7b24bed1efc565 \
     # via alembic
+python-slugify==1.2.5 \
+    --hash=sha256:5dbb360b882b2dabe0471a1a92f604504d83c2a73c71f2098d004ab62e695534
 pytz==2018.4 \
     --hash=sha256:65ae0c8101309c45772196b21b74c46b2e5d11b6275c45d251b150d5da334555 \
     --hash=sha256:c06425302f2cf668f1bba7a0a03f3c1d34d4ebeef2c72003da308b3947c7f749 \
@@ -142,8 +142,6 @@ six==1.11.0 \
     --hash=sha256:70e8a77beed4562e7f14fe23a786b54f6296e34344c23bc42f07b15018ff98e9 \
     --hash=sha256:832dc0e10feb1aa2c68dcc57dbb658f1c7e65b9b61af69048abc87a2db00a0eb \
     # via flask-restful, flask-restplus, python-dateutil
-slugify==0.0.1 \
-    --hash=sha256:c5703cc11c1a6947536f3ce8bb306766b8bb5a84a53717f5a703ce0f18235e4c
 sqlalchemy==1.2.10 \
     --hash=sha256:72325e67fb85f6e9ad304c603d83626d1df684fdf0c7ab1f0352e71feeab69d8
 tqdm==4.23.4 \
@@ -167,5 +165,4 @@ werkzeug==0.14.1 \
     # via flask
 wtforms==2.2.1 \
     --hash=sha256:0cdbac3e7f6878086c334aa25dc5a33869a3954e9d1e015130d65a69309b3b61 \
-    --hash=sha256:e3ee092c827582c50877cdbd49e9ce6d2c5c1f6561f849b3b068c1b8029626f1 \
-    # via flask-admin
+    --hash=sha256:e3ee092c827582c50877cdbd49e9ce6d2c5c1f6561f849b3b068c1b8029626f1

@@ -1,18 +1,28 @@
-from sqlalchemy import MetaData
-from sqlalchemy.ext.declarative import declarative_base
-
+from .base import Base, metadata
+from .export import ExportTemplate, ExportFactory, ExportFile
+from .platform import Platform, PlatformGroup, Scrap, Session
+from .object import ExternalObject, ObjectLink, Role, Episode, Person
 from .utils import ensure_extension
-
-convention = {
-    "ix": 'ix_%(column_0_label)s',
-    "uq": "uq_%(table_name)s_%(column_0_name)s",
-    "ck": "ck_%(table_name)s_%(constraint_name)s",
-    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
-    "pk": "pk_%(table_name)s"
-}
-
-metadata = MetaData(naming_convention=convention)
-
-Base = declarative_base(metadata=metadata)
+from .value import Value, ValueSource
 
 ensure_extension('tablefunc', metadata)
+ensure_extension('hstore', metadata)
+
+__all__ = [
+    'Base',
+    'Episode',
+    'ExportFactory',
+    'ExportFile',
+    'ExportTemplate',
+    'ExternalObject',
+    'ObjectLink',
+    'Person',
+    'Platform',
+    'PlatformGroup',
+    'Role',
+    'Scrap',
+    'Session',
+    'Value',
+    'ValueSource',
+    'metadata',
+]

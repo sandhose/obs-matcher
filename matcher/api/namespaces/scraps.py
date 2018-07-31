@@ -2,7 +2,8 @@ import pendulum
 from flask_restplus import Namespace, abort, reqparse
 from sqlalchemy import DATE, Interval, cast, func
 
-from matcher.scheme.platform import Platform, Scrap, ScrapStatus
+from matcher.scheme.enums import ScrapStatus
+from matcher.scheme.platform import Platform, Scrap
 
 from .. import inputs, models, pagination
 from ..resources import DbResource
@@ -38,7 +39,7 @@ class ScrapList(DbResource):
     def post(self):
         """Create a new scrap
 
-        :raises InvalidStatusTransition:
+        :raises InvalidTransition:
         """
         args = scrap_arguments.parse_args()
 
@@ -81,7 +82,7 @@ class ScrapItem(DbResource):
     def put(self, scrap):
         """Edit a scrap
 
-        :raises InvalidStatusTransition:
+        :raises InvalidTransition:
         """
         args = edit_scrap_arguments.parse_args()
 

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-6 offset-3">
+      <div class="card">
+        <div class="card-header card-header-primary">
+          <h3 class="card-title">New export</h3>
+        </div>
+        <form class="card-body" method="POST">
+          {{ m.render_form(form) }}
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}
