@@ -110,7 +110,7 @@
                 <th>Score</th>
               </tr>
             <tbody>
-              {% for value in object.values | sort(attribute='score') | sort(attribute='type.value') %}
+              {% for value in object.values | sort(attribute='score', reverse=True) | sort(attribute='type.value') %}
                 <tr>
                   <td>
                     <span class="badge badge-{{ value.type | badge_color }}">
