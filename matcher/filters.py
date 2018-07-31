@@ -15,7 +15,10 @@ def relative_date(dt):
     the full one. The other date (relative when showing the absolute one and
     vice-versa) is always shown inside an <abbr>.
     """
-    dt = pendulum.instance(dt)
+    try:
+        dt = pendulum.instance(dt)
+    except ValueError:
+        return '–'
     human = escape(dt.diff_for_humans())
     full = escape(dt.to_datetime_string())
     fmt = {'title': full, 'display': human} if dt.diff().days < 3 else {'title': human, 'display': full}

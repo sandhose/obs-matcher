@@ -1,6 +1,6 @@
 from flask import render_template
 from flask.views import View
-from sqlalchemy.orm import joinedload, lazyload
+from sqlalchemy.orm import joinedload, lazyload, undefer
 
 from matcher.mixins import DbMixin
 from matcher.scheme.enums import ExternalObjectType
@@ -14,7 +14,10 @@ __all__ = ['ObjectListView']
 class ObjectListView(View, DbMixin):
     def dispatch_request(self):
         ctx = {}
-        ctx['page'] = self.query(ExternalObject).options(joinedload(ExternalObject.attributes)).paginate()
+        ctx['page'] = self.query(ExternalObject).\
+            options(joinedload(ExternalObject.attributes),
+                    undefer(ExternalObject.links_count)).\
+            paginate()
 
         return render_template('objects/list.html', **ctx)
 
