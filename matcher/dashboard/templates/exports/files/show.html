@@ -13,8 +13,8 @@
             </dd>
 
             <dt>Filters</dt>
-            {% for key, value in file.filters.items() %}
-              <dd class="text-monospace"><b>{{ key }}</b> = {{ value }}</dd>
+            {% for filter in file.filters.items() %}
+              <dd class="text-monospace">{{ m.file_filter(filter, export_file_filter_cache) }}</dd>
             {% endfor %}
 
             <dt>Row type</dt>

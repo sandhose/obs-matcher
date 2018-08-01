@@ -3,15 +3,17 @@ from wtforms import (Form, FormField, SelectMultipleField, StringField,
 from wtforms.ext.sqlalchemy.fields import (QuerySelectField,
                                            QuerySelectMultipleField,)
 
+from matcher.filters import badge_display
 from matcher.scheme.enums import (ExportFactoryIterator, ExportFileStatus,
                                   ExportRowType, ExternalObjectType,
                                   PlatformType,)
 
 
 class ExportFactoryListFilter(Form):
-    row_type = SelectMultipleField("Type", choices=[(v.name, v.name) for v in ExportRowType])
-    iterator = SelectMultipleField("Iterator", choices=[(v.name, v.name) for v in ExportFactoryIterator])
-    external_object_type = SelectMultipleField("Objects type", choices=[(v.name, v.name) for v in ExternalObjectType])
+    row_type = SelectMultipleField("Type", choices=[(v.name, badge_display(v)) for v in ExportRowType])
+    iterator = SelectMultipleField("Iterator", choices=[(v.name, badge_display(v)) for v in ExportFactoryIterator])
+    external_object_type = SelectMultipleField("Objects type",
+                                               choices=[(v.name, badge_display(v)) for v in ExternalObjectType])
 
 
 class ExportFilter(Form):
@@ -42,12 +44,13 @@ class NewExportFileForm(Form):
 
 
 class ExportFileFilter(Form):
-    status = SelectMultipleField("Status", choices=[(v.name, v.name) for v in ExportFileStatus],
+    status = SelectMultipleField("Status", choices=[(v.name, badge_display(v)) for v in ExportFileStatus],
                                  render_kw={'class': 'form-control select2'})
     session = QuerySelectMultipleField("Session", get_label='name', render_kw={'class': 'form-control select2'})
     factory = QuerySelectMultipleField("Factory", get_label='name', render_kw={'class': 'form-control select2'})
     template = QuerySelectMultipleField("Template", render_kw={'class': 'form-control select2'})
-    row_type = SelectMultipleField("Type", choices=[(v.name, v.name) for v in ExportRowType],
+    row_type = SelectMultipleField("Type", choices=[(v.name, badge_display(v)) for v in ExportRowType],
                                    render_kw={'class': 'form-control select2'})
-    external_object_type = SelectMultipleField("Objects type", choices=[(v.name, v.name) for v in ExternalObjectType],
+    external_object_type = SelectMultipleField("Objects type",
+                                               choices=[(v.name, badge_display(v)) for v in ExternalObjectType],
                                                render_kw={'class': 'form-control select2'})

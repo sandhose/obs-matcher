@@ -113,3 +113,7 @@
     {{ enum | badge_display }}
   </{{tag}}>
 {% endmacro %}
+
+{% macro file_filter(filter, cache) %}
+  <span title="{{ filter[0] }} = {{ filter[1] }}">{{ filter | filter_display(cache) }}</span>
+{% endmacro %}

@@ -6,7 +6,7 @@ from jinja2 import Markup, escape
 
 from matcher.scheme.enums import (ExportFactoryIterator, ExportFileStatus,
                                   ExportRowType, ExternalObjectType,
-                                  PlatformType, ScrapStatus, ValueType)
+                                  PlatformType, ScrapStatus, ValueType,)
 from matcher.scheme.utils import CustomEnum
 
 
@@ -94,6 +94,29 @@ def badge_display(type_: CustomEnum) -> str:
     return mapping.get(type_, str(type_).upper())
 
 
+def filter_display(filter_, cache):
+    """Display export file filters in a human-readable way"""
+    key, value = filter_
+    cache_ = cache.get(key, {})
+
+    def get_cache(id_str):
+        id_ = int(id_str)
+        if id_ in cache_:
+            return str(cache_[id_])
+        return id_str
+
+    title, coerce = {
+        'platform.id': ('Platform', get_cache),
+        'platform.group_id': ('Group', get_cache),
+        'platform.type': ('Type', str),
+        'platform.country': ('Country', str),
+    }.get(key, (key, str))
+
+    values = [coerce(v.strip()) for v in value.upper().split(',')]
+
+    return title + ': ' + ', '.join(values)
+
+
 def transition_color(method):
     if hasattr(method, 'transition'):
         return badge_color(method.transition.to_state)
@@ -124,6 +147,7 @@ def register(app: Flask):
     app.jinja_env.filters['relative_date'] = relative_date
     app.jinja_env.filters['badge_color'] = badge_color
     app.jinja_env.filters['badge_display'] = badge_display
+    app.jinja_env.filters['filter_display'] = filter_display
     app.jinja_env.filters['transition_color'] = transition_color
     app.jinja_env.filters['template_highlight'] = template_highlight
     app.jinja_env.filters['filename'] = filename

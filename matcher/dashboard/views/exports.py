@@ -1,3 +1,5 @@
+from typing import Dict, Any, Set  # noqa
+
 from flask import flash, redirect, render_template, request, send_file, url_for
 from flask.views import View
 from sqlalchemy import func, or_
@@ -14,6 +16,29 @@ from ..forms.exports import (ExportFactoryListFilter, ExportFileFilter,
 __all__ = ['ExportIndexView', 'ExportFileListView', 'DownloadExportFileView',
            'NewExportFileView', 'ShowExportFileView', 'ExportFactoryListView',
            'ShowExportFactoryView']
+
+
+def build_filter_cache(files, session) -> Dict[str, Dict[int, Any]]:
+    """Builds a filter cache used by the filter_display jinja filter"""
+    filters = {}  # type: Dict[str, Set[str]]
+    for file in files:
+        for key, value in file.filters.items():
+            existing = filters.get(key, set())  # type: Set[str]
+            existing.update(k.strip().upper() for k in value.split(','))
+            filters[key] = existing
+
+    cache = {}
+    if 'platform.id' in filters:
+        cache['platform.id'] = dict(session.query(Platform.id, Platform).
+                                    filter(Platform.id.in_(int(i) for i in filters['platform.id'])).
+                                    all())
+
+    if 'platform.group_id' in filters:
+        cache['platform.group_id'] = dict(session.query(PlatformGroup.id, PlatformGroup).
+                                          filter(PlatformGroup.id.in_(int(i) for i in filters['platform.group_id'])).
+                                          all())
+
+    return cache
 
 
 class ExportIndexView(View):
@@ -52,6 +77,7 @@ class ExportFileListView(View, DbMixin):
         ctx = {}
         ctx['page'] = query.paginate()
         ctx['filter_form'] = form
+        ctx['export_file_filter_cache'] = build_filter_cache(ctx['page'].items, self.session)
 
         return render_template('exports/files/list.html', **ctx)
 
@@ -132,6 +158,7 @@ class ShowExportFileView(View, DbMixin):
 
         ctx = {}
         ctx['file'] = export_file
+        ctx['export_file_filter_cache'] = build_filter_cache([export_file], self.session)
 
         return render_template('exports/files/show.html', **ctx)
 

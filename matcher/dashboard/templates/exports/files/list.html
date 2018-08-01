@@ -66,8 +66,8 @@
                     {% endif %}
                   </td>
                   <td>
-                    {% for key, value in file.filters.items() %}
-                      <div class="text-monospace"><b>{{ key }}</b> = {{ value }}</div>
+                    {% for filter in file.filters.items() %}
+                      <div class="text-monospace">{{ m.file_filter(filter, export_file_filter_cache) }}</div>
                     {% endfor %}
                   </td>
                   <td class="td-actions">
