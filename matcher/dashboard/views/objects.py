@@ -2,6 +2,7 @@ import re
 
 from flask import render_template, request
 from flask.views import View
+from sqlalchemy import func
 from sqlalchemy.orm import joinedload, lazyload, undefer, contains_eager
 
 from matcher.mixins import DbMixin
@@ -46,8 +47,9 @@ class ObjectListView(View, DbMixin):
 
         # Apply the filters
         if form.search.data:
-            q = re.sub(' +', ' & ', form.search.data)
-            query = query.filter(AttributesView.search_vector.match(q))
+            q = func.to_tsquery(re.sub(' +', ' & ', form.search.data))
+            query = query.filter(AttributesView.search_vector.op('@@')(q)).\
+                order_by(func.ts_rank(AttributesView.search_vector, q))
         else:
             query = query.order_by(ExternalObject.id)
 
