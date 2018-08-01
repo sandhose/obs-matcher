@@ -35,9 +35,7 @@
               {% for platform in page.items %}
                 <tr>
                   <td>
-                    <span class="badge badge-pill badge-{{ platform.type | badge_color }}">
-                      {{ platform.type | upper }}
-                    </span>
+                    {{ m.badge(platform.type, class="badge-pill" }}
                   </td>
                   <td>{{ platform.name }}</td>
                   <td>{{ platform.slug }}</td>

@@ -1,3 +1,5 @@
+{% import "macros.html" as m %}
+
 <table class="table">
   <thead class="text-primary">
     <tr>
@@ -17,7 +19,7 @@
             <i class="material-icons">chevron_right</i>
           </a>
         </td>
-        <td><span class="badge badge-pill badge-{{ scrap.status | badge_color }}">{{ scrap.status | upper }}</span></td>
+        <td>{{ m.badge(scrap.status, class="badge-pill") }}</td>
         <td>{{ scrap.date | relative_date }}</td>
         <td>{{ scrap.links_count }}</td>
         <td class="td-actions">

@@ -107,3 +107,9 @@
     </a>
   {% endif %}
 {% endmacro %}
+
+{% macro badge(enum, class='', tag='span', attr='') %}
+  <{{ tag }} title="{{ enum | upper }}" class="badge {{ class }} badge-{{ enum | badge_color }}" {{ attr }}>
+    {{ enum | badge_display }}
+  </{{tag}}>
+{% endmacro %}

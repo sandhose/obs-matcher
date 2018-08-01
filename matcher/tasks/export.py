@@ -13,7 +13,7 @@ def run_factory(factory_id, session_id):
     assert factory
 
     for file in factory.generate(scrap_session=scrap_session):
-        if file.links_count() > 0:
+        if file.count_links() > 0:
             file.schedule(celery=celery)
             db.session.add(file)
 

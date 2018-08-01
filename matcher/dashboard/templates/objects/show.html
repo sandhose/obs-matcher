@@ -8,7 +8,7 @@
         <div class="card-header card-header-primary">
           <h3 class="card-title d-flex justify-content-between align-items-center">
             {{ attributes.titles[0] or "–" }}
-            <div class="badge badge-light">{{ object.type | upper }}</div>
+            <div class="badge badge-light" title="{{ object.type | upper }}">{{ object.type | badge_display }}</div>
           </h3>
         </div>
 
@@ -113,9 +113,7 @@
               {% for value in object.values | sort(attribute='score', reverse=True) | sort(attribute='type.value') %}
                 <tr>
                   <td>
-                    <span class="badge badge-{{ value.type | badge_color }}">
-                      {{ value.type | upper }}
-                    </span>
+                    {{ m.badge(value.type) }}
                   </td>
                   <td>
                     {{ value.text }}

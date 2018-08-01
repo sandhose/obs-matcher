@@ -1,3 +1,5 @@
+{% import "macros.html" as m %}
+
 {% macro attribute(list, limit=100) %}
   {% if list %}
     {% for value in list[:limit] %}
@@ -31,8 +33,8 @@
     {% for object in objects %}
       <tr>
         <td>{{ object.id }}</td>
-        <td><span class="badge badge-pill badge-{{ object.type | badge_color }}">{{ object.type | upper }}</span></td>
-        <td>{{ attribute(object.attributes.titles, 3) }}</td>
+        <td>{{ m.badge(object.type, class="badge-pill") }}</td>
+        <td>{{ attribute(object.attributes.titles, 4) }}</td>
         <td>{{ attribute(object.attributes.countries) }}</td>
         <td>{{ object.links_count }}</td>
         <td class="td-actions">

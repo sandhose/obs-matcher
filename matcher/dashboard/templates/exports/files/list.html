@@ -35,9 +35,7 @@
               {% for file in page.items %}
                 <tr>
                   <td>
-                    <span class="badge badge-pill badge-{{ file.status | badge_color }}">
-                      {{ file.status | upper }}
-                    </span>
+                    {{ m.badge(file.status, class="badge-pill") }}
                   </td>
                   <td>{{ file.last_activity | relative_date }}</td>
                   <td>{{ file.path | filename }}</td>
@@ -50,14 +48,10 @@
                     </div>
                   </td>
                   <td>
-                    <span class="badge badge-pill badge-{{ file.template.row_type | badge_color }}">
-                      {{ file.template.row_type | upper }}
-                    </span>
+                    {{ m.badge(file.template.row_type, class="badge-pill") }}
                   </td>
                   <td>
-                    <span class="badge badge-pill badge-{{ file.template.external_object_type | badge_color }}">
-                      {{ file.template.external_object_type | upper }}
-                    </span>
+                    {{ m.badge(file.template.external_object_type, class="badge-pill") }}
                   </td>
                   <td>
                     {% if file.factory %}

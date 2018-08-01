@@ -15,7 +15,7 @@
 
             <dt>Iterator</dt>
             <dd>
-              <span class="badge badge-{{ factory.iterator | badge_color }}">{{ factory.iterator | upper }}</span>
+              {{ m.badge(factory.iterator) }}
             </dd>
 
             <dt>Filters template</dt>
@@ -45,7 +45,7 @@
                   {% endif %}
                 </small>
               </div>
-              <div class="badge badge-pill badge-{{ file.status | badge_color }}">{{ file.status | upper }}</div>
+              {{ m.badge(file.status, class="badge-pill", tag="div") }}
             </a>
           {% endfor %}
         </div>

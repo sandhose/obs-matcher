@@ -1,10 +1,12 @@
+{% import "macros.html" as m %}
+
 <div class="card">
   <div class="card-header">
     <h3>
       Template #{{ template.id }}
       <div class="float-right">
-        <span class="badge badge-{{ template.external_object_type | badge_color }}">{{ template.external_object_type | upper }}</span>
-        <span class="badge badge-{{ template.row_type | badge_color }}">{{ template.row_type | upper }}</span>
+        {{ m.badge(template.external_object_type) }}
+        {{ m.badge(template.row_type) }}
       </div>
     </h3>
   </div>

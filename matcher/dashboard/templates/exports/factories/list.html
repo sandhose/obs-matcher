@@ -43,19 +43,13 @@
                     <td>{{ factory.name }}</td>
                     <td>{{ factory.file_path_template | filename | template_highlight }}</td>
                     <td>
-                      <span class="badge badge-pill badge-{{ factory.template.row_type | badge_color }}">
-                        {{ factory.template.row_type | upper }}
-                      </span>
+                      {{ m.badge(factory.template.row_type, class='badge-pill') }}
                     </td>
                     <td>
-                      <span class="badge badge-pill badge-{{ factory.iterator | badge_color }}">
-                        {{ factory.iterator | upper }}
-                      </span>
+                      {{ m.badge(factory.iterator, class='badge-pill') }}
                     </td>
                     <td>
-                      <span class="badge badge-pill badge-{{ factory.template.external_object_type | badge_color }}">
-                        {{ factory.template.external_object_type | upper }}
-                      </span>
+                      {{ m.badge(factory.template.external_object_type, class='badge-pill') }}
                     </td>
                     <td>
                         {% for key, value in factory.filters_template.items() %}

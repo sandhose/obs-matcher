@@ -9,9 +9,7 @@
           <dl>
             <dt>Status</dt>
             <dd>
-              <span class="badge badge-pill badge-{{ file.status | badge_color }}">
-                {{ file.status | upper }}
-              </span>
+              {{ m.badge(file.status, class="badge-pill") }}
             </dd>
 
             <dt>Filters</dt>
@@ -21,16 +19,12 @@
 
             <dt>Row type</dt>
             <dd>
-              <span class="badge badge-pill badge-{{ file.template.row_type | badge_color }}">
-                {{ file.template.row_type | upper }}
-              </span>
+              {{ m.badge(file.template.row_type, class="badge-pill") }}
             </dd>
 
             <dt>Object type</dt>
             <dd>
-              <span class="badge badge-pill badge-{{ file.template.external_object_type | badge_color }}">
-                {{ file.template.external_object_type | upper }}
-              </span>
+              {{ m.badge(file.template.external_object_type, class="badge-pill") }}
             </dd>
 
             <dt>File name</dt>
@@ -103,9 +97,7 @@
                 <tr>
                   <td>{{ log.timestamp | relative_date }}</td>
                   <td>
-                    <span class="badge badge-pill badge-{{ log.status | badge_color }}">
-                      {{ log.status | upper }}
-                    </span>
+                    {{ m.badge(log.status, class="badge-pill") }}
                   </td>
                   <td>{{ log.message or "–" }}</td>
                 </tr>

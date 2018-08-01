@@ -1,10 +1,12 @@
+from typing import Mapping  # noqa
+
 import pendulum
 from flask import Flask, request
 from jinja2 import Markup, escape
 
 from matcher.scheme.enums import (ExportFactoryIterator, ExportFileStatus,
                                   ExportRowType, ExternalObjectType,
-                                  PlatformType, ScrapStatus,)
+                                  PlatformType, ScrapStatus, ValueType)
 from matcher.scheme.utils import CustomEnum
 
 
@@ -66,7 +68,30 @@ def badge_color(type_: CustomEnum) -> str:
         ExportFactoryIterator.PLATFORMS: 'info',
         ExportFactoryIterator.GROUPS: 'success',
         ExportFactoryIterator.COUNTRIES: 'primary',
+
+        ValueType.TITLE: 'primary',
+        ValueType.NAME: 'primary',
+        ValueType.COUNTRY: 'success',
+        ValueType.DATE: 'info',
+        ValueType.GENRES: 'danger',
+        ValueType.DURATION: 'secondary',
     }.get(type_, 'secondary')
+
+
+def badge_display(type_: CustomEnum) -> str:
+    mapping = {
+        ExportFileStatus.SCHEDULED: 'Queued',
+        ExportFileStatus.QUERYING: 'Starting',
+        ExportFileStatus.PROCESSING: 'Running',
+        ExportFileStatus.DONE: 'Done',
+        ExportFileStatus.FAILED: 'Failed',
+        ExportFileStatus.ABSENT: 'Removed',
+
+        ExportRowType.EXTERNAL_OBJECT: 'Unique',
+        ExportRowType.OBJECT_LINK: 'Cumulé',
+    }  # type: Mapping[CustomEnum, str]
+
+    return mapping.get(type_, str(type_).upper())
 
 
 def transition_color(method):
@@ -98,6 +123,7 @@ def register(app: Flask):
     """Register the filters and context processors for jinja"""
     app.jinja_env.filters['relative_date'] = relative_date
     app.jinja_env.filters['badge_color'] = badge_color
+    app.jinja_env.filters['badge_display'] = badge_display
     app.jinja_env.filters['transition_color'] = transition_color
     app.jinja_env.filters['template_highlight'] = template_highlight
     app.jinja_env.filters['filename'] = filename
