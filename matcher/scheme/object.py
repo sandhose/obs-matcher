@@ -41,11 +41,14 @@ from .enums import (ExternalObjectType, Gender, PlatformType, RoleType,
 # each method that uses it.
 
 
-class db(object):
+class db_(object):
     @property
-    def session():
+    def session(self):
         from matcher.app import db
         return db.session
+
+
+db = db_()
 
 
 lookup_lock = Lock('lookup')

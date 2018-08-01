@@ -8,7 +8,9 @@
         <div class="card-header card-header-primary">
           <h4 class="card-title">Filters</h4>
         </div>
-        <div class="card-body">No filter for now.</div>
+        <div class="card-body">
+          {{ m.render_form(filter_form, class_="card-body", action="GET") }}
+        </div>
       </div>
     </div>
 
