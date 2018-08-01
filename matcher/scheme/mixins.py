@@ -29,7 +29,7 @@ def compile_create_view(element, compiler, **kw):
 
     return f.format(
         name=element.name,
-        selectable=compiler.sql_compiler.process(element.selectable)
+        selectable=compiler.sql_compiler.process(element.selectable, literal_binds=True)
     )
 
 

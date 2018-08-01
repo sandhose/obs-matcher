@@ -21,6 +21,9 @@ class ValueScoreView(Base, ViewMixin):
     )
 
 
+_titles = Column('titles', ARRAY(Text))
+
+
 class AttributesView(Base, ViewMixin):
     __tablename__ = 'vw_attributes'
 
@@ -28,12 +31,18 @@ class AttributesView(Base, ViewMixin):
     __selectable__ = (
         select([
             Column('external_object_id', primary_key=True),
-            Column('titles'),
-            Column('dates'),
-            Column('genres'),
-            Column('durations'),
-            Column('names'),
-            Column('countries')
+            _titles,
+            Column('dates', ARRAY(Integer)),
+            Column('genres', ARRAY(Text)),
+            Column('durations', ARRAY(Float)),
+            Column('names', ARRAY(Text)),
+            Column('countries', ARRAY(CHAR(length=2))),
+
+            func.setweight(func.to_tsvector(func.coalesce(_titles[0], '')), 'A').
+            op('||')(func.setweight(func.to_tsvector(func.coalesce(_titles[1], '')), 'B')).
+            op('||')(func.setweight(func.to_tsvector(func.coalesce(_titles[2], '')), 'C')).
+            op('||')(func.setweight(func.to_tsvector(func.coalesce(_titles[3], '')), 'D')).
+            label('search_vector')
         ]).
         select_from(crosstab(
             select([Value.external_object_id,

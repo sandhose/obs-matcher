@@ -1,6 +1,8 @@
+import re
+
 from flask import render_template, request
 from flask.views import View
-from sqlalchemy.orm import joinedload, lazyload, undefer
+from sqlalchemy.orm import joinedload, lazyload, undefer, contains_eager
 
 from matcher.mixins import DbMixin
 from matcher.scheme.enums import ExternalObjectType
@@ -8,6 +10,7 @@ from matcher.scheme.export import AttributesWrapper
 from matcher.scheme.object import Episode, ExternalObject, ObjectLink
 from matcher.scheme.platform import Platform, Scrap, Session
 from matcher.scheme.value import Value, ValueSource
+from matcher.scheme.views import AttributesView
 
 from ..forms.objects import ObjectListFilter
 
@@ -22,10 +25,9 @@ class ObjectListView(View, DbMixin):
         form.object_link.platform.query = self.query(Platform)
 
         query = self.query(ExternalObject).\
-            options(joinedload(ExternalObject.attributes),
-                    undefer(ExternalObject.links_count)).\
-            order_by(ExternalObject.id)
+            options(undefer(ExternalObject.links_count))
 
+        # Join the needed columns for filtering
         if form.platform.data \
                 or (form.object_link.platform.data and form.object_link.external_id.data) \
                 or form.session.data \
@@ -35,8 +37,23 @@ class ObjectListView(View, DbMixin):
         if form.session.data or form.scrap.data:
             query = query.join(ObjectLink.scraps)
 
+        if form.search.data or form.country.data:
+            query = query.join(ExternalObject.attributes).\
+                options(contains_eager(ExternalObject.attributes))
+        else:
+            # If we are not filtering using the attributes we need to join-load them
+            query = query.options(joinedload(ExternalObject.attributes))
+
+        # Apply the filters
         if form.search.data:
-            pass  # TODO
+            q = re.sub(' +', ' & ', form.search.data)
+            query = query.filter(AttributesView.search_vector.match(q))
+        else:
+            query = query.order_by(ExternalObject.id)
+
+        if form.country.data:
+            query = query.filter(AttributesView.countries[1].
+                                 in_(c.strip() for c in form.country.data.upper().split(',')))
 
         if form.type.data:
             query = query.filter(ExternalObject.type.in_(form.type.data))
@@ -56,7 +73,7 @@ class ObjectListView(View, DbMixin):
 
         if form.object_link.platform.data and form.object_link.external_id.data:
             query = query.filter(ObjectLink.platform == form.object_link.platform.data,
-                                 ObjectLink.external_id == form.object_link.external_id.data)
+                                 ObjectLink.external_id.contains(form.object_link.external_id.data))
 
         ctx = {}
         ctx['page'] = query.paginate()

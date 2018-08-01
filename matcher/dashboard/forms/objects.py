@@ -13,6 +13,7 @@ class ExternalIDForm(Form):
 
 class ObjectListFilter(Form):
     search = StringField("Search")
+    country = StringField("Country")
     type = SelectMultipleField("Type", choices=[(v.name, badge_display(v)) for v in ExternalObjectType],
                                render_kw={'class': 'select2 form-control'})
     platform = QuerySelectMultipleField("Platform", render_kw={'class': 'select2 form-control'})
