@@ -3,7 +3,7 @@ import re
 from flask import render_template, request
 from flask.views import View
 from sqlalchemy import func
-from sqlalchemy.orm import joinedload, lazyload, undefer, contains_eager
+from sqlalchemy.orm import contains_eager, joinedload, lazyload, undefer
 
 from matcher.mixins import DbMixin
 from matcher.scheme.enums import ExternalObjectType

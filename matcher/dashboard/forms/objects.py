@@ -1,6 +1,7 @@
 from wtforms import (Form, FormField, IntegerField, SelectMultipleField,
                      StringField,)
-from wtforms.ext.sqlalchemy.fields import QuerySelectMultipleField, QuerySelectField
+from wtforms.ext.sqlalchemy.fields import (QuerySelectField,
+                                           QuerySelectMultipleField,)
 
 from matcher.filters import badge_display
 from matcher.scheme.enums import ExternalObjectType

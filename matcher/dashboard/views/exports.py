@@ -1,4 +1,4 @@
-from typing import Dict, Any, Set  # noqa
+from typing import Any, Dict, Set  # noqa
 
 from flask import flash, redirect, render_template, request, send_file, url_for
 from flask.views import View

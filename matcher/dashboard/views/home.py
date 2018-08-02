@@ -3,7 +3,7 @@ import datetime
 from flask import render_template
 from flask.views import View
 from sqlalchemy import func
-from sqlalchemy.orm import undefer, joinedload
+from sqlalchemy.orm import joinedload, undefer
 
 from matcher.mixins import DbMixin
 from matcher.scheme.enums import ScrapStatus
