@@ -28,7 +28,7 @@
         </td>
         <td>{{ scrap.date | relative_date }}</td>
         <td class="td-actions">
-          <a class="btn btn-sm btn-link" href="#" rel="tooltip" title="View scrap">
+          <a class="btn btn-sm btn-link" href="{{ url_for('.show_scrap', id=scrap.id) }}" rel="tooltip" title="View scrap">
             <i class="material-icons">arrow_forward</i>
           </a>
         </td>

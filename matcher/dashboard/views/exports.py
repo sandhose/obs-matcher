@@ -154,7 +154,10 @@ class NewExportFileView(View, DbMixin, CeleryMixin):
 
 class ShowExportFileView(View, DbMixin):
     def dispatch_request(self, id):
-        export_file = self.query(ExportFile).get_or_404(id)
+        export_file = self.query(ExportFile).options(joinedload(ExportFile.session),
+                                                     joinedload(ExportFile.template),
+                                                     joinedload(ExportFile.factory),
+                                                     undefer(ExportFile.last_activity)).get_or_404(id)
 
         ctx = {}
         ctx['file'] = export_file

@@ -3,6 +3,7 @@ import datetime
 from flask import abort, render_template, request
 from flask.views import View
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload, undefer
 
 from matcher.mixins import DbMixin
 from matcher.scheme.object import ExternalObject, ObjectLink
@@ -17,7 +18,8 @@ class PlatformListView(View, DbMixin):
     def dispatch_request(self):
         form = PlatformListFilter(request.args)
         form.country.query = self.query(Platform.country).group_by(Platform.country).order_by(Platform.country)
-        query = self.query(Platform)
+        query = self.query(Platform).options(undefer(Platform.links_count),
+                                             joinedload(Platform.group))
 
         if form.validate():
             if form.search.data:

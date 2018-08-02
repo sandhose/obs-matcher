@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-4">
+      <div class="card">
+        <div class="card-header card-header-primary">
+          <h3 class="card-title">
+            {{ scrap.platform.name }}
+            <a href="#"><i class="material-icons">open_in_new</i></a>
+          </h3>
+          <p class="card-category">
+            {{ scrap.platform.type | upper }}
+            {% if scrap.platform.group %}• {{ scrap.platform.group.name }}{% endif %}
+            {% if scrap.platform.country %}• {{ scrap.platform.country }}{% endif %}
+          </p>
+        </div>
+        <div class="card-body">
+          <dl>
+            <dt>Status</dt>
+            <dd>{{ m.badge(scrap.status) }}</dd>
+
+            <dt>Date</dt>
+            <dd>{{ scrap.date | relative_date }}</dd>
+
+            <dt>Links count</dt>
+            <dd>{{ scrap.links_count }}</dd>
+          </dl>
+          {{ m.todo() }}
+        </div>
+      </div>
+
+      <div class="card">
+        {{ m.render_form(form, class_="card-body", action="POST") }}
+      </div>
+    </div>
+
+    <div class="col-8">
+      {%- with objects=objects[:10] %}
+        <div class="card mt-5">
+          <div class="card-header card-header-info">
+            <h4 class="card-title">Objects found</h4>
+          </div>
+          <div class="card-body">
+            {% include "objects/_list.html" %}
+          </div>
+          <div class="card-footer">
+            <a class="btn btn-info" href="{{ url_for('.object_list', scrap=scrap.id) }}">Show all</a>
+          </div>
+        </div>
+      {% endwith %}
+    </div>
+  </div>
+{% endblock %}
