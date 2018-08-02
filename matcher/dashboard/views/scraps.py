@@ -5,28 +5,35 @@ from sqlalchemy.orm import joinedload, undefer
 from matcher.mixins import DbMixin
 from matcher.scheme.enums import ExternalObjectType
 from matcher.scheme.object import ExternalObject, ObjectLink
-from matcher.scheme.platform import Platform, Scrap, Session
+from matcher.scheme.platform import Platform, Scrap, Session, session_scrap
 
 from ..forms.scraps import EditScrapForm, ScrapListFilter
 
-__all__ = ['ScrapListView']
+__all__ = ['ScrapListView', 'ShowScrapView']
 
 
 class ScrapListView(View, DbMixin):
     def dispatch_request(self):
         form = ScrapListFilter(request.args)
-        form.platforms.text_map = lambda l: self.query(Platform.slug, Platform.name).filter(Platform.slug.in_(l))
+        form.platforms.query = self.query(Platform)
+        form.sessions.query = self.query(Session)
+
         query = self.query(Scrap).options(joinedload(Scrap.platform))
 
         if form.validate():
             if form.platforms.data:
                 query = query.\
                     join(Platform).\
-                    filter(Platform.slug.in_(form.platforms.data))
+                    filter(Platform.id.in_(p.id for p in form.platforms.data))
 
             if form.status.data:
                 query = query.\
                     filter(Scrap.status.in_(form.status.data))
+
+            if form.sessions.data:
+                query = query.\
+                    join(session_scrap, Scrap.id == session_scrap.c.scrap_id).\
+                    filter(session_scrap.c.session_id.in_(s.id for s in form.sessions.data))
 
         ctx = {}
         ctx['filter_form'] = form

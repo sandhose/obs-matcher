@@ -226,6 +226,9 @@ class Session(Base):
 
     files = relationship('ExportFile', back_populates='session')
 
+    def __str__(self):
+        return self.name
+
 
 session_scrap = Table(
     'session_scrap',
