@@ -1,5 +1,6 @@
 from matcher import celery
 from matcher.app import db
+from matcher.scheme.enums import ExportFileStatus
 from matcher.scheme.export import ExportFactory, ExportFile
 from matcher.scheme.platform import Session
 
@@ -13,7 +14,8 @@ def run_factory(factory_id, session_id):
     assert factory
 
     for file in factory.generate(scrap_session=scrap_session):
-        if file.count_links() > 0:
+        file.status = ExportFileStatus.SCHEDULED
+        if file.count_links(session=db.session) > 0:
             file.schedule(celery=celery)
             db.session.add(file)
 
