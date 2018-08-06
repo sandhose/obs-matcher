@@ -30,12 +30,14 @@ def build_filter_cache(files, session) -> Dict[str, Dict[int, Any]]:
     cache = {}
     if 'platform.id' in filters:
         cache['platform.id'] = dict(session.query(Platform.id, Platform).
-                                    filter(Platform.id.in_(int(i) for i in filters['platform.id'])).
+                                    filter(Platform.id.in_(int(i) for i in filters['platform.id']
+                                                           if i not in ['NONE', 'NULL'])).
                                     all())
 
     if 'platform.group_id' in filters:
         cache['platform.group_id'] = dict(session.query(PlatformGroup.id, PlatformGroup).
-                                          filter(PlatformGroup.id.in_(int(i) for i in filters['platform.group_id'])).
+                                          filter(PlatformGroup.id.in_(int(i) for i in filters['platform.group_id']
+                                                                      if i not in ['NONE', 'NULL'])).
                                           all())
 
     return cache
