@@ -100,10 +100,10 @@ def filter_display(filter_, cache):
     cache_ = cache.get(key, {})
 
     def get_cache(id_str):
-        id_ = int(id_str)
-        if id_ in cache_:
-            return str(cache_[id_])
-        return id_str
+        try:
+            return str(cache_[int(id_str)])
+        except (KeyError, ValueError):
+            return id_str
 
     title, coerce = {
         'platform.id': ('Platform', get_cache),
