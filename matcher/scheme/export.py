@@ -413,7 +413,13 @@ class ExportFile(Base):
                 elif attribute == 'type':
                     values = [PlatformType.from_name(v) for v in values]
 
-                query = query.filter(getattr(Platform, attribute).in_(values))
+                if None in values:
+                    # `WHERE X IN (NULL)` does not work with postgres, so we have to handle this special case
+                    query = query.filter(or_(getattr(Platform, attribute).in_(v for v in values if v is not None),
+                                             getattr(Platform, attribute).is_(None)))
+                else:
+                    query = query.filter(getattr(Platform, attribute).in_(values))
+
             else:
                 raise NotImplementedError
 
