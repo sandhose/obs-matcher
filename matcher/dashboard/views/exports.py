@@ -53,7 +53,10 @@ class ExportFileListView(View, DbMixin):
         form.template.query = self.query(ExportTemplate)
         form.session.query = self.query(Session)
 
-        query = self.query(ExportFile).join(ExportFile.template).options(undefer(ExportFile.last_activity))
+        query = self.query(ExportFile)\
+            .join(ExportFile.template)\
+            .options(undefer(ExportFile.last_activity))\
+            .order_by(ExportFile.id)
 
         if form.validate():
             if form.status.data:
@@ -168,7 +171,7 @@ class ShowExportFileView(View, DbMixin):
 
 class ExportFactoryListView(View, DbMixin, CeleryMixin):
     def dispatch_request(self):
-        query = self.query(ExportFactory).join(ExportFactory.template)
+        query = self.query(ExportFactory).join(ExportFactory.template).order_by(ExportFactory.id)
 
         if request.method == 'POST':
             if request.form.get('action') == 'run':

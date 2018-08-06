@@ -18,7 +18,9 @@ class ScrapListView(View, DbMixin):
         form.platforms.query = self.query(Platform)
         form.sessions.query = self.query(Session)
 
-        query = self.query(Scrap).options(joinedload(Scrap.platform))
+        query = self.query(Scrap).\
+            options(joinedload(Scrap.platform)).\
+            order_by(Scrap.id)
 
         if form.validate():
             if form.platforms.data:

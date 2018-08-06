@@ -18,8 +18,10 @@ class PlatformListView(View, DbMixin):
     def dispatch_request(self):
         form = PlatformListFilter(request.args)
         form.country.query = self.query(Platform.country).group_by(Platform.country).order_by(Platform.country)
-        query = self.query(Platform).options(undefer(Platform.links_count),
-                                             joinedload(Platform.group))
+        query = self.query(Platform).\
+            options(undefer(Platform.links_count),
+                    joinedload(Platform.group)).\
+            order_by(Platform.id)
 
         if form.validate():
             if form.search.data:

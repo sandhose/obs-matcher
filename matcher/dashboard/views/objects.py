@@ -26,7 +26,8 @@ class ObjectListView(View, DbMixin):
         form.object_link.platform.query = self.query(Platform)
 
         query = self.query(ExternalObject).\
-            options(undefer(ExternalObject.links_count))
+            options(undefer(ExternalObject.links_count)).\
+            order_by(ExternalObject.id)
 
         # Join the needed columns for filtering
         if form.platform.data \
