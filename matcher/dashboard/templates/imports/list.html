@@ -1,0 +1,50 @@
+{% extends "base-fluid.html" %}
+{% import "macros.html" as m %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-md-4 col-12 filters">
+      <div class="card">
+        <div class="card-header card-header-primary">
+          <h4 class="card-title">New</h4>
+        </div>
+        {{ m.render_form(upload_form, class_="card-body", action="POST", multipart=True) }}
+      </div>
+    </div>
+    <div class="col-md col-12">
+      <div class="card">
+        <div class="card-body table-responsive">
+          <table class="table">
+            <thead class="text-primary">
+              <tr>
+                <th>Status</th>
+                <th>Last activity</th>
+                <th>Name</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for file in page.items %}
+                <tr>
+                  <td>
+                    {{ m.badge(file.status, class="badge-pill") }}
+                  </td>
+                  <td>{{ file.last_activity | relative_date }}</td>
+                  <td>{{ file.filename }}</td>
+                  <td class="td-actions">
+                    <a class="btn btn-sm btn-link" href="#" rel="tooltip" title="View file">
+                      <i class="material-icons">arrow_forward</i>
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="card-footer">
+          {{ m.render_pagination(page, args=query) }}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

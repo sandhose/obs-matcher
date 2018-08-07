@@ -1,5 +1,6 @@
 from .base import Base, metadata
 from .export import ExportTemplate, ExportFactory, ExportFile
+from .import_ import ImportFile
 from .platform import Platform, PlatformGroup, Scrap, Session
 from .object import ExternalObject, ObjectLink, Role, Episode, Person
 from .utils import ensure_extension
@@ -15,6 +16,7 @@ __all__ = [
     'ExportFile',
     'ExportTemplate',
     'ExternalObject',
+    'ImportFile',
     'ObjectLink',
     'Person',
     'Platform',
