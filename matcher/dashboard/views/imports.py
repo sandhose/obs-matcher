@@ -1,5 +1,3 @@
-import csv
-
 from flask import render_template, redirect
 from flask.views import View
 from sqlalchemy.orm import undefer
@@ -36,3 +34,11 @@ class ImportFileListView(View, DbMixin):
         ctx['upload_form'] = form
 
         return render_template('imports/list.html', **ctx)
+
+
+class ShowImportFileView(View, DbMixin):
+    def dispatch_request(self, id):
+        file = self.query(ImportFile).get_or_404(id)
+        ctx = {}
+        ctx['file'] = file
+        return render_template('imports/show.html', **ctx)

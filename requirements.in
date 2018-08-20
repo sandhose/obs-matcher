@@ -1,5 +1,6 @@
 alembic_autogenerate_enums
 celery
+chardet
 Flask
 Flask-Admin
 Flask-Injector

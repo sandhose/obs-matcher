@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-4">
+      <div class="card">
+        <div class="card-body">
+          <dl>
+            <dt>Status</dt>
+            <dd>
+              {{ m.badge(file.status, class="badge-pill") }}
+            </dd>
+
+            <dt>File name</dt>
+            <dd>{{ file.filename }}</dd>
+
+            <dt>Last activity</dt>
+            <dd>
+              {% if file.last_activity %}
+                {{ file.last_activity | relative_date }}
+              {% else %}
+                –
+              {% endif %}
+            </dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-8">
+      <div class="card">
+        <div class="card-header card-header-danger">
+          <h4 class="card-title">Logs</h4>
+        </div>
+        <div class="card-body table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Message</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for log in file.logs %}
+                <tr>
+                  <td>{{ log.timestamp | relative_date }}</td>
+                  <td>
+                    {{ m.badge(log.status, class="badge-pill") }}
+                  </td>
+                  <td>{{ log.message or "–" }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <h3>Columns:</h3>
+      <ul>
+        {% for column in file.header() %}
+          <li><code>{{ column }}</code></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+{% endblock %}

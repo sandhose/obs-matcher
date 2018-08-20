@@ -1,4 +1,10 @@
+from contextlib import contextmanager
+from io import TextIOWrapper
+import csv
+import codecs
 from pathlib import Path
+
+from chardet.universaldetector import UniversalDetector
 from sqlalchemy import (TIMESTAMP, Column, Enum, ForeignKey, Integer, Sequence,
                         String, column, func, select, table,)
 from sqlalchemy.dialects.postgresql import HSTORE
@@ -41,6 +47,39 @@ class ImportFile(Base):
     @property
     def path(self):
         return Path('/tmp/') / (str(self.id) + '.csv')
+
+    def open(self):
+        file = self.path.open(mode='rb')
+
+        detector = UniversalDetector()
+        for line in file.readlines():
+            detector.feed(line)
+            if detector.done:
+                break
+        detector.close()
+        file.seek(0)
+        codec = detector.result['encoding']
+
+        return TextIOWrapper(file, encoding=codec)
+
+    def detect_dialect(self, f):
+        extract = ''.join(line for line in f.readlines()[:100])
+        return csv.Sniffer().sniff(extract)
+
+    @contextmanager
+    def csv_reader(self):
+        with self.open() as f:
+            dialect = self.detect_dialect(f)
+            f.seek(0)
+            yield csv.reader(f, dialect=dialect)
+
+    def header(self):
+        try:
+            with self.csv_reader() as r:
+                return next(r)
+        except (IOError, UnicodeError):
+            # FIXME: handle those errors
+            return []
 
     @after
     def log_status(self, message=None, *_, **__):
