@@ -396,6 +396,9 @@ class ExportFile(Base):
         # FIXME: THIS DOES NOT TAKE THE scrap_session INTO ACCOUNT
         from .platform import Platform
 
+        # FIXME: way to override this?
+        query = query.filter(Platform.ignore_in_exports.is_(False))
+
         for (key, values) in self.filters.items():
             # A filter might look like `platform.id => 19, 51`
             context, attribute = key.split('.')
