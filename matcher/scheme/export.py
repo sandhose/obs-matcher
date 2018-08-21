@@ -54,8 +54,7 @@ def _quote(field: Any) -> str:
     field = str(field)
     pattern = re.compile("(" + csv_dialect.quotechar + "|" + csv_dialect.delimiter + "|\n|\r)")
     if re.search(pattern, field) is not None:
-        escaped = field.replace('\n', '\\n').replace('\r', '\\r')
-        escaped = re.sub(pattern, r"\\\1", escaped)
+        escaped = field.replace('\n', '\\n').replace('\r', '\\r').replace('"', '""')
         return '{quote}{field}{quote}'.format(quote=csv_dialect.quotechar,
                                               field=escaped)
 
