@@ -1,2 +1,3 @@
-recursive-include matcher/templates *.html
+recursive-include matcher *.html
+recursive-include matcher/static *
 recursive-include matcher/migrations *.py *.ini
