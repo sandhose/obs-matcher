@@ -69,6 +69,8 @@ flake8-isort==2.5 \
 flake8==3.5.0 \
     --hash=sha256:7253265f7abd8b313e3892944044a365e3f4ac3fcdcfb4298f55ee9ddf188ba0 \
     --hash=sha256:c7841163e2b576d435799169b78703ad6ac1bbb0f199994fc05f700b2a90ea37
+flask-admin==1.5.1 \
+    --hash=sha256:e3a8268fdb6c271a44196de7f2a85faff886df18061d337e66b4b3c80e9c4f23
 flask-injector==0.10.1 \
     --hash=sha256:df12eee64027f86fd6ca46f1e324d938277035ded79a104426bf93eadac2a9a8 \
     --hash=sha256:e5436ba5637ce049e72bf2868ad0fe086beeb7e00b1bd47d6b356931be4f8076

@@ -17,7 +17,7 @@ def app():
 
     _db.init_app(app)
 
-    setup_routes(app)
+    setup_routes(app, admin=False)
 
     def configure(binder):
         binder.bind(

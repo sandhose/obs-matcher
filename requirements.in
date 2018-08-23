@@ -1,6 +1,7 @@
 alembic_autogenerate_enums
 celery
 Flask
+Flask-Admin
 Flask-Injector
 Flask-Migrate
 Flask-RESTful

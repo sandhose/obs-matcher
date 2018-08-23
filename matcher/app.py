@@ -1,6 +1,8 @@
+import contextlib
 import logging
 import os
 
+from alembic.migration import MigrationContext
 from celery import Celery, Task
 from flask import Flask
 from flask.cli import FlaskGroup
@@ -62,12 +64,27 @@ class SentryModule(Module):
         return sentry
 
 
-def setup_routes(app):
+def _setup_admin(app):
+    from .admin import setup_admin
+    setup_admin(app)
+
+
+def setup_routes(app, admin=True):
     from .api import blueprint as api
     from .dashboard import blueprint as dashboard
 
     app.register_blueprint(api, url_prefix='/api')
     app.register_blueprint(dashboard, url_prefix='/')
+
+    if admin:
+        # Do not install admin if upgrades are pending
+        with contextlib.closing(db.engine.connect()) as con:
+            migration_context = MigrationContext.configure(con)
+            revision = migration_context.get_current_revision()
+            heads = migration_context.get_current_heads()
+
+            if revision in heads:
+                _setup_admin(app)
 
 
 def create_app(info=None):
