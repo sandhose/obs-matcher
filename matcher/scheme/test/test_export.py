@@ -63,7 +63,7 @@ class TestExportTemplate(object):
         assert template.header == "\t\t", "empty column headers should stay as such"
 
         template.fields = [{"name": "foo\tbar"}, {"name": '"baz"'}]
-        assert template.header == "\"foo\\\tbar\"\t\"\\\"baz\\\"\"", "column should be quoted"
+        assert template.header == '"foo\tbar"\t"""baz"""', "column should be quoted"
 
     def test_to_context(self):
         platform = Platform()
