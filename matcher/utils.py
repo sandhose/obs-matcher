@@ -1,14 +1,12 @@
 import fcntl
-import os
 from pathlib import Path
+from typing import Callable
 
 from flask import current_app
 
-bypass = bool(os.environ.get('BYPASS_LOCKS', None))
-
 
 class Lock():
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         self.name = name
         self._fd = None
 
@@ -20,20 +18,29 @@ class Lock():
         return self._fd
 
     def __enter__(self):
-        if not bypass:
+        if not current_app.config['BYPASS_LOCKS']:
             fcntl.lockf(self.fd, fcntl.LOCK_EX)
 
     def __exit__(self, *args):
-        if not bypass:
+        if not current_app.config['BYPASS_LOCKS']:
             fcntl.lockf(self.fd, fcntl.LOCK_UN)
 
 
-def export_path(path):
-    prefix = Path(current_app.config['EXPORTS_LOCATION'])
-    return prefix / path
+def _data_path(prefix: str) -> Callable[[], Path]:
+    parent_created = False
+
+    def p():
+        # This needs to be a callable because the current_app might not be configured at this time
+        nonlocal parent_created
+        path = current_app.config['DATA_DIR'] / prefix
+
+        if not parent_created:
+            path.mkdir(parents=True, exist_ok=True)
+            parent_created = True
+
+        return path
+    return p
 
 
-def open_export(path, *args, **kwargs):
-    path = export_path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    return path.open(*args, **kwargs)
+export_path = _data_path('exports')
+import_path = _data_path('imports')

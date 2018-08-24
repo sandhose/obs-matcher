@@ -1,8 +1,7 @@
+import csv
 from contextlib import contextmanager
 from io import TextIOWrapper
-import csv
-import codecs
-from pathlib import Path
+from typing import Dict, List, Union, Tuple
 
 from chardet.universaldetector import UniversalDetector
 from sqlalchemy import (TIMESTAMP, Column, Enum, ForeignKey, Integer, Sequence,
@@ -10,11 +9,14 @@ from sqlalchemy import (TIMESTAMP, Column, Enum, ForeignKey, Integer, Sequence,
 from sqlalchemy.dialects.postgresql import HSTORE
 from sqlalchemy.orm import column_property, relationship
 
-from .base import Base
-from .enums import ImportFileStatus
-from .utils import after, before
+from matcher.utils import import_path
 
-__all__ = ['ImportFile']
+from .base import Base
+from .enums import ImportFileStatus, ValueType
+from .platform import Platform
+from .utils import after, before, inject_session
+
+__all__ = ['ImportFile', 'ImportFileLog']
 
 
 @ImportFileStatus.act_as_statemachine('status')
@@ -46,7 +48,7 @@ class ImportFile(Base):
 
     @property
     def path(self):
-        return Path('/tmp/') / (str(self.id) + '.csv')
+        return import_path() / (str(self.id) + '.csv')
 
     def open(self):
         file = self.path.open(mode='rb')
@@ -80,6 +82,77 @@ class ImportFile(Base):
         except (IOError, UnicodeError):
             # FIXME: handle those errors
             return []
+
+    def map_fields(self, header: list) -> Dict[str, Union[List[int], Dict[str, List[int]]]]:
+        """Map self.fields to header indexes"""
+        output = {
+            'external_object_id': [],
+            'attribute': {},
+            'attribute_list': {},
+            'link': {}
+        }  # type: Dict[str, Union[List[int], Dict[str, List[int]]]]
+
+        for key, value in self.fields.items():
+            indexes = [idx for idx, column in enumerate(header) if column == key]
+            type_, _, arg = value.partition('.')
+            assert type_, key + " is empty"
+            assert indexes, "no matching columns found for " + key
+
+            out = output[type_]
+
+            if isinstance(out, list):
+                assert not arg, type_ + " should have no argument"
+                out.extend(indexes)
+            elif isinstance(out, dict):
+                assert arg, type_ + " needs an argument"
+                out[arg] = out.get(arg, []) + indexes
+
+        return output
+
+    def map_line(self, fields, line: List[str]) -> \
+            Tuple[List[int], List[Tuple[ValueType, List[str]]], List[Tuple[Platform, List[str]]]]:
+        external_object_ids = [int(line[i]) for i in fields['external_object_id'] if line[i]]
+
+        attributes = []  # type: List[Tuple[ValueType, List[str]]]
+        for attribute in ValueType:
+            attr_list = []  # type: List[str]
+            attr_list += [line[i] for i in fields['attribute'].get(str(attribute), []) if line[i]]
+            attr_list += [l for i in fields['attribute_list'].get(str(attribute), [])
+                          for l in line[i].split(',') if l]
+            if attr_list:
+                attributes.append((attribute, attr_list))
+
+        links = []  # type: List[Tuple[Platform, List[str]]]
+        for key, value in fields['link'].items():
+            key = key.replace('_', '-')  # FIXME: not sure if this is a good idea
+            link_list = [line[i] for i in value if line[i]]
+            if link_list:
+                links.append((key, link_list))
+
+        return external_object_ids, attributes, links
+
+    @after('process')
+    @inject_session
+    def process_import(self, session=None):
+        with self.csv_reader() as reader:
+            # Fetch the header and map to fields
+            header = next(reader)
+            fields = self.map_fields(header)
+
+            # Cache needed platforms
+            platforms = {}
+            for key in fields['link']:
+                platforms[key] = Platform.lookup(session, key.replace('_', '-'))
+                assert platforms[key]
+
+            # For now we don't support insertion of new objects
+            assert fields['external_object_id'], "no external_object_id"
+
+            # Start reading the file
+            for line in reader:
+                ids, attributes, links = self.map_line(fields, line)
+                links = [(platforms[key], ids) for key, ids in links]
+                print(ids, attributes, links)
 
     @after
     def log_status(self, message=None, *_, **__):

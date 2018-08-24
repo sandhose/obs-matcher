@@ -17,7 +17,7 @@ from sqlalchemy.dialects.postgresql import HSTORE, JSONB
 from sqlalchemy.orm import (column_property, contains_eager, relationship,
                             subqueryload,)
 
-from matcher.utils import export_path, open_export
+from matcher.utils import export_path
 
 from .base import Base
 from .enums import (ExportFactoryIterator, ExportFileStatus, ExportRowType,
@@ -456,11 +456,11 @@ class ExportFile(Base):
         return '{id}.csv.gz'.format(id=self.id)
 
     def open(self, *args, **kwargs):
-        return open_export(self.real_name, *args, **kwargs)
+        return (export_path() / self.real_name).open(*args, **kwargs)
 
     @before('delete')
     def delete_file(self, *_, **__):
-        export_path(self.real_name).unlink()
+        export_path(self.real_name, ensure_parent=False).unlink()
 
     @after_save('schedule')
     def schedule_task(self, celery, *_, **__):

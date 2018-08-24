@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from slugify import slugify
 from sqlalchemy import (Boolean, Column, DateTime, Enum, ForeignKey, Integer,
@@ -103,7 +104,7 @@ class Platform(Base):
         return '<Platform {!r}>'.format(self.name)
 
     @classmethod
-    def lookup(cls, session, platform):
+    def lookup(cls, session, platform: str) -> Optional['Platform']:
         """Search for a platform using its ID or Slug
 
         :platform: Slug or ID of the platform
