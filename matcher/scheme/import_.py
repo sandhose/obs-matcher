@@ -1,7 +1,7 @@
 import csv
 from contextlib import contextmanager
 from io import TextIOWrapper
-from typing import Dict, List, Union, Tuple
+from typing import Dict, List, Tuple, Union
 
 from chardet.universaldetector import UniversalDetector
 from sqlalchemy import (TIMESTAMP, Column, Enum, ForeignKey, Integer, Sequence,
@@ -151,7 +151,9 @@ class ImportFile(Base):
             # Start reading the file
             for line in reader:
                 ids, attributes, links = self.map_line(fields, line)
+                # Map the platforms slugs to real platform objects
                 links = [(platforms[key], ids) for key, ids in links]
+
                 print(ids, attributes, links)
 
     @after

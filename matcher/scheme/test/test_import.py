@@ -15,6 +15,7 @@ class TestImportFile(object):
             'external_object_id': [1],
             'attribute': {'title': [2]},
             'attribute_list': {'genres': [3]},
+            'link': {},
         }
 
         # Repeating fields
@@ -26,6 +27,7 @@ class TestImportFile(object):
             'external_object_id': [0, 1, 3],
             'attribute': {},
             'attribute_list': {},
+            'link': {},
         }
 
         # Repeating fields with args
@@ -38,6 +40,7 @@ class TestImportFile(object):
             'external_object_id': [],
             'attribute': {'title': [0, 1], 'date': [2, 3]},
             'attribute_list': {},
+            'link': {},
         }
 
         # Raises on invalid fields
