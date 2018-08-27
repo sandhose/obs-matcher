@@ -12,6 +12,10 @@ python:
 
 cache: pip
 
+env:
+  global:
+    - DATA_DIR=/tmp/matcher
+
 install:
   - pip install codecov
   - pip install -r requirements-dev.txt
