@@ -9,12 +9,15 @@ from sqlalchemy import (TIMESTAMP, Column, Enum, ForeignKey, Integer, Sequence,
 from sqlalchemy.dialects.postgresql import HSTORE
 from sqlalchemy.orm import column_property, relationship
 
+from matcher.exceptions import LinksOverlap, ObjectTypeMismatchError
 from matcher.utils import import_path
 
 from .base import Base
 from .enums import ImportFileStatus, ValueType
+from .object import ExternalObject, ObjectLink
 from .platform import Platform
 from .utils import after, before, inject_session
+from .value import Value, ValueSource
 
 __all__ = ['ImportFile', 'ImportFileLog']
 
@@ -154,7 +157,78 @@ class ImportFile(Base):
                 # Map the platforms slugs to real platform objects
                 links = [(platforms[key], ids) for key, ids in links]
 
-                print(ids, attributes, links)
+                self.process_row(ids, attributes, links, session=session)
+
+    @inject_session
+    def process_row(self, external_object_ids, attributes, links, session=None):
+        assert external_object_ids
+
+        ids = iter(external_object_ids)
+        obj = session.query(ExternalObject).get(next(ids))
+
+        # Merge the additional external_object_ids
+        for id_ in ids:
+            to_merge = session.query(ExternalObject).get(id_)
+            if to_merge:
+                try:
+                    to_merge.merge_and_delete(obj, session=session)
+                except (LinksOverlap, ObjectTypeMismatchError):
+                    # TODO: log those errors
+                    pass
+
+        session.commit()
+
+        # We are about to add new links, remove the old one and clear the attributes set by it
+        for (platform, external_id) in links:
+            existing_links = session.query(ObjectLink).\
+                filter(ObjectLink.platform == platform,
+                       ObjectLink.external_object == obj,
+                       ObjectLink.external_id != external_id).\
+                all()
+
+            if existing_links:
+                # Delete the values that were associated with this platform
+                session.query(ValueSource).\
+                    filter(ValueSource.platform == platform).\
+                    filter(ValueSource.value_id.in_(
+                        session.query(Value.id).filter(Value.external_object == obj)
+                    )).\
+                    delete(synchronize_session=False)
+
+                for link in existing_links:
+                    session.delete(link)
+
+        session.commit()
+
+        # Add the new links
+        for (platform, external_id) in links:
+            link = session.query(ObjectLink).\
+                filter(ObjectLink.external_id == external_id).\
+                filter(ObjectLink.platform == platform).\
+                first()
+
+            if not link:
+                obj.links.append(ObjectLink(external_object=obj,
+                                            platform=platform,
+                                            external_id=external_id))
+            elif link.external_object != obj:
+                # Merge if we found a link to another existing ExternalObject
+                try:
+                    link.external_object.merge_and_delete(obj, session=session)
+                except (LinksOverlap, ObjectTypeMismatchError):
+                    # TODO: log those errors
+                    pass
+
+        session.commit()
+
+        # TODO: add attributes
+
+        # Cleanup attributes with no sources
+        session.query(Value).\
+            filter(Value.external_object_id == obj.id).\
+            filter(~Value.sources.any()).\
+            delete(synchronize_session=False)
+        session.commit()
 
     @after
     def log_status(self, message=None, *_, **__):
