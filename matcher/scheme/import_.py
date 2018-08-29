@@ -158,9 +158,6 @@ class ImportFile(Base):
                 platforms[key] = Platform.lookup(session, key.replace('_', '-'))
                 assert platforms[key]
 
-            # For now we don't support insertion of new objects
-            assert fields['external_object_id'], "no external_object_id"
-
             # Start reading the file
             for line in reader:
                 ids, attributes, links = self.map_line(fields, line)
