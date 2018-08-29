@@ -64,7 +64,7 @@ class Config(object):
     SECRET_KEY = env_var('SECRET_KEY',
                          'Something reeaaally secret (wow, spooky.)')
 
-    DATA_DIR = Path(env_var('DATA_DIR'))
+    DATA_DIR = Path(env_var('DATA_DIR', BASE_DIR + '/data'))
     BYPASS_LOCKS = env_var('BYPASS_LOCKS', False)
 
 
