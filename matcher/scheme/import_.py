@@ -103,6 +103,9 @@ class ImportFile(Base):
         }  # type: Dict[str, Union[List[int], Dict[str, List[int]]]]
 
         for key, value in self.fields.items():
+            if not value:
+                continue
+
             indexes = [idx for idx, column in enumerate(header) if column == key]
             type_, _, arg = value.partition('.')
             assert type_, key + " is empty"
