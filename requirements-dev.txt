@@ -170,10 +170,6 @@ packaging==17.1 \
     --hash=sha256:e9215d2d2535d3ae866c3d6efc77d5b24a0192cce0ff20e42896cc0664f889c0 \
     --hash=sha256:f019b770dd64e585a99714f1fd5e01c7a8f11b45635aa953fd41c689a657375b \
     # via sphinx
-pathlib2==2.3.2 \
-    --hash=sha256:8eb170f8d0d61825e09a95b38be068299ddeda82f35e96c3301a8a5e7604cb83 \
-    --hash=sha256:d1aa2a11ba7b8f7b21ab852b1fb5afb277e1bb99d5dfc663380b5015c0d80c5a \
-    # via pytest
 pathtools==0.1.2 \
     --hash=sha256:7c35c5421a39bb82e58018febd90e3b6e5db34c5443aaaf742b3f33d4655f1c0 \
     # via watchdog
@@ -338,8 +334,8 @@ urllib3==1.23 \
 vine==1.1.4 \
     --hash=sha256:52116d59bc45392af9fdd3b75ed98ae48a93e822cee21e5fda249105c59a7a72 \
     --hash=sha256:6849544be74ec3638e84d90bc1cf2e1e9224cc10d96cd4383ec3f69e9bce077b
-watchdog==0.8.3 \
-    --hash=sha256:7e65882adb7746039b6f3876ee174952f8eaaa34491ba34333ddf1fe35de4162
+watchdog==0.9.0 \
+    --hash=sha256:965f658d0732de3188211932aeb0bb457587f04f63ab4c1e33eab878e9de961d
 werkzeug==0.14.1 \
     --hash=sha256:c3fd7a7d41976d9f44db327260e263132466836cef6f91512889ed60ad26557c \
     --hash=sha256:d5da73735293558eb1651ee2fddc4d0dedcfa06538b8813a2e20011583c9e49b
