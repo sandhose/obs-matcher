@@ -41,4 +41,5 @@ blueprint.add_url_rule('/imports/',
                        view_func=views.imports.ImportFileListView.as_view('import_file_list'),
                        methods=['GET', 'POST'])
 blueprint.add_url_rule('/imports/<int:id>',
-                       view_func=views.imports.ShowImportFileView.as_view('show_import_file'))
+                       view_func=views.imports.ShowImportFileView.as_view('show_import_file'),
+                       methods=['GET', 'POST'])

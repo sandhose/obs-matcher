@@ -36,6 +36,14 @@
   </fieldset>
 {%- endmacro %}
 
+{% macro render_field_list(field) -%}
+  {% for elem in field %}
+    <fieldset class="nested-form-field">
+      {{ elem() }}
+    </fieldset>
+  {% endfor %}
+{%- endmacro %}
+
 {% macro render_checkbox_field(field) -%}
   <div class="checkbox">
     <label>
@@ -67,6 +75,8 @@
           {{ render_radio_field(f) }}
         {% elif f.type == 'FormField' %}
           {{ render_table_field(f) }}
+        {% elif 'FieldList' in f.type %}
+          {{ render_field_list(f) }}
         {% else %}
           {{ render_field(f) }}
         {% endif %}

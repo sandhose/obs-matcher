@@ -61,12 +61,54 @@
 
   <div class="row">
     <div class="col-12">
-      <h3>Columns:</h3>
-      <ul>
-        {% for column in file.header() %}
-          <li><code>{{ column }}</code></li>
-        {% endfor %}
-      </ul>
+      <div class="card">
+      {% call m.render_form(form, class_="card-body", action="POST", action_text="Save") %}
+        {{ m.render_field(form.imported_external_object_type) }}
+        {{ m.render_field(form.platform) }}
+        <div class="row import-field-list">
+          {% for field in form.fields %}
+            <div class="col-4">
+              {{ field() }}
+              <hr />
+            </div>
+          {% endfor %}
+        </div>
+        {{ form.save_and_import() }}
+      {% endcall %}
+      </div>
     </div>
   </div>
+{% endblock %}
+
+{% block script %}
+  <script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", () => {
+      const containers = document.querySelectorAll(".dynamic-input-container");
+      for (const i in Array.from(containers)) {
+        const container = containers[i];
+        const controller = container.querySelector(".dynamic-input-controller");
+        const inputs = container.querySelectorAll(".dynamic-input");
+
+        const display = (element, value) => {
+          element.parentElement.parentElement.style.display = (value ? '' : 'none');
+        };
+
+        const change = () => {
+          const v = controller.value;
+          for (const j in Array.from(inputs)) {
+            const input = inputs[j];
+            if ((input.dataset.show || '').split(' ').includes(v)) {
+              display(input, true);
+            } else {
+              display(input, false);
+            }
+          }
+        }
+
+        // We need jquery events because of select2 hijacking the events
+        $(controller).on("change", () => change());
+        change();
+      }
+    });
+  </script>
 {% endblock %}

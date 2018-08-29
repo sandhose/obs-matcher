@@ -5,7 +5,7 @@ from typing import Dict, List, Tuple, Union
 
 from chardet.universaldetector import UniversalDetector
 from sqlalchemy import (TIMESTAMP, Column, Enum, ForeignKey, Integer, Sequence,
-                        String, column, func, select, table,)
+                        String, column, func, select, table, tuple_,)
 from sqlalchemy.dialects.postgresql import HSTORE
 from sqlalchemy.orm import column_property, relationship
 
@@ -13,7 +13,7 @@ from matcher.exceptions import LinksOverlap, ObjectTypeMismatchError
 from matcher.utils import import_path
 
 from .base import Base
-from .enums import ImportFileStatus, ValueType
+from .enums import ExternalObjectType, ImportFileStatus, ValueType
 from .object import ExternalObject, ObjectLink
 from .platform import Platform
 from .utils import after, before, inject_session
@@ -33,6 +33,13 @@ class ImportFile(Base):
     filename = Column(String, nullable=False)
     fields = Column(HSTORE, nullable=False)
 
+    platform_id = Column(Integer, ForeignKey(Platform.id), nullable=True)
+    """The platform the new object and attributes will be assigned to"""
+
+    imported_external_object_type = Column(Enum(ExternalObjectType), nullable=True)
+    """The type of the newly imported objects"""
+
+    platform = relationship(Platform, back_populates='imports')
     logs = relationship('ImportFileLog', back_populates='file')
 
     last_activity = column_property(
@@ -160,23 +167,82 @@ class ImportFile(Base):
                 self.process_row(ids, attributes, links, session=session)
 
     @inject_session
-    def process_row(self, external_object_ids, attributes, links, session=None):
-        assert external_object_ids
+    def reduce_or_create_ids(self, external_object_ids: List[int], session=None):
+        """Reduce a list of ExternalObject.id into a single (merged) ExternalObject. Creates a new one when empty"""
+        if external_object_ids:
+            # If there are external_object_ids, fetch the first and merge the rest
+            ids = iter(external_object_ids)
+            obj = session.query(ExternalObject).get(next(ids))
 
-        ids = iter(external_object_ids)
-        obj = session.query(ExternalObject).get(next(ids))
-
-        # Merge the additional external_object_ids
-        for id_ in ids:
-            to_merge = session.query(ExternalObject).get(id_)
-            if to_merge:
-                try:
-                    to_merge.merge_and_delete(obj, session=session)
-                except (LinksOverlap, ObjectTypeMismatchError):
-                    # TODO: log those errors
-                    pass
+            # Merge the additional external_object_ids
+            for id_ in ids:
+                to_merge = session.query(ExternalObject).get(id_)
+                if to_merge:
+                    try:
+                        to_merge.merge_and_delete(obj, session=session)
+                    except (LinksOverlap, ObjectTypeMismatchError):
+                        # TODO: log those errors
+                        pass
+        else:
+            # else create a new object
+            assert self.imported_external_object_type
+            obj = ExternalObject(type=self.imported_external_object_type)
+            session.add(obj)
 
         session.commit()
+        return obj
+
+    @inject_session
+    def find_additional_links(self, links, session=None):
+        """Find additional ExternalObjects from the links"""
+        tuples = [(p.id, external_id) for (p, external_id) in links]
+        ids = session.query(ObjectLink.external_object_id).\
+            filter(tuple_(ObjectLink.platform_id, ObjectLink.external_id).in_(tuples)).\
+            all()
+        return [id_ for (id_, ) in ids]
+
+    @inject_session
+    def process_row(self,
+                    external_object_ids: List[int],
+                    attributes: List[Tuple[ValueType, List[str]]],
+                    links: List[Tuple[Platform, List[str]]],
+                    session=None) -> None:
+        # This does a lot of things.
+        # We have three type of data possible in a row:
+        #  - `ExternalObject.id`s, that should be merged in one object
+        #  - A list of links for this row
+        #  - A list of attributes to add
+        #
+        # First thing we do is to list all the objects that should be merged.
+        # This includes the provided external_object_ids and the one we can
+        # find using the provided links.
+        #
+        # If no ExternalObject was found, we create a new one, using the
+        # `imported_external_object_type` provided in the ImportFile
+        #
+        # After everything is merged, we need to check what ObjectLink needs to
+        # be replaced. Those are first deleted, and all the values that were
+        # added by the associated platforms are deleted as well.
+        #
+        # The last step is to add the attributes that were provided. For this
+        # we need to have a platform set in the ImportFile, because the value
+        # need to have a source in order to have a score big enough.
+        #
+        # One caveat: it **is possible** to insert new objects without link to
+        # the platform, which can lead to duplicates and orphan objects.
+        #
+        # The whole thing is not transactionnal and might f*ck everything up.
+        # This needs to be tested a lot before using it for real.
+
+        if attributes:
+            # If we want to insert attributes we need a platform to which to assign them
+            assert self.platform
+
+        # Fetch other existing external_object_ids from the links
+        external_object_ids += self.find_additional_links(links=links, session=session)
+
+        # Get one merged ExternalObject
+        obj = self.reduce_or_create_ids(external_object_ids, session=session)
 
         # We are about to add new links, remove the old one and clear the attributes set by it
         for (platform, external_id) in links:
@@ -203,25 +269,28 @@ class ImportFile(Base):
         # Add the new links
         for (platform, external_id) in links:
             link = session.query(ObjectLink).\
-                filter(ObjectLink.external_id == external_id).\
-                filter(ObjectLink.platform == platform).\
+                filter(ObjectLink.external_id == external_id,
+                       ObjectLink.platform == platform,
+                       ObjectLink.external_object == obj).\
                 first()
 
             if not link:
                 obj.links.append(ObjectLink(external_object=obj,
                                             platform=platform,
                                             external_id=external_id))
-            elif link.external_object != obj:
-                # Merge if we found a link to another existing ExternalObject
-                try:
-                    link.external_object.merge_and_delete(obj, session=session)
-                except (LinksOverlap, ObjectTypeMismatchError):
-                    # TODO: log those errors
-                    pass
+
+            # TODO: we need the same kind of mechanism that we have with scraps
+            # (scrap_link) to know when new objects were imported. We might
+            # want to refactor the `Scrap` and the `ImportFile` to avoid
+            # duplicate tables
 
         session.commit()
 
-        # TODO: add attributes
+        # Map the attributes to dicts accepted by add_attribute
+        attributes_dict = [{'type': str(type_), 'text': str(value)}
+                           for (type_, values) in attributes for value in values]
+        for attribute in attributes_dict:
+            obj.add_attribute(attribute, self.platform)
 
         # Cleanup attributes with no sources
         session.query(Value).\

@@ -1,6 +1,6 @@
 from pytest import raises
 
-from ..enums import ExternalObjectType, ValueType
+from ..enums import ExternalObjectType, ImportFileStatus, ValueType
 from ..import_ import ImportFile
 from ..object import ExternalObject, ObjectLink
 from ..platform import Platform
@@ -60,7 +60,7 @@ class TestImportFile(object):
             ImportFile(fields={'foo': 'attribute'}).map_fields(['foo'])
 
     def test_process_row(self, session):
-        f = ImportFile()
+        f = ImportFile(filename='foo.csv', status=ImportFileStatus.PROCESSING, fields={})
         p1 = Platform(name='Foo', slug='foo')
         p2 = Platform(name='Bar', slug='bar')
 
@@ -99,6 +99,9 @@ class TestImportFile(object):
         assert len(obj1.links) == 1
         assert obj1.links[0].platform == p1
         assert obj1.links[0].external_id == "foo-0"
+
+        session.delete(obj1)
+        session.commit()
 
         # Testing here that values associated by a replaced link are being evicted
         obj1 = ExternalObject(
@@ -168,3 +171,28 @@ class TestImportFile(object):
 
         assert len(obj1.values) == 1
         assert len(obj1.values[0].sources) == 2
+        session.delete(obj1)
+        session.commit()
+
+        # Let's insert brand new objects
+        with raises(AssertionError):
+            f.process_row(external_object_ids=[], attributes=[(ValueType.TITLE, ["Foo."])])
+
+        f.platform = p1
+        f.imported_external_object_type = ExternalObjectType.MOVIE
+        f.process_row(external_object_ids=[],
+                      attributes=[(ValueType.TITLE, ["Foo."])],
+                      links=[(p1, "foo-bar")],
+                      session=session)
+        session.commit()
+
+        obj = session.query(ExternalObject).first()
+        assert obj
+        assert len(obj.links) == 1
+        assert obj.links[0].platform == p1
+        assert obj.links[0].external_id == "foo-bar"
+        assert len(obj.values) == 1
+        assert obj.values[0].type == ValueType.TITLE
+        assert obj.values[0].text == "Foo."
+        assert len(obj.values[0].sources) == 1
+        assert obj.values[0].sources[0].platform == p1
