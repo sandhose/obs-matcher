@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from sqlalchemy.engine.url import URL
 
@@ -63,7 +64,8 @@ class Config(object):
     SECRET_KEY = env_var('SECRET_KEY',
                          'Something reeaaally secret (wow, spooky.)')
 
-    EXPORTS_LOCATION = env_var('EXPORTS_LOCATION')
+    DATA_DIR = Path(env_var('DATA_DIR'))
+    BYPASS_LOCKS = env_var('BYPASS_LOCKS', False)
 
 
 class TestConfig(Config):

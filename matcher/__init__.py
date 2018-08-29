@@ -12,6 +12,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app)
 # FIXME: This is needed to discover tasks
 import matcher.tasks.object  # noqa
 import matcher.tasks.export  # noqa
+import matcher.tasks.import_  # noqa
 
 
 load_data(app)

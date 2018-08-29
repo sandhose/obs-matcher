@@ -31,9 +31,13 @@ class CustomEnum(enum.Enum):
 
     @classmethod
     def from_name(cls, name):
-        if name is None:
-            return None
-        return getattr(cls, name.upper(), None)
+        return getattr(cls, str(name).upper(), None)
+
+    @classmethod
+    def coerce(cls, obj):
+        if isinstance(obj, cls):
+            return obj
+        return cls.from_name(str(obj))
 
     @staticmethod
     def _gen_apply(transition):

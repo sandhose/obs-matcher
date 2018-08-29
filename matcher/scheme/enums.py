@@ -81,6 +81,20 @@ class ExportRowType(CustomEnum):
     OBJECT_LINK = 2
 
 
+class ImportFileStatus(CustomEnum):
+    UPLOADED = 1
+    PROCESSING = 2
+    DONE = 3
+    FAILED = 4
+
+    __transitions__ = [
+        Transition('upload', [UPLOADED, FAILED, None], UPLOADED),
+        Transition('process', [UPLOADED], PROCESSING, doc="Process this file"),
+        Transition('done', [PROCESSING], DONE),
+        Transition('failed', [UPLOADED, PROCESSING, None], FAILED)
+    ]
+
+
 class ExternalObjectType(CustomEnum):
     """A type of object in database."""
 

@@ -16,7 +16,7 @@ services:
       - postgres-password
       - secret-key
     volumes:
-      - exports:/data/exports
+      - data:/data
     networks:
       - internal
       - proxy
@@ -35,7 +35,7 @@ services:
       - db
       - migrate
     volumes:
-      - exports:/data/exports
+      - data:/data
     secrets:
       - postgres-password
       - secret-key
@@ -114,7 +114,7 @@ volumes:
   redis:
   postgres:
   scrapy:
-  exports:
+  data:
 
 secrets:
   postgres-password:

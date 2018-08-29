@@ -36,3 +36,10 @@ blueprint.add_url_rule('/exports/files/<int:id>/delete',
                        view_func=views.exports.DeleteExportFileView.as_view('delete_export_file'))
 blueprint.add_url_rule('/exports/files/<int:id>/process',
                        view_func=views.exports.ProcessExportFileView.as_view('process_export_file'))
+
+blueprint.add_url_rule('/imports/',
+                       view_func=views.imports.ImportFileListView.as_view('import_file_list'),
+                       methods=['GET', 'POST'])
+blueprint.add_url_rule('/imports/<int:id>',
+                       view_func=views.imports.ShowImportFileView.as_view('show_import_file'),
+                       methods=['GET', 'POST'])

@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from slugify import slugify
 from sqlalchemy import (Boolean, Column, DateTime, Enum, ForeignKey, Integer,
@@ -89,6 +90,8 @@ class Platform(Base):
     links = relationship('ObjectLink', back_populates='platform', cascade='all, delete-orphan')
     """All known objects found on this platform"""
 
+    imports = relationship('ImportFile', back_populates='platform')
+
     links_count = column_property(
         select([func.count('external_object_id')]).
         select_from(table('object_link')).
@@ -103,7 +106,7 @@ class Platform(Base):
         return '<Platform {!r}>'.format(self.name)
 
     @classmethod
-    def lookup(cls, session, platform):
+    def lookup(cls, session, platform: str) -> Optional['Platform']:
         """Search for a platform using its ID or Slug
 
         :platform: Slug or ID of the platform
