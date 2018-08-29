@@ -32,7 +32,7 @@ def _data_path(prefix: str) -> Callable[[], Path]:
     def p():
         # This needs to be a callable because the current_app might not be configured at this time
         nonlocal parent_created
-        path = current_app.config['DATA_DIR'] / prefix
+        path = Path(current_app.config['DATA_DIR']) / prefix
 
         if not parent_created:
             path.mkdir(parents=True, exist_ok=True)
