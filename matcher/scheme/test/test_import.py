@@ -93,7 +93,7 @@ class TestImportFile(object):
         session.add(obj1)
         session.commit()
 
-        f.process_row(external_object_ids=[obj1.id], attributes=[], links=[(p1, "foo-0")], session=session)
+        f.process_row(external_object_ids=[obj1.id], attributes=[], links=[(p1, ["foo-0"])], session=session)
         session.commit()
 
         assert len(obj1.links) == 1
@@ -118,7 +118,7 @@ class TestImportFile(object):
         session.add(obj1)
         session.commit()
 
-        f.process_row(external_object_ids=[obj1.id], attributes=[], links=[(p1, "foo-2")], session=session)
+        f.process_row(external_object_ids=[obj1.id], attributes=[], links=[(p1, ["foo-2"])], session=session)
         session.commit()
 
         assert len(obj1.values) == 1
@@ -142,7 +142,7 @@ class TestImportFile(object):
         session.add(obj1)
         session.commit()
 
-        f.process_row(external_object_ids=[obj1.id], attributes=[], links=[(p1, "foo-2")], session=session)
+        f.process_row(external_object_ids=[obj1.id], attributes=[], links=[(p1, ["foo-2"])], session=session)
         session.commit()
 
         assert len(obj1.values) == 1
@@ -166,7 +166,7 @@ class TestImportFile(object):
         session.add_all([obj1, obj2])
         session.commit()
 
-        f.process_row(external_object_ids=[obj1.id], attributes=[], links=[(p2, "bar-merge")], session=session)
+        f.process_row(external_object_ids=[obj1.id], attributes=[], links=[(p2, ["bar-merge"])], session=session)
         session.commit()
 
         assert len(obj1.values) == 1

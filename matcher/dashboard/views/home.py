@@ -1,11 +1,11 @@
 import datetime
 
-from flask import render_template
+from flask import flash, render_template, request
 from flask.views import View
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload, undefer
 
-from matcher.mixins import DbMixin
+from matcher.mixins import CeleryMixin, DbMixin
 from matcher.scheme.enums import ScrapStatus
 from matcher.scheme.object import ExternalObject, ObjectLink
 from matcher.scheme.platform import Platform, Scrap
@@ -13,8 +13,13 @@ from matcher.scheme.platform import Platform, Scrap
 __all__ = ['HomeView']
 
 
-class HomeView(View, DbMixin):
+class HomeView(View, DbMixin, CeleryMixin):
     def dispatch_request(self):
+        if request.method == 'POST':
+            if request.form.get('action') == 'refresh':
+                self.celery.send_task('matcher.tasks.object.refresh_attributes', [])
+                flash('Attributes are being refreshed')
+
         ctx = {}
         ctx['external_object_stats'] = {key.name: value for (key, value) in
                                         self.query(ExternalObject.type,

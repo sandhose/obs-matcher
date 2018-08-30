@@ -1,4 +1,5 @@
 import csv
+from collections import namedtuple
 from contextlib import contextmanager
 from io import TextIOWrapper
 from typing import Dict, List, Tuple, Union
@@ -20,6 +21,8 @@ from .utils import after, before, inject_session
 from .value import Value, ValueSource
 
 __all__ = ['ImportFile', 'ImportFileLog']
+
+attr_type = namedtuple('attribute', 'type text score_factor')
 
 
 @ImportFileStatus.act_as_statemachine('status')
@@ -193,9 +196,9 @@ class ImportFile(Base):
         return obj
 
     @inject_session
-    def find_additional_links(self, links, session=None):
+    def find_additional_links(self, links: List[Tuple[Platform, List[str]]], session=None):
         """Find additional ExternalObjects from the links"""
-        tuples = [(p.id, external_id) for (p, external_id) in links]
+        tuples = [(p.id, external_id) for (p, external_ids) in links for external_id in external_ids]
         ids = session.query(ObjectLink.external_object_id).\
             filter(tuple_(ObjectLink.platform_id, ObjectLink.external_id).in_(tuples)).\
             all()
@@ -245,11 +248,11 @@ class ImportFile(Base):
         obj = self.reduce_or_create_ids(external_object_ids, session=session)
 
         # We are about to add new links, remove the old one and clear the attributes set by it
-        for (platform, external_id) in links:
+        for (platform, external_ids) in links:
             existing_links = session.query(ObjectLink).\
                 filter(ObjectLink.platform == platform,
                        ObjectLink.external_object == obj,
-                       ObjectLink.external_id != external_id).\
+                       ~ObjectLink.external_id.in_(external_ids)).\
                 all()
 
             if existing_links:
@@ -267,17 +270,18 @@ class ImportFile(Base):
         session.commit()
 
         # Add the new links
-        for (platform, external_id) in links:
-            link = session.query(ObjectLink).\
-                filter(ObjectLink.external_id == external_id,
-                       ObjectLink.platform == platform,
-                       ObjectLink.external_object == obj).\
-                first()
+        for (platform, external_ids) in links:
+            for external_id in external_ids:
+                link = session.query(ObjectLink).\
+                    filter(ObjectLink.external_id == external_id,
+                           ObjectLink.platform == platform,
+                           ObjectLink.external_object == obj).\
+                    first()
 
-            if not link:
-                obj.links.append(ObjectLink(external_object=obj,
-                                            platform=platform,
-                                            external_id=external_id))
+                if not link:
+                    obj.links.append(ObjectLink(external_object=obj,
+                                                platform=platform,
+                                                external_id=external_id))
 
             # TODO: we need the same kind of mechanism that we have with scraps
             # (scrap_link) to know when new objects were imported. We might
@@ -286,11 +290,20 @@ class ImportFile(Base):
 
         session.commit()
 
+        attributes_list = set()
+
         # Map the attributes to dicts accepted by add_attribute
-        attributes_dict = [{'type': str(type_), 'text': str(value)}
-                           for (type_, values) in attributes for value in values]
-        for attribute in attributes_dict:
-            obj.add_attribute(attribute, self.platform)
+        for (type_, values) in attributes:
+            for value in values:
+                attributes_list.add(attr_type(type_, value, 1))
+
+                # Format the attribute (e.g. map to ISO code or extract the year in a date)
+                fmt = type_.fmt(value)
+                if fmt and fmt != value:
+                    attributes_list.add(attr_type(type_, fmt, 1.2))
+
+        for attribute in attributes_list:
+            obj.add_attribute(dict(attribute._asdict()), self.platform)
 
         # Cleanup attributes with no sources
         session.query(Value).\

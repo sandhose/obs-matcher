@@ -6,7 +6,8 @@ from jinja2 import Markup, escape
 
 from matcher.scheme.enums import (ExportFactoryIterator, ExportFileStatus,
                                   ExportRowType, ExternalObjectType,
-                                  PlatformType, ScrapStatus, ValueType,)
+                                  ImportFileStatus, PlatformType, ScrapStatus,
+                                  ValueType,)
 from matcher.scheme.utils import CustomEnum
 
 
@@ -68,6 +69,11 @@ def badge_color(type_: CustomEnum) -> str:
         ExportFactoryIterator.PLATFORMS: 'info',
         ExportFactoryIterator.GROUPS: 'success',
         ExportFactoryIterator.COUNTRIES: 'primary',
+
+        ImportFileStatus.UPLOADED: 'secondary',
+        ImportFileStatus.PROCESSING: 'primary',
+        ImportFileStatus.DONE: 'success',
+        ImportFileStatus.FAILED: 'DANGER',
 
         ValueType.TITLE: 'primary',
         ValueType.NAME: 'primary',
