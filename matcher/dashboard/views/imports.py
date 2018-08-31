@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from flask import flash, redirect, render_template, request, url_for
 from flask.views import View
 from sqlalchemy.orm import undefer
@@ -54,7 +56,7 @@ class ShowImportFileView(View, DbMixin, CeleryMixin):
         file = self.query(ImportFile).get_or_404(id)
         header = file.header()
 
-        file.fields = {key: file.fields.get(key, '') for key in header}
+        file.fields = OrderedDict((key, file.fields.get(key, '')) for key in header)
 
         formdata = request.form if request.method == 'POST' else None
         form = EditImport(formdata, obj=file)

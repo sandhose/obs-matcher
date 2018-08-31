@@ -333,13 +333,14 @@ class ImportFile(Base):
 
         # Map the attributes to dicts accepted by add_attribute
         for (type_, values) in attributes:
-            for value in values:
-                attributes_list.add(attr_type(type_, value, 1))
+            # The values are weighed by their position in the array
+            for scale, value in enumerate(reversed(values), 1):
+                attributes_list.add(attr_type(type_, value, 1 * scale))
 
                 # Format the attribute (e.g. map to ISO code or extract the year in a date)
                 fmt = type_.fmt(value)
                 if fmt and fmt != value:
-                    attributes_list.add(attr_type(type_, fmt, 1.2))
+                    attributes_list.add(attr_type(type_, fmt, 1.2 * scale))
 
         for attribute in attributes_list:
             obj.add_attribute(dict(attribute._asdict()), self.platform)
