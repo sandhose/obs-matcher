@@ -1,4 +1,5 @@
 import csv
+import logging
 from collections import namedtuple
 from contextlib import contextmanager
 from io import TextIOWrapper
@@ -20,6 +21,8 @@ from .object import ExternalObject, ObjectLink
 from .platform import Platform
 from .utils import after, before, inject_session
 from .value import Value, ValueSource
+
+logger = logging.getLogger(__name__)
 
 __all__ = ['ImportFile', 'ImportFileLog']
 
@@ -196,7 +199,8 @@ class ImportFile(Base):
                 assert platforms[key]
 
             # Start reading the file
-            for line in reader:
+            for ln, line in enumerate(reader):
+                logger.info("Processing line %d", ln)
                 ids, attributes, links = self.map_line(fields, line)
                 # Map the platforms slugs to real platform objects
                 links = [(platforms[key], ids) for key, ids in links]
@@ -208,7 +212,7 @@ class ImportFile(Base):
         """Reduce a list of ExternalObject.id into a single (merged) ExternalObject. Creates a new one when empty"""
         if external_object_ids:
             # If there are external_object_ids, fetch the first and merge the rest
-            ids = iter(external_object_ids)
+            ids = iter(set(external_object_ids))
             obj = session.query(ExternalObject).get(next(ids))
 
             # Merge the additional external_object_ids
@@ -218,8 +222,7 @@ class ImportFile(Base):
                     try:
                         to_merge.merge_and_delete(obj, session=session)
                     except (LinksOverlap, ObjectTypeMismatchError):
-                        # TODO: log those errors
-                        pass
+                        logger.warn('Error while merging', exc_info=True)
         else:
             # else create a new object
             assert self.imported_external_object_type
@@ -277,6 +280,9 @@ class ImportFile(Base):
 
         # Fetch other existing external_object_ids from the links
         external_object_ids += self.find_additional_links(links=links, session=session)
+
+        if len(external_object_ids) <= 1 and not attributes and not links:
+            return
 
         # Get one merged ExternalObject
         obj = self.reduce_or_create_ids(external_object_ids, session=session)
@@ -344,6 +350,8 @@ class ImportFile(Base):
             filter(~Value.sources.any()).\
             delete(synchronize_session=False)
         session.commit()
+
+        logger.info('Imported  %r', obj)
 
     @after
     def log_status(self, message=None, *_, **__):

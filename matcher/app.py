@@ -1,11 +1,13 @@
 import contextlib
 import logging
 import os
+from logging.config import dictConfig
 
 from alembic.migration import MigrationContext
 from celery import Celery, Task
 from flask import Flask
 from flask.cli import FlaskGroup
+from flask.logging import default_handler
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_injector import FlaskInjector
 from flask_migrate import Migrate
@@ -17,6 +19,25 @@ from raven.contrib.flask import Sentry
 from .commands import setup_cli
 from .filters import register as register_filters
 from .scheme import metadata
+
+root = logging.getLogger()
+root.addHandler(default_handler)
+
+dictConfig({
+    'version': 1,
+    'formatters': {'default': {
+        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+    }},
+    'handlers': {'wsgi': {
+        'class': 'logging.StreamHandler',
+        'stream': 'ext://flask.logging.wsgi_errors_stream',
+        'formatter': 'default'
+    }},
+    'root': {
+        'level': 'INFO',
+        'handlers': ['wsgi']
+    }
+})
 
 db = SQLAlchemy(metadata=metadata)
 
