@@ -848,6 +848,10 @@ class ObjectLink(Base):
                           back_populates='links')
     """list of :obj:`Scrap` : scraps where the link was found"""
 
+    imports = relationship('ImportFile',
+                           secondary='import_link',
+                           back_populates='links')
+
     @property
     def url(self):
         format = self.platform.url.get(str(self.external_object.type), None)

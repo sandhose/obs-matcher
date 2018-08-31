@@ -20,4 +20,5 @@ class ObjectListFilter(Form):
     platform = QuerySelectMultipleField("Platform", render_kw={'class': 'select2 form-control'})
     session = QuerySelectMultipleField("Session", render_kw={'class': 'select2 form-control'})
     scrap = IntegerField("Scrap")
+    import_file = IntegerField("Import")
     object_link = FormField(ExternalIDForm)

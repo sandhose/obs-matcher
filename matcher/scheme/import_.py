@@ -6,7 +6,8 @@ from typing import Dict, List, Tuple, Union
 
 from chardet.universaldetector import UniversalDetector
 from sqlalchemy import (TIMESTAMP, Column, Enum, ForeignKey, Integer, Sequence,
-                        String, column, func, orm, select, table, tuple_,)
+                        String, Table, column, func, orm, select, table,
+                        tuple_,)
 from sqlalchemy.dialects.postgresql import HSTORE
 from sqlalchemy.orm import column_property, relationship
 
@@ -23,6 +24,20 @@ from .value import Value, ValueSource
 __all__ = ['ImportFile', 'ImportFileLog']
 
 attr_type = namedtuple('attribute', 'type text score_factor')
+
+
+import_link = Table(
+    'import_link',
+    Base.metadata,
+    Column('import_file_id',
+           ForeignKey('import_file.id', ondelete='CASCADE', onupdate='CASCADE'),
+           primary_key=True),
+    Column('object_link_id',
+           ForeignKey('object_link.id',
+                      ondelete='CASCADE',
+                      onupdate='CASCADE'),
+           primary_key=True),
+)
 
 
 @ImportFileStatus.act_as_statemachine('status')
@@ -53,6 +68,10 @@ class ImportFile(Base):
         limit(1),
         deferred=True
     )
+
+    links = relationship('ObjectLink',
+                         secondary='import_link',
+                         back_populates='imports')
 
     def __init__(self, **kwargs):
         super(ImportFile, self).__init__(**kwargs)
@@ -294,14 +313,13 @@ class ImportFile(Base):
                     first()
 
                 if not link:
-                    obj.links.append(ObjectLink(external_object=obj,
-                                                platform=platform,
-                                                external_id=external_id))
+                    link = ObjectLink(external_object=obj,
+                                      platform=platform,
+                                      external_id=external_id)
+                    obj.links.append(link)
 
-            # TODO: we need the same kind of mechanism that we have with scraps
-            # (scrap_link) to know when new objects were imported. We might
-            # want to refactor the `Scrap` and the `ImportFile` to avoid
-            # duplicate tables
+                if platform == self.platform:
+                    self.links.append(link)
 
         session.commit()
 

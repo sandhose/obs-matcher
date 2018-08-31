@@ -73,7 +73,7 @@ def badge_color(type_: CustomEnum) -> str:
         ImportFileStatus.UPLOADED: 'secondary',
         ImportFileStatus.PROCESSING: 'primary',
         ImportFileStatus.DONE: 'success',
-        ImportFileStatus.FAILED: 'DANGER',
+        ImportFileStatus.FAILED: 'danger',
 
         ValueType.TITLE: 'primary',
         ValueType.NAME: 'primary',

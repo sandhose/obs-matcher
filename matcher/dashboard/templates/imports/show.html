@@ -26,7 +26,11 @@
 
             <dt>Detected encoding</dt>
             <dd>{{ file.get_codec() }}</dd>
+
           </dl>
+        </div>
+        <div class="card-footer">
+          <a href="{{ url_for('.object_list', import_file=file.id) }}" class="btn btn-secondary">Show imported objects <i class="material-icons">arrow_forward</i></a>
         </div>
       </div>
     </div>

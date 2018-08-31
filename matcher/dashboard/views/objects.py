@@ -8,6 +8,7 @@ from sqlalchemy.orm import contains_eager, joinedload, lazyload, undefer
 from matcher.mixins import DbMixin
 from matcher.scheme.enums import ExternalObjectType
 from matcher.scheme.export import AttributesWrapper
+from matcher.scheme.import_ import ImportFile
 from matcher.scheme.object import Episode, ExternalObject, ObjectLink
 from matcher.scheme.platform import Platform, Scrap, Session
 from matcher.scheme.value import Value, ValueSource
@@ -39,6 +40,9 @@ class ObjectListView(View, DbMixin):
         if form.session.data or form.scrap.data:
             query = query.join(ObjectLink.scraps)
 
+        if form.session.data or form.import_file.data:
+            query = query.join(ObjectLink.imports)
+
         if form.search.data or form.country.data:
             query = query.join(ExternalObject.attributes).\
                 options(contains_eager(ExternalObject.attributes))
@@ -69,6 +73,9 @@ class ObjectListView(View, DbMixin):
 
         if form.scrap.data:
             query = query.filter(Scrap.id == form.scrap.data)
+
+        if form.import_file.data:
+            query = query.filter(ImportFile.id == form.import_file.data)
 
         if form.session.data:
             query = query.join(Scrap.sessions).\
