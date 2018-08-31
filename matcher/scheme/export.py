@@ -460,7 +460,7 @@ class ExportFile(Base):
 
     @before('delete')
     def delete_file(self, *_, **__):
-        export_path(self.real_name, ensure_parent=False).unlink()
+        export_path(self.real_name).unlink()
 
     @after_save('schedule')
     def schedule_task(self, celery, *_, **__):

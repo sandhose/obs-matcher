@@ -6,7 +6,7 @@ from typing import Dict, List, Tuple, Union
 
 from chardet.universaldetector import UniversalDetector
 from sqlalchemy import (TIMESTAMP, Column, Enum, ForeignKey, Integer, Sequence,
-                        String, column, func, select, table, tuple_,)
+                        String, column, func, orm, select, table, tuple_,)
 from sqlalchemy.dialects.postgresql import HSTORE
 from sqlalchemy.orm import column_property, relationship
 
@@ -54,6 +54,14 @@ class ImportFile(Base):
         deferred=True
     )
 
+    def __init__(self, **kwargs):
+        super(ImportFile, self).__init__(**kwargs)
+        self._codec = None
+
+    @orm.reconstructor
+    def init_on_load(self):
+        self._codec = None
+
     @before('upload')
     def upload_file(self, file):
         self.filename = file.filename
@@ -66,16 +74,23 @@ class ImportFile(Base):
     def open(self):
         file = self.path.open(mode='rb')
 
-        detector = UniversalDetector()
-        for line in file.readlines():
-            detector.feed(line)
-            if detector.done:
-                break
-        detector.close()
-        file.seek(0)
-        codec = detector.result['encoding']
+        if not self._codec:
+            detector = UniversalDetector()
+            for line in file.readlines():
+                detector.feed(line)
+                if detector.done:
+                    break
+            detector.close()
+            file.seek(0)
+            self._codec = detector.result['encoding']
 
-        return TextIOWrapper(file, encoding=codec)
+        return TextIOWrapper(file, encoding=self._codec)
+
+    def get_codec(self):
+        if not self._codec:
+            self.open().close()
+
+        return self._codec
 
     def detect_dialect(self, f):
         extract = ''.join(line for line in f.readlines()[:100])
