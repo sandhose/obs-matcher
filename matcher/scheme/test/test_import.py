@@ -182,7 +182,7 @@ class TestImportFile(object):
         f.imported_external_object_type = ExternalObjectType.MOVIE
         f.process_row(external_object_ids=[],
                       attributes=[(ValueType.TITLE, ["Foo."])],
-                      links=[(p1, "foo-bar")],
+                      links=[(p1, ["foo-bar"])],
                       session=session)
         session.commit()
 
