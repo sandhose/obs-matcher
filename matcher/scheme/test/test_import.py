@@ -83,28 +83,30 @@ class TestImportFile(object):
 
         f.process_row(external_object_ids=[obj1.id, obj2.id], attributes=[], links=[], session=session)
         session.commit()
+        obj = session.query(ExternalObject).first()
 
-        assert len(obj1.values) == 2
-        session.delete(obj1)
+        assert session.query(ExternalObject).count() == 1
+        assert len(obj.values) == 2
+        session.delete(obj)
         session.commit()
 
         # Links should be added
-        obj1 = ExternalObject(type=ExternalObjectType.MOVIE)
-        session.add(obj1)
+        obj = ExternalObject(type=ExternalObjectType.MOVIE)
+        session.add(obj)
         session.commit()
 
-        f.process_row(external_object_ids=[obj1.id], attributes=[], links=[(p1, ["foo-0"])], session=session)
+        f.process_row(external_object_ids=[obj.id], attributes=[], links=[(p1, ["foo-0"])], session=session)
         session.commit()
 
-        assert len(obj1.links) == 1
-        assert obj1.links[0].platform == p1
-        assert obj1.links[0].external_id == "foo-0"
+        assert len(obj.links) == 1
+        assert obj.links[0].platform == p1
+        assert obj.links[0].external_id == "foo-0"
 
-        session.delete(obj1)
+        session.delete(obj)
         session.commit()
 
         # Testing here that values associated by a replaced link are being evicted
-        obj1 = ExternalObject(
+        obj = ExternalObject(
             type=ExternalObjectType.MOVIE,
             links=[
                 ObjectLink(platform=p1, external_id="foo-1"),
@@ -115,21 +117,21 @@ class TestImportFile(object):
                           sources=[ValueSource(platform=p2, score_factor=1)])]
         )
 
-        session.add(obj1)
+        session.add(obj)
         session.commit()
 
-        f.process_row(external_object_ids=[obj1.id], attributes=[], links=[(p1, ["foo-2"])], session=session)
+        f.process_row(external_object_ids=[obj.id], attributes=[], links=[(p1, ["foo-2"])], session=session)
         session.commit()
 
-        assert len(obj1.values) == 1
-        assert len(obj1.links) == 1
-        assert obj1.links[0].external_id == "foo-2"
+        assert len(obj.values) == 1
+        assert len(obj.links) == 1
+        assert obj.links[0].external_id == "foo-2"
 
-        session.delete(obj1)
+        session.delete(obj)
         session.commit()
 
-        # …but should stay if they have another sourcec
-        obj1 = ExternalObject(
+        # …but should stay if they have another source
+        obj = ExternalObject(
             type=ExternalObjectType.MOVIE,
             links=[
                 ObjectLink(platform=p1, external_id="foo-1"),
@@ -139,16 +141,16 @@ class TestImportFile(object):
                                    ValueSource(platform=p2, score_factor=1)])]
         )
 
-        session.add(obj1)
+        session.add(obj)
         session.commit()
 
-        f.process_row(external_object_ids=[obj1.id], attributes=[], links=[(p1, ["foo-2"])], session=session)
+        f.process_row(external_object_ids=[obj.id], attributes=[], links=[(p1, ["foo-2"])], session=session)
         session.commit()
 
-        assert len(obj1.values) == 1
-        assert len(obj1.values[0].sources) == 1
+        assert len(obj.values) == 1
+        assert len(obj.values[0].sources) == 1
 
-        session.delete(obj1)
+        session.delete(obj)
         session.commit()
 
         # Objects with the same ID should merge (and their attributes as well)
@@ -168,10 +170,11 @@ class TestImportFile(object):
 
         f.process_row(external_object_ids=[obj1.id], attributes=[], links=[(p2, ["bar-merge"])], session=session)
         session.commit()
+        obj = session.query(ExternalObject).first()
 
-        assert len(obj1.values) == 1
-        assert len(obj1.values[0].sources) == 2
-        session.delete(obj1)
+        assert len(obj.values) == 1
+        assert len(obj.values[0].sources) == 2
+        session.delete(obj)
         session.commit()
 
         # Let's insert brand new objects
