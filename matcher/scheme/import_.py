@@ -1,3 +1,4 @@
+import codecs
 import csv
 import logging
 from collections import namedtuple
@@ -5,6 +6,7 @@ from contextlib import contextmanager
 from io import TextIOWrapper
 from typing import Dict, List, Tuple, Union
 
+import ftfy.bad_codecs
 from chardet.universaldetector import UniversalDetector
 from sqlalchemy import (TIMESTAMP, Column, Enum, ForeignKey, Integer, Sequence,
                         String, Table, column, func, orm, select, table,
@@ -104,15 +106,20 @@ class ImportFile(Base):
                     break
             detector.close()
             file.seek(0)
-            self._codec = detector.result['encoding']
+            codec = detector.result['encoding']
 
-        return TextIOWrapper(file, encoding=self._codec)
+            try:
+                self._codec = codecs.lookup('sloppy-' + codec)
+            except LookupError:
+                self._codec = codecs.lookup(codec)
+
+        return TextIOWrapper(file, encoding=self._codec.name)
 
     def get_codec(self):
         if not self._codec:
             self.open().close()
 
-        return self._codec
+        return self._codec.name
 
     def detect_dialect(self, f):
         extract = ''.join(line for line in f.readlines()[:100])

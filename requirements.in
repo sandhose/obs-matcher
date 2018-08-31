@@ -9,6 +9,7 @@ Flask-RESTful
 Flask-RESTPlus
 Flask-SQLAlchemy
 Flask-WTF
+ftfy
 gunicorn
 pendulum
 psycopg2-binary
