@@ -138,8 +138,8 @@ python-dateutil==2.7.3 \
 python-editor==1.0.3 \
     --hash=sha256:a3c066acee22a1c94f63938341d4fb374e3fdd69366ed6603d7b24bed1efc565 \
     # via alembic
-python-slugify==1.2.5 \
-    --hash=sha256:5dbb360b882b2dabe0471a1a92f604504d83c2a73c71f2098d004ab62e695534
+python-slugify==1.2.6 \
+    --hash=sha256:7723daf30996db26573176bddcdf5fcb98f66dc70df05c9cb29f2c79b8193245
 pytz==2018.5 \
     --hash=sha256:a061aa0a9e06881eb8b3b2b43f05b9439d6583c206d0a6c340ff72a7b6669053 \
     --hash=sha256:ffb9ef1de172603304d9d2819af6f5ece76f2e85ec10692a524dd876e72bf277 \
