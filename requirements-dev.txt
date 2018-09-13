@@ -174,10 +174,6 @@ packaging==17.1 \
     --hash=sha256:e9215d2d2535d3ae866c3d6efc77d5b24a0192cce0ff20e42896cc0664f889c0 \
     --hash=sha256:f019b770dd64e585a99714f1fd5e01c7a8f11b45635aa953fd41c689a657375b \
     # via sphinx
-pathlib2==2.3.2 \
-    --hash=sha256:8eb170f8d0d61825e09a95b38be068299ddeda82f35e96c3301a8a5e7604cb83 \
-    --hash=sha256:d1aa2a11ba7b8f7b21ab852b1fb5afb277e1bb99d5dfc663380b5015c0d80c5a \
-    # via pytest
 pathtools==0.1.2 \
     --hash=sha256:7c35c5421a39bb82e58018febd90e3b6e5db34c5443aaaf742b3f33d4655f1c0 \
     # via watchdog
@@ -309,9 +305,9 @@ snowballstemmer==1.2.1 \
     --hash=sha256:919f26a68b2c17a7634da993d91339e288964f93c274f1343e3bbbe2096e1128 \
     --hash=sha256:9f3bcd3c401c3e862ec0ebe6d2c069ebc012ce142cce209c098ccb5b09136e89 \
     # via sphinx
-sphinx==1.7.8 \
-    --hash=sha256:a07050845cc9a2f4026a6035cc8ed795a5ce7be6528bbc82032385c10807dfe7 \
-    --hash=sha256:d719de667218d763e8fd144b7fcfeefd8d434a6201f76bf9f0f0c1fa6f47fcdb
+sphinx==1.8.0 \
+    --hash=sha256:95acd6648902333647a0e0564abdb28a74b0a76d2333148aa35e5ed1f56d3c4b \
+    --hash=sha256:c091dbdd5cc5aac6eb95d591a819fd18bccec90ffb048ec465b165a48b839b45
 sphinxcontrib-napoleon==0.6.1 \
     --hash=sha256:614b779888629f14dfdfad6c17bffbb6d3813a0a0917a9541651d85384d4d6bd \
     --hash=sha256:cbb31953b15d2102c18f16f02591f92e2614a08ef0218c9e514e2dc4c4f9daf9
