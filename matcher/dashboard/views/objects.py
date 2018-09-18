@@ -34,7 +34,8 @@ class ObjectListView(View, DbMixin):
         if form.platform.data \
                 or (form.object_link.platform.data and form.object_link.external_id.data) \
                 or form.session.data \
-                or form.scrap.data:
+                or form.scrap.data \
+                or form.import_file.data:
             query = query.join(ExternalObject.links)
 
         if form.session.data or form.scrap.data:
