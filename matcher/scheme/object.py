@@ -436,13 +436,24 @@ class ExternalObject(Base):
             raise ObjectTypeMismatchError(is_type=self.type,
                                           should_be=their.type)
 
-        our_platforms = set(map(attrgetter('platform'), self.links))
-        their_platforms = set(map(attrgetter('platform'), their.links))
+        to_delete = []
+        for our_link in self.links:
+            same_links = [link for link in their.links
+                          if link.platform == our_link.platform and
+                          our_link.external_id == link.external_id]
+            to_delete += same_links
 
-        # The two objects should not have links to the same platform
-        if [p for p in (our_platforms & their_platforms)
-                if [l for l in p.links if not l.platform.allow_links_overlap]]:
-            raise LinksOverlap(self, their)
+            if our_link.platform.allow_links_overlap:
+                continue
+
+            overlapping_links = [link for link in their.links
+                                 if link.platform == our_link.platform and
+                                 our_link.external_id != link.external_id]
+            if overlapping_links:
+                raise LinksOverlap(self, their)
+
+        for d in to_delete:
+            session.delete(d)
 
         # First merge the links
         for link in list(self.links):

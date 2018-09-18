@@ -199,3 +199,32 @@ class TestImportFile(object):
         assert obj.values[0].text == "Foo."
         assert len(obj.values[0].sources) == 1
         assert obj.values[0].sources[0].platform == p1
+        session.delete(obj)
+        session.commit()
+
+        # Objects with the same external_id should merge
+        obj1 = ExternalObject(
+            type=ExternalObjectType.MOVIE,
+            links=[ObjectLink(platform=p2, external_id="test-same")],
+            values=[Value(type=ValueType.TITLE, text='Foo',
+                          sources=[ValueSource(platform=p1, score_factor=1)])]
+        )
+        obj2 = ExternalObject(
+            type=ExternalObjectType.MOVIE,
+            links=[ObjectLink(platform=p2, external_id="test-same")],
+            values=[Value(type=ValueType.TITLE, text='Foo',
+                          sources=[ValueSource(platform=p2, score_factor=1)])]
+        )
+        session.add_all([obj1, obj2])
+        session.commit()
+
+        f.process_row(external_object_ids=[], attributes=[], links=[(p2, ["test-same"])], session=session)
+        session.commit()
+        obj = session.query(ExternalObject).first()
+        assert session.query(ExternalObject).count() == 1
+
+        assert len(obj.values) == 1
+        assert len(obj.values[0].sources) == 2
+        assert len(obj.links) == 1
+        session.delete(obj)
+        session.commit()
