@@ -22,7 +22,7 @@ def run_factory(factory_id, session_id):
     db.session.commit()
 
 
-@celery.task(autoretry_for=(Exception, ), max_retries=5)
+@celery.task(base=celery.OnceTask)
 def process_file(file_id):
     file = db.session.query(ExportFile).get(file_id)
     assert file

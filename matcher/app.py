@@ -5,6 +5,7 @@ from logging.config import dictConfig
 
 from alembic.migration import MigrationContext
 from celery import Celery, Task
+from celery_once import QueueOnce
 from flask import Flask
 from flask.cli import FlaskGroup
 from flask.logging import default_handler
@@ -62,13 +63,26 @@ class CeleryModule(Module):
             imports=('matcher.tasks.object',)
         )
         celery.conf.update(app.config)
+        celery.conf.ONCE = {
+            'backend': 'celery_once.backends.Redis',
+            'settings': {
+                'url': app.config['CELERY_RESULT_BACKEND'],
+                'default_timeout': 60 * 60
+            }
+        }
 
         class ContextTask(Task):
             def __call__(self, *args, **kwargs):
                 with app.app_context():
                     return self.run(*args, **kwargs)
 
+        class OnceTask(QueueOnce):
+            def __call__(self, *args, **kwargs):
+                with app.app_context():
+                    return self.run(*args, **kwargs)
+
         celery.Task = ContextTask
+        celery.OnceTask = OnceTask
 
         return celery
 

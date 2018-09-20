@@ -3,7 +3,7 @@ from matcher.app import db
 from matcher.scheme.import_ import ImportFile
 
 
-@celery.task(autoretry_for=(Exception, ), max_retries=5)
+@celery.task(base=celery.OnceTask)
 def process_file(file_id):
     file = db.session.query(ImportFile).get(file_id)
     assert file

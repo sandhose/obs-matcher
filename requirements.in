@@ -1,5 +1,6 @@
 alembic_autogenerate_enums
 celery
+celery_once
 chardet
 Flask
 Flask-Admin

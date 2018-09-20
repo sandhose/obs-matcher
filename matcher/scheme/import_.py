@@ -6,7 +6,7 @@ from contextlib import contextmanager
 from io import TextIOWrapper
 from typing import Dict, List, Tuple, Union
 
-import ftfy.bad_codecs
+import ftfy.bad_codecs  # noqa
 from chardet.universaldetector import UniversalDetector
 from sqlalchemy import (TIMESTAMP, Column, Enum, ForeignKey, Integer, Sequence,
                         String, Table, column, func, orm, select, table,
@@ -118,8 +118,11 @@ class ImportFile(Base):
 
     def get_line_count(self):
         if self._line_count is None:
-            with self.open() as f:
-                self._line_count = sum(1 for line in f)
+            try:
+                with self.open() as f:
+                    self._line_count = sum(1 for line in f)
+            except Exception:
+                self._line_count = 0
 
         return self._line_count
 
