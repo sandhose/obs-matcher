@@ -454,38 +454,6 @@ def fix_countries():
     print("Fixed {} countries out of {}".format(added, len(values)))
 
 
-def fix_dupes_attributes():
-    from sqlalchemy.orm import joinedload
-    from sqlalchemy.sql.expression import func
-    from .scheme.object import ExternalObject
-    from .scheme.value import Value, ValueSource
-    from .app import db
-    from tqdm import tqdm
-
-    dupes = (
-        db.session.query(ExternalObject)
-        .options(joinedload(ExternalObject.values))
-        .filter(ExternalObject.id.in_(
-            db.session.query(Value.external_object_id)
-            .group_by(Value.external_object_id, Value.text, Value.type)
-            .having(func.count('*'))
-        ))
-    )
-
-    for obj in tqdm(dupes):
-        deleted = []
-        for value in obj.values:
-            if value in deleted:
-                continue
-
-            for other_value in obj.values:
-                if other_value == value or value in deleted:
-                    pass
-
-                if value.text == other_value.text and value.type == other_value.type:
-                    deleted.append(other_value)
-
-
 def setup_cli(app):
     app.cli.add_command(download_countries)
     app.cli.add_command(fix_attributes)

@@ -14,7 +14,7 @@ def process_file(file_id):
         file.failed(message=str(e))
         db.session.add(file)
         db.session.commit()
-        raise e
+        raise
 
     file.done()
     db.session.add(file)
