@@ -24,6 +24,9 @@
               {% endif %}
             </dd>
 
+            <dt>Line count</dt>
+            <dd>{{ file.get_line_count() }}</dd>
+
             <dt>Detected encoding</dt>
             <dd>{{ file.get_codec() }}</dd>
 

@@ -85,6 +85,7 @@ class ImportFile(Base):
     @orm.reconstructor
     def init_on_load(self):
         self._codec = None
+        self._line_count = None
 
     @before('upload')
     def upload_file(self, file):
@@ -114,6 +115,13 @@ class ImportFile(Base):
                 self._codec = codecs.lookup(codec)
 
         return TextIOWrapper(file, encoding=self._codec.name)
+
+    def get_line_count(self):
+        if self._line_count is None:
+            with self.open() as f:
+                self._line_count = sum(1 for line in f)
+
+        return self._line_count
 
     def get_codec(self):
         if not self._codec:
