@@ -1,9 +1,8 @@
-version: '3.4'
+version: "3.4"
 
 # This exposes everything through træfik and allows hot-reloading of the app
 
-x-internal:
-  &internal
+x-internal: &internal
   networks:
     - internal
   labels:
@@ -14,13 +13,13 @@ services:
     command: >
       sh -c '
       matcher download-countries && 
-      flask run --host 0.0.0.0 --port 5000
+      gunicorn -k gevent -w 4 matcher:app -b 0.0.0.0:5000
       '
     environment:
       FLASK_ENV: development
       FLASK_APP: matcher
     volumes:
-      - './matcher:/app/matcher'
+      - "./matcher:/app/matcher"
     networks:
       - internal
       - proxy
@@ -37,7 +36,6 @@ services:
       traefik.frontend.rule: Host:flower.test
       traefik.docker.network: proxy
 
-
   scrapyd:
     networks:
       - internal
@@ -48,14 +46,14 @@ services:
 
   worker:
     command: >
-      watchmedo auto-restart -D -R -p "**/*.py" -- matcher worker -l info -E --uid nobody --gid nobody
+      watchmedo auto-restart -D -R -p "**/*.py" -- celery worker -A matcher:celery -P gevent -l info -E --uid nobody --gid nobody
     volumes:
-      - './matcher:/app/matcher'
-    << : *internal
+      - "./matcher:/app/matcher"
+    <<: *internal
 
   redis: *internal
   db:
-    << : *internal
+    <<: *internal
     ports:
       - "5432:5432"
 

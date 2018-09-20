@@ -11,8 +11,10 @@ Flask-RESTPlus
 Flask-SQLAlchemy
 Flask-WTF
 ftfy
+gevent
 gunicorn
 pendulum
+psycogreen
 psycopg2-binary
 python-slugify
 raven[flask]
