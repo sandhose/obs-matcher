@@ -21,24 +21,24 @@ from .commands import setup_cli
 from .filters import register as register_filters
 from .scheme import metadata
 
-root = logging.getLogger()
-root.addHandler(default_handler)
-
-dictConfig({
-    'version': 1,
-    'formatters': {'default': {
-        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
-    }},
-    'handlers': {'wsgi': {
-        'class': 'logging.StreamHandler',
-        'stream': 'ext://flask.logging.wsgi_errors_stream',
-        'formatter': 'default'
-    }},
-    'root': {
-        'level': 'INFO',
-        'handlers': ['wsgi']
-    }
-})
+# root = logging.getLogger()
+# root.addHandler(default_handler)
+#
+# dictConfig({
+#     'version': 1,
+#     'formatters': {'default': {
+#         'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+#     }},
+#     'handlers': {'wsgi': {
+#         'class': 'logging.StreamHandler',
+#         'stream': 'ext://sys.stderr',
+#         'formatter': 'default'
+#     }},
+#     'root': {
+#         'level': 'INFO',
+#         'handlers': ['wsgi']
+#     }
+# })
 
 db = SQLAlchemy(metadata=metadata)
 
@@ -124,6 +124,8 @@ def setup_routes(app, admin=True):
 
 def create_app(info=None):
     app = Flask('matcher', instance_relative_config=True)
+    app.logger.addHandler(logging.StreamHandler())
+    app.logger.setLevel(logging.INFO)
 
     # Load config using environment variable
     app.config.from_object('matcher.config.Config')
