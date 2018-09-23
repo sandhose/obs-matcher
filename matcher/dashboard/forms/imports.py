@@ -2,7 +2,8 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired
 from wtforms import (FieldList, Form, FormField, SelectField, StringField,
                      SubmitField, validators,)
-from wtforms.ext.sqlalchemy.fields import QuerySelectMultipleField, QuerySelectField
+from wtforms.ext.sqlalchemy.fields import (QuerySelectField,
+                                           QuerySelectMultipleField,)
 
 from matcher.filters import badge_display
 from matcher.scheme.enums import ExternalObjectType, ValueType
