@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired
 from wtforms import (FieldList, Form, FormField, SelectField, StringField,
                      SubmitField, validators,)
-from wtforms.ext.sqlalchemy.fields import QuerySelectField
+from wtforms.ext.sqlalchemy.fields import QuerySelectMultipleField, QuerySelectField
 
 from matcher.filters import badge_display
 from matcher.scheme.enums import ExternalObjectType, ValueType
@@ -79,6 +79,7 @@ class CustomFieldList(FieldList):
 
 
 class EditImport(FlaskForm):
+    sessions = QuerySelectMultipleField("Sessions", render_kw={'class': 'select2 form-control'})
     imported_external_object_type = SelectField('New object types',
                                                 choices=[(e, badge_display(e)) for e in ExternalObjectType],
                                                 coerce=ExternalObjectType.coerce,

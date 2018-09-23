@@ -73,6 +73,7 @@
     <div class="col-12">
       <div class="card">
       {% call m.render_form(form, class_="card-body", action="POST", action_text="Save") %}
+        {{ m.render_field(form.sessions) }}
         {{ m.render_field(form.imported_external_object_type) }}
         {{ m.render_field(form.platform) }}
         <div class="row import-field-list">

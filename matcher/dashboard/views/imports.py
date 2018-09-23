@@ -8,7 +8,7 @@ from sqlalchemy.orm.attributes import flag_modified
 from matcher.mixins import CeleryMixin, DbMixin
 from matcher.scheme.enums import ImportFileStatus
 from matcher.scheme.import_ import ImportFile
-from matcher.scheme.platform import Platform
+from matcher.scheme.platform import Platform, Session
 
 from ..forms.imports import EditImport, UploadImport
 
@@ -61,6 +61,7 @@ class ShowImportFileView(View, DbMixin, CeleryMixin):
         formdata = request.form if request.method == 'POST' else None
         form = EditImport(formdata, obj=file)
         form.platform.query = self.query(Platform)
+        form.sessions.query = self.query(Session)
 
         platform_choices = self.query(Platform.slug, Platform.name).all()
         for subform in form.fields.entries:
