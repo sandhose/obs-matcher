@@ -53,7 +53,7 @@
         <div class="card-footer">
           <div class="stats">
             <i class="material-icons">notes</i>
-            {{ (object_link_count / (external_object_stats.values() | sum)) | round(1) }} per item on average
+            {{ (object_link_count / (external_object_stats.values() | sum + 0.001)) | round(1) }} per item on average
           </div>
         </div>
       </div>

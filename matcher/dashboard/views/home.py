@@ -1,3 +1,4 @@
+from collections import defaultdict
 import datetime
 
 from flask import flash, render_template, request
@@ -21,13 +22,13 @@ class HomeView(View, DbMixin, CeleryMixin):
                 flash('Attributes are being refreshed')
 
         ctx = {}
-        ctx['external_object_stats'] = {key.name: value for (key, value) in
+        ctx['external_object_stats'] = defaultdict(int, {key.name: value for (key, value) in
                                         self.query(ExternalObject.type,
                                                    func.count(ExternalObject.id))
-                                        .group_by(ExternalObject.type)}
-        ctx['platforms_stats'] = {key.name: value for (key, value) in
+                                        .group_by(ExternalObject.type)})
+        ctx['platforms_stats'] = defaultdict(int, {key.name: value for (key, value) in
                                   self.query(Platform.type,
-                                             func.count(Platform.id)).group_by(Platform.type)}
+                                             func.count(Platform.id)).group_by(Platform.type)})
         ctx['object_link_count'] = self.query(ObjectLink).count()
 
         now = datetime.datetime.utcnow()
