@@ -78,6 +78,10 @@ class ImportFile(Base):
                          secondary='import_link',
                          back_populates='imports')
 
+    sessions = relationship('Session',
+                            secondary='session_import_file',
+                            back_populates='imports')
+
     def __init__(self, **kwargs):
         super(ImportFile, self).__init__(**kwargs)
         self._codec = None

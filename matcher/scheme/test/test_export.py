@@ -4,10 +4,11 @@ from jinja2.exceptions import UndefinedError
 from pytest import raises
 
 from matcher.scheme import (Episode, ExportFactory, ExportFile, ExportTemplate,
-                            ExternalObject, ObjectLink, Platform,
-                            PlatformGroup, Session, Value, ValueSource,)
-from matcher.scheme.enums import (ExportFactoryIterator, ExportRowType,
-                                  ExternalObjectType, PlatformType, ValueType,)
+                            ExternalObject, ImportFile, ObjectLink, Platform,
+                            PlatformGroup, Scrap, Session, Value, ValueSource,)
+from matcher.scheme.enums import (ExportFactoryIterator, ExportFileStatus,
+                                  ExportRowType, ExternalObjectType,
+                                  ImportFileStatus, PlatformType, ValueType,)
 from matcher.scheme.views import AttributesView
 
 
@@ -459,19 +460,25 @@ class TestExportFactory(object):
 
 class TestExportFile(object):
     def test_count_links(self, session):
+        object_session = Session(name='test')
+        import_file = ImportFile(sessions=[object_session], status=ImportFileStatus.DONE,
+                                 filename='foo.csv', fields={})
         external_object = ExternalObject(type=ExternalObjectType.MOVIE)
         empty_platform = Platform(name='empty', type=PlatformType.TVOD)
         linked_platform = Platform(name='linked', type=PlatformType.TVOD)
-        link = ObjectLink(external_object=external_object, platform=linked_platform, external_id='link')
-        session.add_all([external_object, empty_platform, linked_platform, link])
+        link = ObjectLink(external_object=external_object, platform=linked_platform, external_id='link',
+                          imports=[import_file])
+        session.add_all([external_object, empty_platform, linked_platform, link, import_file])
         session.commit()
 
-        template = ExportTemplate(external_object_type=ExternalObjectType.MOVIE)
+        template = ExportTemplate(external_object_type=ExternalObjectType.MOVIE, row_type=ExportRowType.OBJECT_LINK,
+                                  fields={})
 
-        assert ExportFile(template=template, filters={}).count_links(session=session) == 1
-        assert ExportFile(template=template,
+        assert ExportFile(template=template, session=object_session, status=ExportFileStatus.DONE, path='foo.csv',
+                          filters={}).count_links(session=session) == 1
+        assert ExportFile(template=template, session=object_session, status=ExportFileStatus.DONE, path='foo.csv',
                           filters={'platform.id': str(linked_platform.id)}).count_links(session=session) == 1
-        assert ExportFile(template=template,
+        assert ExportFile(template=template, session=object_session, status=ExportFileStatus.DONE, path='foo.csv',
                           filters={'platform.id': str(empty_platform.id)}).count_links(session=session) == 0
 
     def test_filtered_query(self, session):
@@ -483,6 +490,9 @@ class TestExportFile(object):
             Platform(name='SVOD DE', type=PlatformType.SVOD, country='DE'),
         ]
 
+        object_session = Session(name='test')
+        scrap = Scrap(platform=platforms[0], sessions=[object_session])
+
         groups = [
             PlatformGroup(name='Group TVOD', platforms=[platforms[0], platforms[1]]),
             PlatformGroup(name='Group SVOD', platforms=[platforms[2], platforms[3], platforms[4]]),
@@ -492,8 +502,8 @@ class TestExportFile(object):
             ExternalObject(
                 type=ExternalObjectType.MOVIE,
                 links=[
-                    ObjectLink(platform=platforms[0], external_id='tvod-fr-a'),
-                    ObjectLink(platform=platforms[1], external_id='tvod-gb-a'),
+                    ObjectLink(platform=platforms[0], external_id='tvod-fr-a', scraps=[scrap]),
+                    ObjectLink(platform=platforms[1], external_id='tvod-gb-a', scraps=[scrap]),
                 ],
                 values=[
                     Value(type=ValueType.TITLE, text='A', sources=[ValueSource(platform=platforms[0])]),
@@ -505,9 +515,9 @@ class TestExportFile(object):
             ExternalObject(
                 type=ExternalObjectType.MOVIE,
                 links=[
-                    ObjectLink(platform=platforms[0], external_id='tvod-fr-b'),
-                    ObjectLink(platform=platforms[3], external_id='svod-it-b'),
-                    ObjectLink(platform=platforms[4], external_id='svod-de-b'),
+                    ObjectLink(platform=platforms[0], external_id='tvod-fr-b', scraps=[scrap]),
+                    ObjectLink(platform=platforms[3], external_id='svod-it-b', scraps=[scrap]),
+                    ObjectLink(platform=platforms[4], external_id='svod-de-b', scraps=[scrap]),
                 ],
                 values=[
                     Value(type=ValueType.TITLE, text='B', sources=[ValueSource(platform=platforms[0])]),
@@ -518,16 +528,15 @@ class TestExportFile(object):
         # This is used to freeze the links orders
         links = objects[0].links + objects[1].links
 
-        session.add_all(platforms + groups + objects)
+        session.add_all(platforms + groups + objects + [scrap])
         session.commit()
 
-        # FIXME: The session is useless for now
-        scrap_session = Session()
         template = ExportTemplate(fields=[
             {'value': 'links["{}"]'.format(platforms[0].slug)},
         ], external_object_type=ExternalObjectType.MOVIE)
 
-        file = ExportFile(template=template, session=scrap_session)
+        file = ExportFile(template=template, session=object_session,
+                          status=ExportFileStatus.SCHEDULED, path='foo.csv')
 
         template.row_type = ExportRowType.OBJECT_LINK
         file.filters = {}

@@ -393,11 +393,27 @@ class ExportFile(Base):
         return self.filter_query(query)
 
     def filter_query(self, query):
+        from .object import ObjectLink
         # FIXME: THIS DOES NOT TAKE THE scrap_session INTO ACCOUNT
-        from .platform import Platform
+        from .platform import Platform, Scrap, Session
+        from .import_ import ImportFile
+
+        session = query.session  # i guess this works
 
         # FIXME: way to override this?
         query = query.filter(Platform.ignore_in_exports.is_(False))
+
+        import_file_query = session.query(ObjectLink.id).\
+            join(ObjectLink.imports).\
+            join(ImportFile.sessions).\
+            filter(Session.id == self.session.id)
+
+        session_query = session.query(ObjectLink.id).\
+            join(ObjectLink.scraps).\
+            join(Scrap.sessions).\
+            filter(Session.id == self.session.id)
+
+        query = query.filter(ObjectLink.id.in_(session_query.union(import_file_query)))
 
         for (key, values) in self.filters.items():
             # A filter might look like `platform.id => 19, 51`

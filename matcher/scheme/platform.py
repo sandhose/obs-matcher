@@ -227,6 +227,8 @@ class Session(Base):
     scraps = relationship(Scrap, secondary='session_scrap', back_populates='sessions')
     """List of scraps in this session"""
 
+    imports = relationship('ImportFile', secondary='session_import_file', back_populates='sessions')
+
     files = relationship('ExportFile', back_populates='session')
 
     def __str__(self):
@@ -238,4 +240,11 @@ session_scrap = Table(
     Base.metadata,
     Column('session_id', ForeignKey(Session.id, ondelete='CASCADE', onupdate='CASCADE'), primary_key=True),
     Column('scrap_id', ForeignKey(Scrap.id, ondelete='CASCADE', onupdate='CASCADE'), primary_key=True),
+)
+
+session_import_file = Table(
+    'session_import_file',
+    Base.metadata,
+    Column('session_id', ForeignKey(Session.id, ondelete='CASCADE', onupdate='CASCADE'), primary_key=True),
+    Column('import_file_id', ForeignKey('import_file.id', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True),
 )

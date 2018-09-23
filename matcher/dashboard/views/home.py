@@ -1,5 +1,5 @@
-from collections import defaultdict
 import datetime
+from collections import defaultdict
 
 from flask import flash, render_template, request
 from flask.views import View
@@ -23,12 +23,12 @@ class HomeView(View, DbMixin, CeleryMixin):
 
         ctx = {}
         ctx['external_object_stats'] = defaultdict(int, {key.name: value for (key, value) in
-                                        self.query(ExternalObject.type,
-                                                   func.count(ExternalObject.id))
-                                        .group_by(ExternalObject.type)})
+                                                         self.query(ExternalObject.type,
+                                                                    func.count(ExternalObject.id))
+                                                         .group_by(ExternalObject.type)})
         ctx['platforms_stats'] = defaultdict(int, {key.name: value for (key, value) in
-                                  self.query(Platform.type,
-                                             func.count(Platform.id)).group_by(Platform.type)})
+                                                   self.query(Platform.type,
+                                                              func.count(Platform.id)).group_by(Platform.type)})
         ctx['object_link_count'] = self.query(ObjectLink).count()
 
         now = datetime.datetime.utcnow()
