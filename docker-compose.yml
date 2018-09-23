@@ -23,6 +23,7 @@ services:
     labels:
       - traefik.frontend.rule=Host:matcher.test
       - traefik.docker.network=proxy
+      - traefik.enable=true
 
   worker:
     build: .
@@ -41,8 +42,6 @@ services:
       - secret-key
     networks:
       - internal
-    labels:
-      - traefik.enable=false
 
   migrate:
     build: .
@@ -58,8 +57,6 @@ services:
       - secret-key
     networks:
       - internal
-    labels:
-      - traefik.enable=false
 
   redis:
     image: redis:alpine
@@ -67,8 +64,6 @@ services:
       - "redis:/data"
     networks:
       - internal
-    labels:
-      - traefik.enable=false
 
   flower:
     image: mher/flower:latest
@@ -83,6 +78,7 @@ services:
     labels:
       - traefik.frontend.rule=Host:matcher.test;PathPrefixStrip:/flower/
       - traefik.docker.network=proxy
+      - traefik.enable=true
 
   db:
     image: postgres:alpine
@@ -95,8 +91,6 @@ services:
       - postgres-password
     networks:
       - internal
-    labels:
-      - traefik.enable=false
 
   scrapyd:
     build: ./scrapyd
@@ -109,6 +103,7 @@ services:
     labels:
       - traefik.frontend.rule=Host:scrapyd.test
       - traefik.docker.network=proxy
+      - traefik.enable=true
 
 volumes:
   redis:

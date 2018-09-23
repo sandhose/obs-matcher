@@ -12,8 +12,8 @@ services:
   web:
     command: >
       sh -c '
-      matcher download-countries && 
-      gunicorn -k gevent -w 4 matcher:app -b 0.0.0.0:5000
+      matcher download-countries &&
+      gunicorn --access-logfile - --reload -k gevent -w 4 matcher:app -b 0.0.0.0:5000
       '
     environment:
       FLASK_ENV: development
