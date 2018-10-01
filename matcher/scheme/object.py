@@ -427,6 +427,7 @@ class ExternalObject(Base):
             when the two objects have linked platforms in common
 
         """
+        from .value import ValueSource
         # FIXME: A lot of other references needs merging (!)
         # First check if the merge is possible
 
@@ -472,7 +473,7 @@ class ExternalObject(Base):
             if their_attr is None:
                 # Move attribute if it was not present on their side
                 our_attr.external_object = their
-                # their.values.append(our_attr)
+                session.add(our_attr)
             else:
                 # Else move only the value sources.
                 # FIXME: *In theory*, we should not have any trouble merging by
@@ -480,12 +481,9 @@ class ExternalObject(Base):
                 # not the same as ours.
                 # We might wanna check for this.
                 for our_source in list(our_attr.sources):
-                    if [s for s in their_attr.sources
-                            if s.platform == our_source.platform]:
-                        session.delete(our_source)
-                    else:
-                        our_source.value = their_attr
-                    # their_attr.sources.append(our_source)
+                    session.merge(ValueSource(score_factor=our_source.score_factor,
+                                              platform_id=our_source.platform_id,
+                                              value_id=their_attr.id))
 
         for role in list(session.query(Role).filter(Role.external_object == self)):
             role.external_object = their
