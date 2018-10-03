@@ -180,10 +180,6 @@ more-itertools==4.3.0 \
     --hash=sha256:c476b5d3a34e12d40130bc2f935028b5f636df8f372dc2c1c01dc19681b2039e \
     --hash=sha256:fcbfeaea0be121980e15bc97b3817b5202ca73d0eae185b4550cbfce2a3ebb3d \
     # via pytest
-pathlib2==2.3.2 \
-    --hash=sha256:8eb170f8d0d61825e09a95b38be068299ddeda82f35e96c3301a8a5e7604cb83 \
-    --hash=sha256:d1aa2a11ba7b8f7b21ab852b1fb5afb277e1bb99d5dfc663380b5015c0d80c5a \
-    # via pytest
 pendulum==2.0.3 \
     --hash=sha256:0ec5371949e147753661e1e98721273170638034dfceb578f29d69d93d3d474b \
     --hash=sha256:10ccdc8c6d004ba97883dd0f57503963ddf6cb83e849a16c4675ba18da657564 \
@@ -250,9 +246,9 @@ pyflakes==1.6.0 \
 pytest-cov==2.6.0 \
     --hash=sha256:513c425e931a0344944f84ea47f3956be0e416d95acbd897a44970c8d926d5d7 \
     --hash=sha256:e360f048b7dae3f2f2a9a4d067b2dd6b6a015d384d1577c994a43f3f7cbad762
-pytest==3.8.0 \
-    --hash=sha256:453cbbbe5ce6db38717d282b758b917de84802af4288910c12442984bde7b823 \
-    --hash=sha256:a8a07f84e680482eb51e244370aaf2caa6301ef265f37c2bdefb3dd3b663f99d
+pytest==3.8.2 \
+    --hash=sha256:7e258ee50338f4e46957f9e09a0f10fb1c2d05493fa901d113a8dafd0790de4e \
+    --hash=sha256:9332147e9af2dcf46cd7ceb14d5acadb6564744ddff1fe8c17f0ce60ece7d9a2
 python-dateutil==2.7.3 \
     --hash=sha256:1adb80e7a782c12e52ef9a8182bebeb73f1d7e24e374397af06fb4956c8dc5c0 \
     --hash=sha256:e27001de32f627c22380a688bcc43ce83504a7bc5da472209b4c70f02829f0b8
