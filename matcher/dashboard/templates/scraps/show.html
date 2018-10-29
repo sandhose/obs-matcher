@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% import "macros.html" as m %}
 
+{% block title %}Scrap #{{ scrap.id }} ({{ scrap.platform.slug }}, {{ scrap.date.strftime("%Y/%m/%d") }}) • Scraping{% endblock %}
+
 {% block content %}
   <div class="row">
     <div class="col-4">
