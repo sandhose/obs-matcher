@@ -1,5 +1,0 @@
-scrapy
-requests
-isodate
-treq
-celery[redis]

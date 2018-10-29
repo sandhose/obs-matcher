@@ -36,14 +36,6 @@ services:
       traefik.frontend.rule: Host:flower.test
       traefik.docker.network: proxy
 
-  scrapyd:
-    networks:
-      - internal
-      - proxy
-    labels:
-      traefik.frontend.rule: Host:scrapyd.test
-      traefik.docker.network: proxy
-
   worker:
     command: >
       watchmedo auto-restart -D -R -p "**/*.py" -- celery worker -A matcher:celery -P gevent -l info -E --uid nobody --gid nobody

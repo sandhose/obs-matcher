@@ -92,23 +92,9 @@ services:
     networks:
       - internal
 
-  scrapyd:
-    build: ./scrapyd
-    image: sandhose/obs-scrapyd:latest
-    volumes:
-      - scrapy:/var/lib/scrapyd
-    networks:
-      - internal
-      - proxy
-    labels:
-      - traefik.frontend.rule=Host:scrapyd.test
-      - traefik.docker.network=proxy
-      - traefik.enable=true
-
 volumes:
   redis:
   postgres:
-  scrapy:
   data:
 
 secrets:
