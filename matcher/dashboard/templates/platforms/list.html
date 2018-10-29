@@ -11,11 +11,7 @@
           <h4 class="card-title">Filters</h4>
         </div>
 
-        {% call m.render_form(filter_form, class_="card-body", action="GET") %}
-          {{ m.render_field(filter_form.search) }}
-          {{ m.render_field(filter_form.type, field_class="select2") }}
-          {{ m.render_field(filter_form.country, field_class="select2") }}
-        {% endcall %}
+        {{ m.render_form(filter_form, class_="card-body", action="GET") }}
       </div>
     </div>
     <div class="col-12 col-md">

@@ -1,5 +1,5 @@
 <div class="card mt-5">
-  <a href="#">
+  <a href="{{ url_for('.platform_list', group=group.id) }}">
     <div class="card-header card-header-primary">
       <h4 class="card-title d-flex justify-content-between">
         <span>Group <b>{{ group.name }}</b></span>

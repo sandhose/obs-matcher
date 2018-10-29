@@ -7,7 +7,7 @@ from sqlalchemy.orm import joinedload, undefer
 
 from matcher.mixins import DbMixin
 from matcher.scheme.object import ExternalObject, ObjectLink
-from matcher.scheme.platform import Platform, Scrap
+from matcher.scheme.platform import Platform, PlatformGroup, Scrap
 from matcher.utils import apply_ordering, parse_ordering
 
 from ..forms.platforms import PlatformListFilter
@@ -19,6 +19,7 @@ class PlatformListView(View, DbMixin):
     def dispatch_request(self):
         form = PlatformListFilter(request.args)
         form.country.query = self.query(Platform.country).group_by(Platform.country).order_by(Platform.country)
+        form.group.query = self.query(PlatformGroup).order_by(PlatformGroup.name)
         query = self.query(Platform).\
             options(undefer(Platform.links_count),
                     joinedload(Platform.group))
@@ -41,6 +42,9 @@ class PlatformListView(View, DbMixin):
 
             if form.country.data:
                 query = query.filter(Platform.country.in_(form.country.data))
+
+            if form.group.data:
+                query = query.filter(Platform.group_id.in_(group.id for group in form.group.data))
 
         ctx = {}
         ctx['ordering'] = request.args.get('ordering', None, str)
