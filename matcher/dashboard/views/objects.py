@@ -2,8 +2,9 @@ import re
 
 from flask import render_template, request
 from flask.views import View
-from sqlalchemy import func
-from sqlalchemy.orm import contains_eager, joinedload, lazyload, undefer
+from sqlalchemy import func, or_
+from sqlalchemy.orm import (aliased, contains_eager, joinedload, lazyload,
+                            undefer,)
 
 from matcher.mixins import DbMixin
 from matcher.scheme.enums import ExternalObjectType
@@ -39,10 +40,10 @@ class ObjectListView(View, DbMixin):
             query = query.join(ExternalObject.links)
 
         if form.session.data or form.scrap.data:
-            query = query.join(ObjectLink.scraps)
+            query = query.outerjoin(ObjectLink.scraps)
 
         if form.session.data or form.import_file.data:
-            query = query.join(ObjectLink.imports)
+            query = query.outerjoin(ObjectLink.imports)
 
         if form.search.data or form.country.data:
             query = query.join(ExternalObject.attributes).\
@@ -79,8 +80,13 @@ class ObjectListView(View, DbMixin):
             query = query.filter(ImportFile.id == form.import_file.data)
 
         if form.session.data:
-            query = query.join(Scrap.sessions).\
-                filter(Session.id.in_(s.id for s in form.session.data))
+            session_ids = [s.id for s in form.session.data]
+            scrap_sessions = aliased(Session)
+            file_sessions = aliased(Session)
+            query = query.\
+                outerjoin(scrap_sessions, Scrap.sessions).\
+                outerjoin(file_sessions, ImportFile.sessions).\
+                filter(or_(scrap_sessions.id.in_(session_ids), file_sessions.id.in_(session_ids)))
 
         if form.object_link.platform.data and form.object_link.external_id.data:
             query = query.filter(ObjectLink.platform == form.object_link.platform.data,
