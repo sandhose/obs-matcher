@@ -32,7 +32,7 @@ def upgrade():
             FROM value
             JOIN vw_value_score ON value.id = vw_value_score.value_id
             WHERE value.type = 'TITLE'
-               OR value.type = 'DATE' AND (value.text ~ '^[1-2]\d\d\d$')
+               OR value.type = 'DATE' AND (value.text ~ '^[1-2]\\d\\d\\d$')
                OR value.type = 'GENRES'
                OR value.type = 'DURATION' AND (value.text ~ '^[0-9.]+$')
                OR value.type = 'NAME'

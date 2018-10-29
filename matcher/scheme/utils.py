@@ -16,7 +16,7 @@ from matcher.exceptions import InvalidTransition
 class Transition(object):
     __slots__ = 'name', 'to_state', 'from_states', '__doc__'
 
-    def __init__(self, name: str, from_states: List[Optional[int]], to_state: int, doc: str="") -> None:
+    def __init__(self, name: str, from_states: List[Optional[int]], to_state: int, doc: str = "") -> None:
         self.name = name
         self.to_state = to_state
         self.from_states = from_states
