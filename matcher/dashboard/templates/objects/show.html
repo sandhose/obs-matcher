@@ -53,7 +53,7 @@
           </dl>
         </div>
         <div class="card-footer">
-          <span class="text-muted">See bellow for details</span>
+          <span class="text-muted">First three of each attribute shown, see bellow for details</span>
         </div>
       </div>
     </div>
@@ -62,14 +62,14 @@
       <div class="card">
         <div class="card-header card-header-info d-flex justify-content-between align-items-center">
           <h4 class="card-title">Presence</h4>
-          <a class="btn btn-white btn-sm" href="#">
+          <a class="btn btn-white btn-sm" href="#presence-details">
             Details
           </a>
         </div>
         <div class="card-body table-responsive">
           <table class="table">
             <tbody>
-              {% for link in object.links %}
+              {% for link in object.links | sort(attribute='platform.name') %}
                 <tr>
                   <td>
                     <a href="{{ url_for('.show_platform', slug=link.platform.slug) }}">
@@ -130,6 +130,74 @@
                     <i>{{ value.score }}</i>
                   </td>
                 </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="card card-plain" id="presence-details">
+        <div class="card-header card-header-success">
+          <h4>Presence details</h4>
+          <p class="card-category">The files and scraps in which this object was found</p>
+        </div>
+        <div class="card-body table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Platform</th>
+                <th>ID</th>
+                <th>Where</th>
+                <th>Date</th>
+              </tr>
+            <tbody>
+              {% for link in object.links | sort(attribute='platform.name') %}
+                {% for file in link.imports %}
+                  <tr>
+                    <td>
+                      <a href="{{ url_for('.show_platform', slug=link.platform.slug) }}">
+                        {{ link.platform.name }}
+                      </a>
+                    </td>
+                    <td class="td-actions">
+                      <span class="text-monospace">
+                        {{ link.external_id }}
+                      </span>
+                      {% if link.url %}
+                        <a href="{{ link.url }}" class="btn btn-sm btn-link">
+                          <i class="material-icons">arrow_forward</i>
+                        </a>
+                      {% endif %}
+                    </td>
+                    <td><a href="{{ url_for(".show_import_file", id=file.id) }}">Import #{{ file.id }}</a></td>
+                    <td>{{ file.last_activity | relative_date }}</td>
+                  </tr>
+                {% endfor %}
+                {% for scrap in link.scraps %}
+                  <tr>
+                    <td>
+                      <a href="{{ url_for('.show_platform', slug=link.platform.slug) }}">
+                        {{ link.platform.name }}
+                      </a>
+                    </td>
+                    <td class="td-actions">
+                      <span class="text-monospace">
+                        {{ link.external_id }}
+                      </span>
+                      {% if link.url %}
+                        <a href="{{ link.url }}" class="btn btn-sm btn-link">
+                          <i class="material-icons">arrow_forward</i>
+                        </a>
+                      {% endif %}
+                    </td>
+                    <td><a href="{{ url_for(".show_scrap", id=scrap.id) }}">Scrap #{{ scrap.id }}</a></td>
+                    <td>{{ scrap.date | relative_date }}</td>
+                  </tr>
+                {% endfor %}
               {% endfor %}
             </tbody>
           </table>

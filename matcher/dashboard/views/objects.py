@@ -104,7 +104,9 @@ class ShowObjectView(View, DbMixin):
         external_object = self.query(ExternalObject).options(
             joinedload(ExternalObject.attributes),
             lazyload(ExternalObject.values).joinedload(Value.sources).joinedload(ValueSource.platform),
-            lazyload(ExternalObject.links).joinedload(ObjectLink.platform)
+            lazyload(ExternalObject.links).joinedload(ObjectLink.platform),
+            lazyload(ExternalObject.links).joinedload(ObjectLink.scraps),
+            lazyload(ExternalObject.links).joinedload(ObjectLink.imports).undefer(ImportFile.last_activity)
         ).get_or_404(id)
 
         ctx = {}
