@@ -8,6 +8,7 @@ from sqlalchemy.orm import joinedload, undefer
 from matcher.mixins import DbMixin
 from matcher.scheme.object import ExternalObject, ObjectLink
 from matcher.scheme.platform import Platform, Scrap
+from matcher.utils import apply_ordering, parse_ordering
 
 from ..forms.platforms import PlatformListFilter
 
@@ -20,8 +21,16 @@ class PlatformListView(View, DbMixin):
         form.country.query = self.query(Platform.country).group_by(Platform.country).order_by(Platform.country)
         query = self.query(Platform).\
             options(undefer(Platform.links_count),
-                    joinedload(Platform.group)).\
-            order_by(Platform.id)
+                    joinedload(Platform.group))
+
+        ordering_key, ordering_direction = parse_ordering(request.args.get('ordering', None, str))
+        query = apply_ordering({
+            'name': Platform.name,
+            'slug': Platform.slug,
+            'country': Platform.country,
+            'links': Platform.links_count,
+            None: Platform.id
+        }, query, key=ordering_key, direction=ordering_direction)
 
         if form.validate():
             if form.search.data:
@@ -34,6 +43,7 @@ class PlatformListView(View, DbMixin):
                 query = query.filter(Platform.country.in_(form.country.data))
 
         ctx = {}
+        ctx['ordering'] = request.args.get('ordering', None, str)
         ctx['filter_form'] = form
         ctx['page'] = query.paginate()
 

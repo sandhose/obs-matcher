@@ -1,8 +1,9 @@
 import fcntl
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Optional, Tuple
 
 from flask import current_app
+from sqlalchemy import desc
 
 
 class Lock():
@@ -44,3 +45,23 @@ def _data_path(prefix: str) -> Callable[[], Path]:
 
 export_path = _data_path('exports')
 import_path = _data_path('imports')
+
+
+def parse_ordering(ordering: Optional[str]) -> Tuple[Optional[str], Optional[str]]:
+    if not ordering:
+        return (None, None)
+
+    [key, direction] = ordering.rsplit('-', 1)
+    return (key, direction)
+
+
+def apply_ordering(order_map, query, key=None, direction='asc'):
+    col = order_map.get(key, None)
+    if col is None:
+        return query
+    print(col)
+
+    if direction == 'desc':
+        col = desc(col)
+
+    return query.order_by(col)

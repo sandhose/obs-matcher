@@ -20,8 +20,8 @@
             <thead class="text-primary">
               <tr>
                 <th>Status</th>
-                <th>Last activity</th>
-                <th>Name</th>
+                <th>{{ m.render_ordering_link("date", "Last activity", ordering=ordering, args=query) }}</th>
+                <th>{{ m.render_ordering_link("filename", "Name", ordering=ordering, args=query) }}</th>
                 <th></th>
               </tr>
             </thead>

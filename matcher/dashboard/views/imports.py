@@ -9,6 +9,7 @@ from matcher.mixins import CeleryMixin, DbMixin
 from matcher.scheme.enums import ImportFileStatus
 from matcher.scheme.import_ import ImportFile
 from matcher.scheme.platform import Platform, Session
+from matcher.utils import apply_ordering, parse_ordering
 
 from ..forms.imports import EditImport, UploadImport
 
@@ -41,10 +42,17 @@ class ImportFileListView(View, DbMixin):
             return redirect(url_for('.show_import_file', id=file.id))
 
         query = self.query(ImportFile)\
-            .options(undefer(ImportFile.last_activity))\
-            .order_by(ImportFile.id)
+            .options(undefer(ImportFile.last_activity))
+
+        ordering_key, ordering_direction = parse_ordering(request.args.get('ordering', None, str))
+        query = apply_ordering({
+            'date': ImportFile.last_activity,
+            'filename': ImportFile.filename,
+            None: ImportFile.id
+        }, query, key=ordering_key, direction=ordering_direction)
 
         ctx = {}
+        ctx['ordering'] = request.args.get('ordering', None, str)
         ctx['page'] = query.paginate()
         ctx['upload_form'] = form
 

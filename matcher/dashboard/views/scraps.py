@@ -6,6 +6,7 @@ from matcher.mixins import DbMixin
 from matcher.scheme.enums import ExternalObjectType
 from matcher.scheme.object import ExternalObject, ObjectLink
 from matcher.scheme.platform import Platform, Scrap, Session, session_scrap
+from matcher.utils import apply_ordering, parse_ordering
 
 from ..forms.scraps import EditScrapForm, ScrapListFilter
 
@@ -19,8 +20,13 @@ class ScrapListView(View, DbMixin):
         form.sessions.query = self.query(Session)
 
         query = self.query(Scrap).\
-            options(joinedload(Scrap.platform)).\
-            order_by(Scrap.id)
+            options(joinedload(Scrap.platform))
+
+        ordering_key, ordering_direction = parse_ordering(request.args.get('ordering', None, str))
+        query = apply_ordering({
+            'date': Scrap.date,
+            None: Scrap.id
+        }, query, key=ordering_key, direction=ordering_direction)
 
         if form.validate():
             if form.platforms.data:
@@ -39,6 +45,7 @@ class ScrapListView(View, DbMixin):
 
         ctx = {}
         ctx['filter_form'] = form
+        ctx['ordering'] = request.args.get('ordering', None, str)
         ctx['page'] = query.paginate()
 
         return render_template('scraps/list.html', **ctx)

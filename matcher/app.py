@@ -112,6 +112,7 @@ def create_app(info=None):
     app.url_map.strict_slashes = False  # Trailing slashes are not required
     db.init_app(app)
 
+    app.jinja_env.add_extension('jinja2.ext.do')
     register_filters(app)
 
     DebugToolbarExtension(app=app)

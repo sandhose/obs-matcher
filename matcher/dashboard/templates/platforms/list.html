@@ -25,11 +25,11 @@
             <thead class="text-primary">
               <tr>
                 <th>Type</th>
-                <th>Name</th>
-                <th>Slug</th>
+                <th>{{ m.render_ordering_link("name", "Name", ordering=ordering, args=query) }}</th>
+                <th>{{ m.render_ordering_link("slug", "Slug", ordering=ordering, args=query) }}</th>
                 <th>Group</th>
-                <th>Country</th>
-                <th>Links</th>
+                <th>{{ m.render_ordering_link("country", "Country", ordering=ordering, args=query) }}</th>
+                <th>{{ m.render_ordering_link("links", "Links", ordering=ordering, args=query) }}</th>
                 <th></th>
               </tr>
             </thead>

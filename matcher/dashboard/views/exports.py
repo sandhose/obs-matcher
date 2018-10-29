@@ -9,6 +9,7 @@ from matcher.mixins import CeleryMixin, DbMixin
 from matcher.scheme.enums import PlatformType
 from matcher.scheme.export import ExportFactory, ExportFile, ExportTemplate
 from matcher.scheme.platform import Platform, PlatformGroup, Session
+from matcher.utils import apply_ordering, parse_ordering
 
 from ..forms.exports import (ExportFactoryListFilter, ExportFileFilter,
                              NewExportFileForm,)
@@ -57,8 +58,14 @@ class ExportFileListView(View, DbMixin):
 
         query = self.query(ExportFile)\
             .join(ExportFile.template)\
-            .options(undefer(ExportFile.last_activity))\
-            .order_by(ExportFile.id)
+            .options(undefer(ExportFile.last_activity))
+
+        ordering_key, ordering_direction = parse_ordering(request.args.get('ordering', None, str))
+        query = apply_ordering({
+            'date': ExportFile.last_activity,
+            'filename': ExportFile.path,
+            None: ExportFile.id
+        }, query, key=ordering_key, direction=ordering_direction)
 
         if form.validate():
             if form.status.data:
@@ -80,6 +87,7 @@ class ExportFileListView(View, DbMixin):
                 query = query.filter(ExportFile.session_id.in_(s.id for s in form.session.data))
 
         ctx = {}
+        ctx['ordering'] = request.args.get('ordering', None, str)
         ctx['page'] = query.paginate()
         ctx['filter_form'] = form
         ctx['export_file_filter_cache'] = build_filter_cache(ctx['page'].items, self.session)

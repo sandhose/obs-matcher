@@ -1,6 +1,5 @@
 {% macro render_pagination(pagination, endpoint=request.url_rule.endpoint, args={}) %}
   <nav>
-    {{ query }}
     <ul class="pagination">
     {%- for page in pagination.iter_pages() %}
       {% if page %}
@@ -13,6 +12,30 @@
     {%- endfor %}
     </ul>
   </nav>
+{% endmacro %}
+
+{% macro render_ordering_link(key, display, endpoint=request.url_rule.endpoint, ordering=None, args={}) %}
+  {# first copy the args so we don't mutate them, and pop the args we don't want to keep #}
+  {% set _args = args.copy() %}
+  {% do _args.pop('ordering', None) %}
+  {% do _args.pop('page', None) %}
+  {% do _args.pop('per_page', None) %}
+
+  {# some variables for convenience #}
+  {% set asc = key + '-asc' %}
+  {% set desc = key + '-desc' %}
+
+  {# cycle through the possible orderings #}
+  {% if ordering == asc %}
+    {% set suffix = ' <i class="material-icons">arrow_drop_up</i>' %}
+    {% do _args.update({'ordering': desc}) %}
+  {% elif ordering == desc %}
+    {% set suffix = ' <i class="material-icons">arrow_drop_down</i>' %}
+  {% else %}
+    {% do _args.update({'ordering': asc}) %}
+  {% endif %}
+
+  <a href="{{ url_for(endpoint, **_args) }}">{{ display }}{{ suffix | safe }}</a>
 {% endmacro %}
 
 {% macro render_field(field, label_visible=true) -%}
