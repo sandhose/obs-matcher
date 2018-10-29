@@ -106,7 +106,7 @@
         </div>
         <hr />
         <div class="card-body table-responsive">
-          {% with scraps=last_scraps | reverse %}
+          {% with scraps=last_scraps | reverse, disable_ordering=True %}
             {% include "scraps/_list.html" %}
           {% endwith %}
           <div class="d-flex justify-content-end">

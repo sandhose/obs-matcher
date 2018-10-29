@@ -6,7 +6,11 @@
       <th>Platform</th>
       <th>Status</th>
       <th>Links</th>
-      <th>{{ m.render_ordering_link("date", "Date", ordering=ordering, args=query) }}</th>
+      {% if disable_ordering %}
+        <th>Date</th>
+      {% else %}
+        <th>{{ m.render_ordering_link("date", "Date", ordering=ordering, args=query) }}</th>
+      {% endif %}
       <th></th>
     </tr>
   </thead>

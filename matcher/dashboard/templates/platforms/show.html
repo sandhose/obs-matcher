@@ -71,7 +71,7 @@
     </div>
 
     <div class="col-8">
-      {%- with scraps=platform.scraps[:10] %}
+      {%- with scraps=platform.scraps[:10], disable_ordering=True %}
         <div class="card">
           <div class="card-header card-header-danger">
             <h4 class="card-title">Latest scraps</h4>
