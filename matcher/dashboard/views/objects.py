@@ -54,7 +54,7 @@ class ObjectListView(View, DbMixin):
 
         # Apply the filters
         if form.search.data:
-            q = func.to_tsquery(re.sub(' +', ' & ', form.search.data))
+            q = func.plainto_tsquery(form.search.data)
             query = query.filter(AttributesView.search_vector.op('@@')(q)).\
                 order_by(func.ts_rank(AttributesView.search_vector, q))
         else:
