@@ -464,7 +464,7 @@ class ExternalObject(Base):
         session.commit()
 
         # Then merge the attributes
-        for our_attr in self.values:
+        for our_attr in list(self.values):
             # Lookup for a matching attribute
             their_attr = next((attr for attr in their.values
                                if our_attr.text == attr.text and
