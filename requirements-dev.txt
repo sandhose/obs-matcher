@@ -219,10 +219,6 @@ packaging==18.0 \
     --hash=sha256:0886227f54515e592aaa2e5a553332c73962917f2831f1b0f9b9f4380a4b9807 \
     --hash=sha256:f95a1e147590f204328170981833854229bb2912ac3d5f89e2a8ccd2834800c9 \
     # via sphinx
-pathlib2==2.3.2 \
-    --hash=sha256:8eb170f8d0d61825e09a95b38be068299ddeda82f35e96c3301a8a5e7604cb83 \
-    --hash=sha256:d1aa2a11ba7b8f7b21ab852b1fb5afb277e1bb99d5dfc663380b5015c0d80c5a \
-    # via pytest
 pathtools==0.1.2 \
     --hash=sha256:7c35c5421a39bb82e58018febd90e3b6e5db34c5443aaaf742b3f33d4655f1c0 \
     # via watchdog
@@ -366,8 +362,8 @@ sphinxcontrib-websupport==1.1.0 \
     --hash=sha256:68ca7ff70785cbe1e7bccc71a48b5b6d965d79ca50629606c7861a21b206d9dd \
     --hash=sha256:9de47f375baf1ea07cdb3436ff39d7a9c76042c10a769c52353ec46e4e8fc3b9 \
     # via sphinx
-sqlalchemy==1.2.12 \
-    --hash=sha256:c5951d9ef1d5404ed04bae5a16b60a0779087378928f997a294d1229c6ca4d3e
+sqlalchemy==1.2.13 \
+    --hash=sha256:84412de3794acee05630e7788f25e80e81f78eb4837e7b71d0499129f660486a
 testfixtures==6.3.0 \
     --hash=sha256:334497d26344e8c0c5d01b4d785a1c83464573151e6a5f7ab250eb7981d452ec \
     --hash=sha256:53c06c1feb0bf378d63c54d1d96858978422d5a34793b39f0dcb0e44f8ec26f4 \
