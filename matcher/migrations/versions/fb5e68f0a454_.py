@@ -5,7 +5,6 @@ Revises: 78900b2402ca
 Create Date: 2018-11-15 16:06:58.523989
 
 """
-import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
@@ -20,8 +19,7 @@ def upgrade():
     op.execute(
         "DROP MATERIALIZED VIEW IF EXISTS vw_platform_source_order_by_value_type"
     )
-    op.execute(
-        """\
+    op.execute("""
         CREATE MATERIALIZED VIEW vw_platform_source_order_by_value_type AS
         SELECT value.external_object_id AS val_eo_id,
                value.type AS val_type,
@@ -38,7 +36,7 @@ def upgrade():
              LEFT JOIN platform ON value_source.platform_id = platform.id
           WHERE (
             value.type = 'TITLE'
-            OR value.type = 'DATE' AND value.text ~ '^[1-2]\d\d\d$'
+            OR value.type = 'DATE' AND value.text ~ '^[1-2]\\d\\d\\d$'
             OR value.type = 'GENRES'
             OR value.type = 'DURATION' AND value.text ~ '^[0-9.]+$'
             OR value.type = 'NAME'
@@ -49,16 +47,20 @@ def upgrade():
                    platform.id,
                    platform.name,
                    platform.type
-    """
-    )
-    op.execute(
-        "CREATE UNIQUE INDEX IF NOT EXISTS ix_vw_platform_source_order_by_value_type_eo_type_pl ON vw_platform_source_order_by_value_type USING btree (val_eo_id, val_type, pl_id)"
-    )
-    op.execute(
-        "CREATE INDEX IF NOT EXISTS ix_vw_platform_source_order_by_value_type_order_type_eo ON vw_platform_source_order_by_value_type USING btree (pl_order, val_type, val_eo_id)"
-    )
-    op.execute(
-        """\
+    """)
+    op.execute("""
+        CREATE UNIQUE INDEX
+        IF NOT EXISTS ix_vw_platform_source_order_by_value_type_eo_type_pl
+        ON vw_platform_source_order_by_value_type
+        USING btree (val_eo_id, val_type, pl_id)
+    """)
+    op.execute("""
+        CREATE INDEX
+        IF NOT EXISTS ix_vw_platform_source_order_by_value_type_order_type_eo
+        ON vw_platform_source_order_by_value_type
+        USING btree (pl_order, val_type, val_eo_id)
+    """)
+    op.execute("""
         CREATE MATERIALIZED VIEW vw_attributes AS
         SELECT crosstab.external_object_id,
             crosstab.titles,
@@ -74,13 +76,14 @@ def upgrade():
         FROM crosstab($$
             SELECT value.external_object_id,
                    value.type,
-                   coalesce(array_agg(value.text ORDER BY vw_value_score.score DESC), CAST('{}' AS TEXT[])) AS coalesce_1
+                   coalesce(array_agg(value.text ORDER BY vw_value_score.score DESC),
+                            CAST('{}' AS TEXT[])) AS coalesce_1
             FROM value
             JOIN vw_value_score ON value.id = vw_value_score.value_id
             JOIN value_source ON value.id = value_source.value_id
             WHERE (
                 value.type = 'TITLE'
-                OR value.type = 'DATE' AND (value.text ~ '^[1-2]\d\d\d$')
+                OR value.type = 'DATE' AND (value.text ~ '^[1-2]\\d\\d\\d$')
                 OR value.type = 'GENRES'
                 OR value.type = 'DURATION' AND (value.text ~ '^[0-9.]+$')
                 OR value.type = 'NAME'
@@ -106,11 +109,13 @@ def upgrade():
                      durations double precision[],
                      names text[],
                      countries character(2)[])
-    """
-    )
-    op.execute(
-        "CREATE UNIQUE INDEX IF NOT EXISTS pk_vw_attributes ON vw_attributes USING btree (external_object_id)"
-    )
+    """)
+    op.execute("""
+        CREATE UNIQUE INDEX
+        IF NOT EXISTS pk_vw_attributes
+        ON vw_attributes
+        USING btree (external_object_id)
+    """)
 
 
 def downgrade():

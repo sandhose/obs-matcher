@@ -1,23 +1,8 @@
-from sqlalchemy import (
-    CHAR,
-    Column,
-    Float,
-    Index,
-    Integer,
-    Text,
-    and_,
-    cast,
-    column,
-    func,
-    join,
-    or_,
-    outerjoin,
-    select,
-    table,
-    text,
-    tuple_,
-)
-from sqlalchemy.dialects.postgresql import ARRAY, aggregate_order_by, array, array_agg
+from sqlalchemy import (CHAR, Column, Float, Index, Integer, Text, and_, cast,
+                        column, func, join, or_, outerjoin, select, table,
+                        text, tuple_,)
+from sqlalchemy.dialects.postgresql import (ARRAY, aggregate_order_by, array,
+                                            array_agg,)
 
 from . import Base
 from .enums import PlatformType, ValueType
@@ -39,8 +24,9 @@ class ValueScoreView(Base, ViewMixin):
         )
         .select_from(ValueSource)
         .group_by(ValueSource.value_id),
+        "dependencies": (ValueSource, Platform),
         "materialized": True,
-        "indexes": (Index("pk_vw_attributes", "value_id", unique=True),),
+        "indexes": (Index("pk_vw_value_score", "value_id", unique=True),),
     }
 
 
@@ -62,7 +48,8 @@ class PlatformSourceOrderByValueType(Base, ViewMixin):
         "selectable": select(
             [
                 # we can't reference Value.external_object_id because of it's
-                # relationship with ExternalObject, which depends on AttributesView
+                # relationship with ExternalObject, which depends on
+                # AttributesView
                 Column("external_object_id").label("val_eo_id"),
                 Value.type.label("val_type"),
                 Platform.id.label("pl_id"),
@@ -78,9 +65,8 @@ class PlatformSourceOrderByValueType(Base, ViewMixin):
             ]
         )
         .select_from(
-            outerjoin(Value, ValueSource, Value.id == ValueSource.value_id).outerjoin(
-                Platform, ValueSource.platform_id == Platform.id
-            )
+            outerjoin(Value, ValueSource, Value.id == ValueSource.value_id).
+            outerjoin(Platform, ValueSource.platform_id == Platform.id)
         )
         .where(and_(_attribute_filter, ValueSource.value_id.isnot(None)))
         .group_by(
@@ -91,6 +77,7 @@ class PlatformSourceOrderByValueType(Base, ViewMixin):
             Platform.type,
         ),
         "materialized": True,
+        "dependencies": (Platform, Value, ValueSource),
         "indexes": (
             Index(
                 "ix_vw_platform_source_order_by_value_type_eo_type_pl",
@@ -180,10 +167,8 @@ class AttributesView(Base, ViewMixin):
                                 and_(
                                     PlatformSourceOrderByValueType.pl_order == 1,
                                     or_(
-                                        PlatformSourceOrderByValueType.pl_type
-                                        == PlatformType.INFO,
-                                        PlatformSourceOrderByValueType.val_type
-                                        == ValueType.TITLE,
+                                        PlatformSourceOrderByValueType.pl_type == PlatformType.INFO,
+                                        PlatformSourceOrderByValueType.val_type == ValueType.TITLE,
                                     ),
                                 )
                             )
@@ -205,6 +190,8 @@ class AttributesView(Base, ViewMixin):
                 auto_order=False,
             )
         ),
+        "dependencies": (Value, ValueScoreView, ValueSource,
+                         PlatformSourceOrderByValueType),
         "materialized": True,
         "indexes": (Index("pk_vw_attributes", "external_object_id", unique=True),),
     }

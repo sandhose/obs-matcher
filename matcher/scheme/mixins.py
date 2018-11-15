@@ -91,9 +91,7 @@ def _visit_view(
 
         if use_schema and effective_schema:
             ret = (
-                self.preparer.quote_schema(effective_schema)
-                + "."
-                + self.preparer.quote(view.name)
+                self.preparer.quote_schema(effective_schema) + "." + self.preparer.quote(view.name)
             )
         else:
             ret = self.preparer.quote(view.name)
@@ -131,6 +129,12 @@ class ViewClause(SchemaItem, TableClause, Visitable):
     def __init__(self, *args, **kwargs):
         pass
 
+    @property
+    def key(self):
+        if self.schema is None:
+            return self.name
+        return self.schema + '.' + self.name
+
     def _init(self, name, metadata, selectable, **kwargs):
         super(ViewClause, self).__init__(quoted_name(name, kwargs.pop("quote", None)))
         self.metadata = metadata
@@ -152,6 +156,12 @@ class ViewClause(SchemaItem, TableClause, Visitable):
             self.fullname = self.name
 
         self.comment = kwargs.pop("comment", None)
+
+        for t in kwargs.pop("dependencies", []):
+            if hasattr(t, "__table__"):
+                self._extra_dependencies.add(t.__table__)
+            else:
+                self._extra_dependencies.add(t)
 
         if "info" in kwargs:
             self.info = kwargs.pop("info")

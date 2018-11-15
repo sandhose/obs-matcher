@@ -30,7 +30,7 @@ def app():
 
     with app.app_context():
         _db.engine.execute(text('CREATE EXTENSION IF NOT EXISTS tablefunc'))
-        Base.metadata.create_all(bind=_db.engine)
+        Base.metadata.create_all(bind=_db.engine, checkfirst=True)
 
         yield app
 
@@ -43,7 +43,8 @@ def app():
 def db(app):
     _db.session.remove()
     table_names = [table.name for table in
-                   reversed(Base.metadata.sorted_tables)]
+                   reversed(Base.metadata.sorted_tables)
+                   if not table.name.startswith('vw_')]
     _db.session.execute('TRUNCATE TABLE {}'.format(','.join(table_names)))
     _db.session.commit()
     return _db

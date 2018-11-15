@@ -1,5 +1,3 @@
-import re
-
 from flask import render_template, request
 from flask.views import View
 from sqlalchemy import func, or_
