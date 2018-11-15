@@ -374,7 +374,7 @@ class ExternalObject(Base):
                 raise ExternalIDMismatchError(existing_link, external_id)
 
     @staticmethod
-    def lookup_or_create(obj_type, links, session):
+    def lookup_or_create(obj_type, links, session, external_object_id=None):
         """Lookup for an object from its links.
 
         Parameters
@@ -395,6 +395,15 @@ class ExternalObject(Base):
                 external_object = ExternalObject.lookup_from_links(links)
             except AmbiguousLinkError as err:
                 external_object = err.resolve(session)
+
+            if external_object_id is not None:
+                other = session.query(ExternalObject).get(external_object_id)
+
+                if other is not None:
+                    if external_object is None:
+                        external_object = other
+                    else:
+                        external_object = external_object.merge_and_delete(other, session)
 
             if external_object is None:
                 # There's no existing links, we shall create a new object
@@ -690,6 +699,7 @@ class ExternalObject(Base):
         obj = ExternalObject.lookup_or_create(
             obj_type=data['type'],
             links=data['links'],
+            external_object_id=data['external_object_id'],
             session=session,
         )
 
@@ -782,6 +792,9 @@ class ExternalObject(Base):
             # str
             'relation': None,
 
+            # int
+            'external_object_id': None,
+
             # dict<str, any>
             'meta': {}
         }
@@ -812,6 +825,12 @@ class ExternalObject(Base):
 
         if 'meta' in raw and raw['meta'] is not None:
             data['meta'] = raw['meta']
+
+        if 'external_object_id' in raw and raw['external_object_id'] is not None:
+            try:
+                data['external_object_id'] = int(raw['external_object_id'])
+            except ValueError:
+                pass
 
         return data
 
