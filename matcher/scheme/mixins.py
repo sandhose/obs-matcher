@@ -1,97 +1,202 @@
 from sqlalchemy import event
 from sqlalchemy.ext import compiler
-from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.schema import DDLElement
-from sqlalchemy.sql import table
+from sqlalchemy.schema import DDLElement, SchemaItem
+from sqlalchemy.sql import ColumnCollection
+from sqlalchemy.sql.compiler import SQLCompiler
+from sqlalchemy.sql.ddl import CreateIndex, DDLBase
+from sqlalchemy.sql.elements import quoted_name
+from sqlalchemy.sql.selectable import TableClause
+from sqlalchemy.sql.visitors import Visitable
 
 
 class CreateView(DDLElement):
     __visit_name__ = "create_view"
 
-    def __init__(self, name, selectable, materialized=False):
-        self.name = name
-        self.selectable = selectable
-        self.materialized = materialized
+    def __init__(self, element):
+        self.element = element
 
 
 class DropView(DDLElement):
     __visit_name__ = "drop_view"
 
-    def __init__(self, name, materialized=False):
-        self.name = name
-        self.materialized = materialized
+    def __init__(self, element):
+        self.element = element
+
+
+class RefreshMaterializedView(DDLElement):
+    __visit_name__ = "refresh_materialized_view"
+
+    def __init__(self, element):
+        self.element = element
 
 
 @compiler.compiles(CreateView)
 def compile_create_view(element, compiler, **kw):
-    f = "CREATE MATERIALIZED VIEW IF NOT EXISTS {name} AS {selectable}" if element.materialized \
+    f = (
+        "CREATE MATERIALIZED VIEW IF NOT EXISTS {name} AS {selectable}"
+        if element.element.materialized
         else "CREATE VIEW OR REPLACE {name} AS {selectable}"
+    )
 
     return f.format(
-        name=element.name,
-        selectable=compiler.sql_compiler.process(element.selectable, literal_binds=True)
+        name=element.element.fullname,
+        selectable=compiler.sql_compiler.process(
+            element.element.selectable, literal_binds=True
+        ),
     )
 
 
 @compiler.compiles(DropView)
 def compile_drop_view(element, compiler, **kw):
     return "DROP {type} IF EXISTS {name}".format(
-        type=('MATERIALIZED VIEW' if element.materialized else 'VIEW'),
-        name=element.name,
+        type=("MATERIALIZED VIEW" if element.element.materialized else "VIEW"),
+        name=element.element.fullname,
     )
 
 
-_views_registry = {}
+@compiler.compiles(RefreshMaterializedView)
+def compile_refresh_materialized_view(element, compiler, **kw):
+    return "REFRESH MATERIALIZED VIEW {name}".format(name=element.element.fullname)
+
+
+class CreateViewVisitor(DDLBase):
+    def visit_view(self, view, **kw):
+        self.connection.execute(CreateView(view))
+
+        if hasattr(view, "indexes"):
+            for index in view.indexes:
+                self.traverse_single(index)
+
+    def visit_index(self, index):
+        self.connection.execute(CreateIndex(index))
+
+
+class DropViewVisitor(DDLBase):
+    def visit_view(self, view, **kw):
+        self.connection.execute(DropView(view))
+
+
+def _visit_view(
+    self,
+    view,
+    asfrom=False,
+    iscrud=False,
+    ashint=False,
+    fromhints=None,
+    use_schema=True,
+    **kwargs
+):
+    if asfrom or ashint:
+        effective_schema = self.preparer.schema_for_object(view)
+
+        if use_schema and effective_schema:
+            ret = (
+                self.preparer.quote_schema(effective_schema)
+                + "."
+                + self.preparer.quote(view.name)
+            )
+        else:
+            ret = self.preparer.quote(view.name)
+        if fromhints and view in fromhints:
+            ret = self.format_from_hint_text(ret, view, fromhints[view], iscrud)
+        return ret
+    else:
+        return ""
+
+
+SQLCompiler.visit_view = _visit_view  # Monkey-patch SQLCompiler
+
+
+_hooked_metadatas = set()
 
 
 def _register_views_hooks(metadata):
-    # This creates hooks to create and drop in the right order.
-    # The views are created in the order they were declared, and dropped in the reversed order.
-    drop_views = []
-    create_views = []
+    # This hooks on the metadata creation to add a new visitor that creates the
+    # views
+    @event.listens_for(metadata, "before_create")
+    def before_create(target, connection, _ddl_runner=None, **kw):
+        _ddl_runner.chain(CreateViewVisitor(connection=_ddl_runner.connection))
 
-    @event.listens_for(metadata, 'after_create')
-    def after_create(target, connection, **kw):
-        for ddl in create_views:
-            connection.execute(ddl)
+    @event.listens_for(metadata, "before_drop")
+    def before_drop(target, connection, _ddl_runner=None, **kw):
+        _ddl_runner.chain(DropViewVisitor(connection=_ddl_runner.connection))
 
-    @event.listens_for(metadata, 'before_drop')
-    def before_drop(target, connection, **kw):
-        for ddl in reversed(drop_views):
-            connection.execute(ddl)
-
-    return dict(drop=drop_views, create=create_views)
+    _hooked_metadatas.add(metadata)
 
 
-def view(name, metadata, selectable, materialized=False):
-    t = table(name)
+class ViewClause(SchemaItem, TableClause, Visitable):
+    __visit_name__ = "view"
+    selectable = None
 
-    for c in selectable.c:
-        c._make_proxy(t)
+    def __init__(self, *args, **kwargs):
+        pass
 
-    if metadata not in _views_registry:
-        _views_registry[metadata] = _register_views_hooks(metadata)
+    def _init(self, name, metadata, selectable, **kwargs):
+        super(ViewClause, self).__init__(quoted_name(name, kwargs.pop("quote", None)))
+        self.metadata = metadata
 
-    _views_registry[metadata]['create'].append(CreateView(name, selectable, materialized))
-    _views_registry[metadata]['drop'].append(DropView(name, materialized))
-    return t
+        if metadata not in _hooked_metadatas:
+            _register_views_hooks(metadata)
+
+        self.schema = kwargs.pop("schema", metadata.schema)
+
+        self.indexes = set()
+        self.constraints = set()
+        self._columns = ColumnCollection()
+        self.foreign_keys = set()
+        self.foreign_key_constraints = set()
+        self._extra_dependencies = set()
+        if self.schema is not None:
+            self.fullname = "%s.%s" % (self.schema, self.name)
+        else:
+            self.fullname = self.name
+
+        self.comment = kwargs.pop("comment", None)
+
+        if "info" in kwargs:
+            self.info = kwargs.pop("info")
+        if "listeners" in kwargs:
+            listeners = kwargs.pop("listeners")
+            for evt, fn in listeners:
+                event.listen(self, evt, fn)
+
+        self._prefixes = kwargs.pop("prefixes", [])
+
+        self.selectable = selectable
+        self.materialized = kwargs.pop("materialized", False)
+        for c in self.selectable.c:
+            c._make_proxy(self)
+
+        indexes = kwargs.pop("indexes", [])
+        for index in indexes:
+            index._set_parent(self)
+
+    def __new__(cls, *args, **kw):
+        if not args:
+            # python3k pickle seems to call this
+            return object.__new__(cls)
+
+        try:
+            name, metadata, args = args[0], args[1], args[2:]
+        except IndexError:
+            raise TypeError("Table() takes at least two arguments")
+
+        schema = kw.get("schema", metadata.schema)
+
+        table = object.__new__(cls)
+        table.dispatch.before_parent_attach(table, metadata)
+        metadata._add_table(name, schema, table)
+        table._init(name, metadata, *args, **kw)
+        table.dispatch.after_parent_attach(table, metadata)
+        return table
 
 
 class ViewMixin(object):
-    __materialized__ = False
-
-    @declared_attr
-    def __table__(cls):
-        if not hasattr(cls, '__selectable__'):
-            raise Exception("need selectable")
-
-        return view(cls.__tablename__, cls.metadata, cls.__selectable__, cls.__materialized__)
+    __table_cls__ = ViewClause
 
     @classmethod
     def refresh(cls, session, concurrently=True):
-        if not cls.__materialized__:
-            raise Exception('only materialized views should be refreshed')
+        if not cls.__table__.materialized:
+            raise Exception("only materialized views should be refreshed")
         session.flush()
-        session.execute('REFRESH MATERIALIZED VIEW{opts} {name}'
-                        .format(opts=(' CONCURRENTLY' if concurrently else ''),
-                                name=cls.__table__.fullname))
+        session.execute(RefreshMaterializedView(cls.__table__))
