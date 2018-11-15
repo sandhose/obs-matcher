@@ -104,9 +104,9 @@ flask-admin==1.5.2 \
 flask-debugtoolbar==0.10.1 \
     --hash=sha256:3d9657bc0c3633ace429e3ff451742bb59d1b7a7b95c9eb23a65ac9be2812959 \
     --hash=sha256:ec810083123aae0632eb32ba11e1cb4cdace81e7ce6c5009dd06c5204afbce52
-flask-injector==0.10.1 \
-    --hash=sha256:df12eee64027f86fd6ca46f1e324d938277035ded79a104426bf93eadac2a9a8 \
-    --hash=sha256:e5436ba5637ce049e72bf2868ad0fe086beeb7e00b1bd47d6b356931be4f8076
+flask-injector==0.11.0 \
+    --hash=sha256:a3ea0c21f3f19b15d71b47c615c95a059777908d0e33f4cc525c7cfb5c134d5f \
+    --hash=sha256:c164a5456b38969c7700d186bde3dcc6d28b9589718a731c58b05d042c1ef3cc
 flask-migrate==2.3.0 \
     --hash=sha256:a25b3d2d2bb0f0724f104afbadae888a4b942e7221b451f720c69698d4863da7 \
     --hash=sha256:cb7d7b37feb68e3a8769aaf7a3954ecbdcd9bdeef8f21cede9eaa07c813f8af9
