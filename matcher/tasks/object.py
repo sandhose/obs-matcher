@@ -2,7 +2,7 @@ from matcher import celery
 from matcher.app import db
 from matcher.scheme.object import ExternalObject
 from matcher.scheme.platform import Scrap
-from matcher.scheme.views import AttributesView, ValueScoreView
+from matcher.scheme.views import AttributesView, PlatformSourceOrderByValueType, ValueScoreView
 
 
 @celery.task
@@ -21,5 +21,6 @@ def insert_dict(data, scrap_id):
 @celery.task
 def refresh_attributes():
     ValueScoreView.refresh(session=db.session, concurrently=True)
+    PlatformSourceOrderByValueType.refresh(session=db.session, concurrently=True)
     AttributesView.refresh(session=db.session, concurrently=True)
     db.session.commit()
