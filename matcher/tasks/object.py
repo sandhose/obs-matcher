@@ -1,11 +1,15 @@
+from sqlalchemy.exc import ResourceClosedError
+
 from matcher import celery
 from matcher.app import db
 from matcher.scheme.object import ExternalObject
 from matcher.scheme.platform import Scrap
-from matcher.scheme.views import AttributesView, PlatformSourceOrderByValueType, ValueScoreView
+from matcher.scheme.views import (AttributesView,
+                                  PlatformSourceOrderByValueType,
+                                  ValueScoreView,)
 
 
-@celery.task
+@celery.task(autoretry_for=(ResourceClosedError, ), max_retries=5)
 def insert_dict(data, scrap_id):
     scrap = db.session.query(Scrap).get(scrap_id)
     assert scrap
