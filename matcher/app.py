@@ -4,6 +4,7 @@ import os
 
 from alembic.migration import MigrationContext
 from celery import Celery, Task
+from celery.signals import task_postrun
 from celery_once import QueueOnce
 from flask import Flask
 from flask.cli import FlaskGroup
@@ -62,6 +63,17 @@ class CeleryModule(Module):
 
         celery.Task = ContextTask
         celery.OnceTask = OnceTask
+
+        def handle_celery_postrun(retval=None, *args, **kwargs):
+            """After each Celery task, teardown our db session"""
+            if app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN']:
+                if not isinstance(retval, Exception):
+                    db.session.commit()
+            # If we aren't in an eager request (i.e. Flask will perform teardown), then teardown
+            if not app.config['CELERY_ALWAYS_EAGER']:
+                db.session.remove()
+
+        task_postrun.connect(handle_celery_postrun)
 
         return celery
 
