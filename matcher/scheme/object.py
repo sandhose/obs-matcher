@@ -651,12 +651,15 @@ class ExternalObject(Base):
             their_attrs = set([process(attr.text) for attr in their.values
                                if attr.type == type])
 
+            def sanitize(s): return ''.join(filter(str.isalnum,
+                                                   unidecode(s).lower()))
+
             return len([True
                         for x in my_attrs
                         for y in their_attrs
                         if x is not None and
                         y is not None and
-                        unidecode(x).lower() == unidecode(y).lower()])
+                        sanitize(x) == sanitize(y)])
 
         criterias = [
             lambda self, their: numeric_attr(self, their,
@@ -664,7 +667,7 @@ class ExternalObject(Base):
             lambda self, their: numeric_attr(self, their,
                                              ValueType.DURATION, into_float),
             lambda self, their: text_attr(self, their, ValueType.COUNTRY),
-            lambda self, their: text_attr(self, their, ValueType.TITLE),
+            lambda self, their: 2 * text_attr(self, their, ValueType.TITLE),
         ]
 
         for candidate in objects:
