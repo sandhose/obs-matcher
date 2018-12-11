@@ -5,7 +5,8 @@ from pathlib import Path
 import click
 from flask.cli import with_appcontext
 
-from matcher.scheme.enums import ExternalObjectType, PlatformType, ValueType
+from matcher.scheme.enums import (ExternalObjectType, PlatformType,
+                                  ScrapStatus, ValueType,)
 
 
 class ValueTypeParamType(click.ParamType):
@@ -56,6 +57,18 @@ class PlatformParamType(click.ParamType):
         return p
 
 
+class ScrapStatusParamType(click.ParamType):
+    name = "status"
+
+    def convert(self, value, param, ctx):
+        s = ScrapStatus.from_name(value)
+
+        if s is None:
+            self.fail("unknown scrap status " + value, param, ctx)
+
+        return s
+
+
 class PlatformTypeParamType(click.ParamType):
     name = "type"
 
@@ -100,6 +113,7 @@ class ScrapParamType(click.ParamType):
 PLATFORM = PlatformParamType()
 PLATFORM_TYPE = PlatformTypeParamType()
 SCRAP = ScrapParamType()
+SCRAP_STATUS = ScrapStatusParamType()
 SESSION = SessionParamType()
 VALUE_TYPE = ValueTypeParamType()
 EXTERNAL_OBJECT_TYPE = ExternalObjectParamType()
@@ -439,17 +453,48 @@ def download_countries():
 
 @click.command("attach-session")
 @with_appcontext
-@click.option("--platform", "-p", type=PLATFORM)
-@click.option("--type", "-t", type=EXTERNAL_OBJECT_TYPE)
+@click.option(
+    "--platform", "-p", type=PLATFORM, help="Only attach scrap from this platform"
+)
+@click.option(
+    "--type",
+    "-t",
+    type=EXTERNAL_OBJECT_TYPE,
+    help="Only attach scrap that have enough of this external object type",
+)
+@click.option(
+    "--after",
+    "-a",
+    type=click.DateTime(),
+    default="1970-01-01",
+    show_default=True,
+    help="Attach scraps that ran after this date",
+)
 @click.option(
     "--before",
     "-b",
     type=click.DateTime(),
     default=str(datetime.now().replace(microsecond=0)),
+    show_default="now",
+    help="Attach scraps that ran before this date",
 )
-@click.option("--after", "-a", type=click.DateTime(), default="1970-01-01")
+@click.option(
+    "--limit",
+    "-l",
+    type=int,
+    default=8,
+    show_default=True,
+    help="How many objects the scrap should have to attach",
+)
+@click.option(
+    "--status",
+    "-s",
+    type=SCRAP_STATUS,
+    multiple=True,
+    help="What status the scrap should have to attach",
+)
 @click.argument("session", type=SESSION)
-def attach_session(platform, before, after, session, type):
+def attach_session(platform, before, after, session, type, limit, status):
     """Attach scraps to a session"""
     from .app import db
     from .scheme.object import ExternalObject, scrap_link
@@ -458,6 +503,9 @@ def attach_session(platform, before, after, session, type):
     from sqlalchemy.exc import InvalidRequestError
 
     query = db.session.query(Scrap).filter(Scrap.date <= before, Scrap.date >= after)
+
+    if status:
+        query = query.filter(Scrap.status.in_(status))
 
     if platform is not None:
         query = query.filter(Scrap.platform == platform)
@@ -470,7 +518,16 @@ def attach_session(platform, before, after, session, type):
             .correlate(Scrap)
             .filter(ExternalObject.type == type)
             .filter(scrap_link.columns.scrap_id == Scrap.id)
-            .as_scalar() > 1
+            .as_scalar() >= limit
+        )
+    else:
+        query = query.filter(
+            db.session.query(func.count(ExternalObject.id))
+            .join(ExternalObject.links)
+            .join(scrap_link)
+            .correlate(Scrap)
+            .filter(scrap_link.columns.scrap_id == Scrap.id)
+            .as_scalar() >= limit
         )
 
     for scrap in query:

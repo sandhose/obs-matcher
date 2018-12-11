@@ -211,7 +211,7 @@ class Scrap(Base):
         ExternalObject.match_objects(objs)
 
     def __repr__(self):
-        return '<Scrap ({}, {})>'.format(self.platform, self.date)
+        return '<Scrap {} ({}, {})>'.format(self.id, self.platform, self.date)
 
 
 class Session(Base):
