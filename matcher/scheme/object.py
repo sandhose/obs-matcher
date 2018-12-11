@@ -651,8 +651,8 @@ class ExternalObject(Base):
             their_attrs = set([process(attr.text) for attr in their.values
                                if attr.type == type])
 
-            def sanitize(s): return ''.join(filter(str.isalnum,
-                                                   unidecode(s).lower()))
+            def sanitize(s):
+                return ''.join(filter(str.isalnum, unidecode(s).lower()))
 
             return len([True
                         for x in my_attrs
