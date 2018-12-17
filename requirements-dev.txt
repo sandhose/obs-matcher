@@ -300,9 +300,9 @@ pytest-cov==2.6.0 \
 pytest-runner==4.2 \
     --hash=sha256:d23f117be39919f00dd91bffeb4f15e031ec797501b717a245e377aee0f577be \
     --hash=sha256:d987fec1e31287592ffe1cb823a8c613c533db4c6aaca0ee1191dbc91e2fcc61
-pytest==4.0.0 \
-    --hash=sha256:488c842647bbeb350029da10325cb40af0a9c7a2fdda45aeb1dda75b60048ffb \
-    --hash=sha256:c055690dfefa744992f563e8c3a654089a6aa5b8092dded9b6fafbd70b2e45a7
+pytest==4.0.2 \
+    --hash=sha256:f689bf2fc18c4585403348dd56f47d87780bf217c53ed9ae7a3e2d7faa45f8e9 \
+    --hash=sha256:f812ea39a0153566be53d88f8de94839db1e8a05352ed8a49525d7d7f37861e9
 python-dateutil==2.7.5 \
     --hash=sha256:063df5763652e21de43de7d9e00ccf239f953a832941e37be541614732cdfc93 \
     --hash=sha256:88f9287c0174266bb0d8cedd395cfba9c58e87e5ad86b2ce58859bc11be3cf02
