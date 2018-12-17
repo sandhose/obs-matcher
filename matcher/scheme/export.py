@@ -15,7 +15,7 @@ from sqlalchemy import (TIMESTAMP, Column, Enum, ForeignKey, Integer, Sequence,
                         String, any_, column, func, or_, select, table,)
 from sqlalchemy.dialects.postgresql import HSTORE, JSONB
 from sqlalchemy.orm import (column_property, contains_eager, relationship,
-                            subqueryload,)
+                            joinedload,)
 
 from matcher.utils import export_path
 
@@ -251,7 +251,7 @@ class ExportTemplate(Base):
             )
 
         if 'attributes' in needs:
-            query = query.options(subqueryload(ExternalObject.attributes))
+            query = query.options(joinedload(ExternalObject.attributes))
 
         query = query.filter(ExternalObject.type == self.external_object_type)
 
