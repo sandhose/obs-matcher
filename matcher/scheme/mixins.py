@@ -1,4 +1,4 @@
-from sqlalchemy import event
+from sqlalchemy import Column, event
 from sqlalchemy.ext import compiler
 from sqlalchemy.schema import DDLElement, SchemaItem
 from sqlalchemy.sql import ColumnCollection
@@ -41,7 +41,7 @@ def compile_create_view(element, compiler, **kw):
     return f.format(
         name=element.element.fullname,
         selectable=compiler.sql_compiler.process(
-            element.element.selectable, literal_binds=True
+            element.element._view_select, literal_binds=True
         ),
     )
 
@@ -124,7 +124,7 @@ def _register_views_hooks(metadata):
 
 class ViewClause(SchemaItem, TableClause, Visitable):
     __visit_name__ = "view"
-    selectable = None
+    _view_select = None
 
     def __init__(self, *args, **kwargs):
         pass
@@ -133,7 +133,7 @@ class ViewClause(SchemaItem, TableClause, Visitable):
     def key(self):
         if self.schema is None:
             return self.name
-        return self.schema + '.' + self.name
+        return self.schema + "." + self.name
 
     def _init(self, name, metadata, selectable, **kwargs):
         super(ViewClause, self).__init__(quoted_name(name, kwargs.pop("quote", None)))
@@ -172,10 +172,18 @@ class ViewClause(SchemaItem, TableClause, Visitable):
 
         self._prefixes = kwargs.pop("prefixes", [])
 
-        self.selectable = selectable
+        self._view_select = selectable
         self.materialized = kwargs.pop("materialized", False)
-        for c in self.selectable.c:
-            c._make_proxy(self)
+        for c in self._view_select.c:
+            # Simple reimplementation of _make_proxy. Ensures nothing useless
+            # is kept from the selectable
+            col = Column(c.name, c.type, key=c.key, primary_key=c.primary_key)
+            print(col)
+
+            col.table = self
+            self._columns.add(col)
+            if c.primary_key:
+                self.primary_key.add(col)
 
         indexes = kwargs.pop("indexes", [])
         for index in indexes:

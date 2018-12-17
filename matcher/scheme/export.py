@@ -14,8 +14,8 @@ from slugify import slugify
 from sqlalchemy import (TIMESTAMP, Column, Enum, ForeignKey, Integer, Sequence,
                         String, any_, column, func, or_, select, table,)
 from sqlalchemy.dialects.postgresql import HSTORE, JSONB
-from sqlalchemy.orm import (column_property, contains_eager, relationship,
-                            joinedload,)
+from sqlalchemy.orm import (column_property, contains_eager, joinedload,
+                            relationship,)
 
 from matcher.utils import export_path
 
