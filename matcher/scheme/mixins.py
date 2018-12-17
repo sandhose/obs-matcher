@@ -178,7 +178,6 @@ class ViewClause(SchemaItem, TableClause, Visitable):
             # Simple reimplementation of _make_proxy. Ensures nothing useless
             # is kept from the selectable
             col = Column(c.name, c.type, key=c.key, primary_key=c.primary_key)
-            print(col)
 
             col.table = self
             self._columns.add(col)
