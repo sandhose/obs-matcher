@@ -202,6 +202,7 @@ class ExternalObject(Base):
         from .views import AttributesView
         return relationship(AttributesView,
                             primaryjoin=(foreign(AttributesView.external_object_id) == cls.id),
+                            lazy='joined',
                             viewonly=True,
                             uselist=False)
     """:obj:`.views.AttributesView` : a computed list of attributes"""
