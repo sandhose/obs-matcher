@@ -406,6 +406,8 @@ class ExternalObject(Base):
                         external_object = external_object.merge_and_delete(other, session)
 
             if external_object is None:
+                if obj_type is None:
+                    raise Exception("Trying to instanciate object without type")
                 # There's no existing links, we shall create a new object
                 external_object = ExternalObject(type=obj_type)
                 session.add(external_object)
@@ -783,6 +785,8 @@ class ExternalObject(Base):
             # ExternalObjectType
             'type': None,
 
+            'any_type': False,
+
             # Array<{'type': string, 'text': str, 'score_factor': float}>
             'attributes': None,
 
@@ -806,6 +810,10 @@ class ExternalObject(Base):
             # 'SERIES' was once named 'SERIE'
             if raw['type'].lower() == 'serie':
                 raw['type'] = 'series'
+
+            # FIXME: workaround for IMDb scraping
+            if raw['type'].lower() == 'any':
+                data['any_type'] = True
 
             data['type'] = ExternalObjectType.from_name(raw['type'])
 

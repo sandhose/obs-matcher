@@ -17,7 +17,7 @@ def insert_dict(data, scrap_id):
     data = ExternalObject.normalize_dict(data)
 
     # FIXME: kinda ugly workaround
-    assert data['type'] is not None  # and request.json.data['type'] != 'any':
+    assert data['type'] is not None or data['any_type']
     assert data['relation'] is None
     ExternalObject.insert_dict(data, scrap)
 
