@@ -303,6 +303,29 @@ class ImportFile(Base):
             # If we want to insert attributes we need a platform to which to assign them
             assert self.platform
 
+        if len(external_object_ids) > 0:
+            # We are about to add new links, remove the old one and clear the attributes set by it
+            for (platform, external_ids) in links:
+                existing_links = session.query(ObjectLink).\
+                    filter(ObjectLink.platform == platform,
+                           ObjectLink.external_object.in_(external_object_ids),
+                           ~ObjectLink.external_id.in_(external_ids)).\
+                    all()
+
+                if existing_links:
+                    # Delete the values that were associated with this platform
+                    session.query(ValueSource).\
+                        filter(ValueSource.platform == platform).\
+                        filter(ValueSource.value_id.in_(
+                            session.query(Value.id).filter(Value.external_object_id.in_(external_object_ids))
+                        )).\
+                        delete(synchronize_session=False)
+
+                    for link in existing_links:
+                        session.delete(link)
+
+            session.commit()
+
         # Fetch other existing external_object_ids from the links
         external_object_ids += self.find_additional_links(links=links, session=session)
 
@@ -315,28 +338,6 @@ class ImportFile(Base):
         if obj is None:
             logger.error('External object not found %r', external_object_ids)
             return
-
-        # We are about to add new links, remove the old one and clear the attributes set by it
-        for (platform, external_ids) in links:
-            existing_links = session.query(ObjectLink).\
-                filter(ObjectLink.platform == platform,
-                       ObjectLink.external_object == obj,
-                       ~ObjectLink.external_id.in_(external_ids)).\
-                all()
-
-            if existing_links:
-                # Delete the values that were associated with this platform
-                session.query(ValueSource).\
-                    filter(ValueSource.platform == platform).\
-                    filter(ValueSource.value_id.in_(
-                        session.query(Value.id).filter(Value.external_object == obj)
-                    )).\
-                    delete(synchronize_session=False)
-
-                for link in existing_links:
-                    session.delete(link)
-
-        session.commit()
 
         # Add the new links
         for (platform, external_ids) in links:
