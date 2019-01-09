@@ -308,7 +308,7 @@ class ImportFile(Base):
             for (platform, external_ids) in links:
                 existing_links = session.query(ObjectLink).\
                     filter(ObjectLink.platform == platform,
-                           ObjectLink.external_object.in_(external_object_ids),
+                           ObjectLink.external_object_id.in_(external_object_ids),
                            ~ObjectLink.external_id.in_(external_ids)).\
                     all()
 
