@@ -241,10 +241,13 @@ class ImportFile(Base):
             for id_ in ids:
                 to_merge = session.query(ExternalObject).get(id_)
                 if to_merge:
-                    try:
-                        to_merge.merge_and_delete(obj, session=session)
-                    except (LinksOverlap, ObjectTypeMismatchError):
-                        logger.warn('Error while merging', exc_info=True)
+                    if obj is None:
+                        obj = to_merge
+                    else:
+                        try:
+                            to_merge.merge_and_delete(obj, session=session)
+                        except (LinksOverlap, ObjectTypeMismatchError):
+                            logger.warn('Error while merging', exc_info=True)
         else:
             # else create a new object
             assert self.imported_external_object_type
@@ -308,6 +311,10 @@ class ImportFile(Base):
 
         # Get one merged ExternalObject
         obj = self.reduce_or_create_ids(external_object_ids, session=session)
+
+        if obj is None:
+            logger.error('External object not found %r', external_object_ids)
+            return
 
         # We are about to add new links, remove the old one and clear the attributes set by it
         for (platform, external_ids) in links:
