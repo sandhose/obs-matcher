@@ -168,10 +168,12 @@ class Scrap(Base):
     platform = relationship('Platform', back_populates='scraps')
     """Platform concerned by this job"""
 
-    links = relationship('ObjectLink', secondary='scrap_link', back_populates='scraps')
+    links = relationship('ObjectLink', cascade='all', secondary='scrap_link',
+                         back_populates='scraps')
     """Objects (to be) fetched by this job"""
 
-    sessions = relationship('Session', secondary='session_scrap', back_populates='scraps')
+    sessions = relationship('Session', cascade='all',
+                            secondary='session_scrap', back_populates='scraps')
 
     links_count = column_property(
         select([func.count('object_link_id')]).

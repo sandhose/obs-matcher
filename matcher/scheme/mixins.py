@@ -144,6 +144,7 @@ class ViewClause(SchemaItem, TableClause, Visitable):
 
         self.schema = kwargs.pop("schema", metadata.schema)
 
+        self.kwargs = kwargs
         self.indexes = set()
         self.constraints = set()
         self._columns = ColumnCollection()

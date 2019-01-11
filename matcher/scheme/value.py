@@ -25,6 +25,7 @@ class Value(Base):
     text = Column(Text, nullable=False)
 
     external_object = relationship('ExternalObject',
+                                   cascade='all',
                                    back_populates='values')
     sources = relationship('ValueSource',
                            back_populates='value',
@@ -61,8 +62,8 @@ class ValueSource(Base):
                           default=100)
     comment = Column(Text)
 
-    value = relationship('Value', back_populates='sources')
-    platform = relationship('Platform')
+    value = relationship('Value', cascade='all', back_populates='sources')
+    platform = relationship('Platform', cascade='all')
 
     @hybrid_property
     def score(self):

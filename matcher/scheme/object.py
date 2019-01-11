@@ -875,19 +875,23 @@ class ObjectLink(Base):
     """:obj:`str` : ID of the external_object on the platform"""
 
     external_object = relationship('ExternalObject',
+                                   cascade='all',
                                    back_populates='links')
     """:obj:`ExternalObject` : Relationship to the linked object"""
 
     platform = relationship('Platform',
+                            cascade='all',
                             back_populates='links')
     """:obj:`.platform.Platform` : Relationship to the linked platform"""
 
     scraps = relationship('Scrap',
+                          cascade='all',
                           secondary='scrap_link',
                           back_populates='links')
     """list of :obj:`Scrap` : scraps where the link was found"""
 
     imports = relationship('ImportFile',
+                           cascade='all',
                            secondary='import_link',
                            back_populates='links')
 
