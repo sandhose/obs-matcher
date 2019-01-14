@@ -29,7 +29,7 @@ class Value(Base):
                                    back_populates='values')
     sources = relationship('ValueSource',
                            back_populates='value',
-                           cascade='all, delete-orphan')
+                           cascade='all')
 
     @hybrid_property
     def score(self):
@@ -62,8 +62,8 @@ class ValueSource(Base):
                           default=100)
     comment = Column(Text)
 
-    value = relationship('Value', cascade='all', back_populates='sources')
-    platform = relationship('Platform', cascade='all')
+    value = relationship('Value', back_populates='sources')
+    platform = relationship('Platform')
 
     @hybrid_property
     def score(self):

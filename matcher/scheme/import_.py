@@ -354,7 +354,6 @@ class ImportFile(Base):
                     link = ObjectLink(external_object=obj,
                                       platform=platform,
                                       external_id=external_id)
-                    obj.links.append(link)
 
                 if platform == self.platform:
                     self.links.append(link)

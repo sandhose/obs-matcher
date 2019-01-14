@@ -84,10 +84,10 @@ class Platform(Base):
     group = relationship('PlatformGroup', back_populates='platforms')
     """The group in which this platform is"""
 
-    scraps = relationship('Scrap', back_populates='platform', cascade='all, delete-orphan')
+    scraps = relationship('Scrap', back_populates='platform', cascade='all')
     """The scraps (to be) done for this platform"""
 
-    links = relationship('ObjectLink', back_populates='platform', cascade='all, delete-orphan')
+    links = relationship('ObjectLink', back_populates='platform', cascade='all')
     """All known objects found on this platform"""
 
     imports = relationship('ImportFile', back_populates='platform')
@@ -168,12 +168,12 @@ class Scrap(Base):
     platform = relationship('Platform', back_populates='scraps')
     """Platform concerned by this job"""
 
-    links = relationship('ObjectLink', cascade='all', secondary='scrap_link',
+    links = relationship('ObjectLink', secondary='scrap_link',
                          back_populates='scraps')
     """Objects (to be) fetched by this job"""
 
-    sessions = relationship('Session', cascade='all',
-                            secondary='session_scrap', back_populates='scraps')
+    sessions = relationship('Session', secondary='session_scrap',
+                            back_populates='scraps')
 
     links_count = column_property(
         select([func.count('object_link_id')]).
