@@ -306,13 +306,18 @@ class ImportFile(Base):
         if len(external_object_ids) > 0:
             # We are about to add new links, remove the old one and clear the attributes set by it
             for (platform, external_ids) in links:
+                if len(external_ids) == 0:
+                    continue
+
+                logger.info('Deleting links (%r, %r)', platform, external_ids);
                 existing_links = session.query(ObjectLink).\
                     filter(ObjectLink.platform == platform,
                            ObjectLink.external_object_id.in_(external_object_ids),
                            ~ObjectLink.external_id.in_(external_ids)).\
-                    all()
+                    delete(synchronize_session=False)
 
                 if existing_links:
+                    logger.info('A link was removed, deleting values')
                     # Delete the values that were associated with this platform
                     session.query(ValueSource).\
                         filter(ValueSource.platform == platform).\
@@ -320,9 +325,6 @@ class ImportFile(Base):
                             session.query(Value.id).filter(Value.external_object_id.in_(external_object_ids))
                         )).\
                         delete(synchronize_session=False)
-
-                    for link in existing_links:
-                        session.delete(link)
 
             session.commit()
 
