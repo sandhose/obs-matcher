@@ -309,7 +309,7 @@ class ImportFile(Base):
                 if len(external_ids) == 0:
                     continue
 
-                logger.info('Deleting links (%r, %r)', platform, external_ids);
+                logger.info('Deleting links (%r, %r)', platform, external_ids)
                 existing_links = session.query(ObjectLink).\
                     filter(ObjectLink.platform == platform,
                            ObjectLink.external_object_id.in_(external_object_ids),
