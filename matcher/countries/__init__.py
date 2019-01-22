@@ -52,9 +52,12 @@ def lookup(name):
         for translation in list(country['translations'].values()) \
                 + [country['name']] + native:
             for attr in ['official', 'common']:
-                n = unidecode(translation.get(attr, '')).lower()
-                if n == name:
-                    return country['cca2']
+                try:
+                    n = unidecode(translation.get(attr, '')).lower()
+                    if n == name:
+                        return country['cca2']
+                except AttributeError:
+                    pass
 
         for attr in ['cca3', 'ccn3', 'cioc']:
             n = unidecode(country.get(attr, '')).lower()
