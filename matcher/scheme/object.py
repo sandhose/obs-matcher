@@ -396,7 +396,7 @@ class ExternalObject(Base):
             except AmbiguousLinkError as err:
                 external_object = err.resolve(session)
 
-            if external_object_id is not None:
+            if external_object_id is not None and external_object_id != external_object.id:
                 other = session.query(ExternalObject).get(external_object_id)
 
                 if other is not None:
@@ -442,37 +442,38 @@ class ExternalObject(Base):
         # FIXME: A lot of other references needs merging (!)
         # First check if the merge is possible
 
+        assert self != their, "trying to merge an object into itself"
+
         session = object_session(self)
 
-        if self.type is not their.type:
-            raise ObjectTypeMismatchError(is_type=self.type,
-                                          should_be=their.type)
+        with session.begin_nested():
+            if self.type is not their.type:
+                raise ObjectTypeMismatchError(is_type=self.type,
+                                              should_be=their.type)
 
-        to_delete = []
-        for our_link in self.links:
-            same_links = [link for link in their.links
-                          if link.platform == our_link.platform and
-                          our_link.external_id == link.external_id]
-            to_delete += same_links
+            to_delete = []
+            for our_link in self.links:
+                same_links = [link for link in their.links
+                              if link.platform == our_link.platform and
+                              our_link.external_id == link.external_id]
+                to_delete += same_links
 
-            if our_link.platform.allow_links_overlap:
-                continue
+                if our_link.platform.allow_links_overlap:
+                    continue
 
-            overlapping_links = [link for link in their.links
-                                 if link.platform == our_link.platform and
-                                 our_link.external_id != link.external_id]
-            if overlapping_links:
-                raise LinksOverlap(self, their)
+                overlapping_links = [link for link in their.links
+                                     if link.platform == our_link.platform and
+                                     our_link.external_id != link.external_id]
+                if overlapping_links:
+                    raise LinksOverlap(self, their)
 
-        for d in to_delete:
-            session.delete(d)
+            for d in to_delete:
+                session.delete(d)
 
-        # First merge the links
-        for link in list(self.links):
-            link.external_object_id = their.id
-            session.add(link)
-
-        session.commit()
+            # First merge the links
+            for link in list(self.links):
+                link.external_object_id = their.id
+                session.add(link)
 
         # Then merge the attributes
         for our_attr in list(self.values):
@@ -496,17 +497,14 @@ class ExternalObject(Base):
                                               platform_id=our_source.platform_id,
                                               value_id=their_attr.id))
 
-        for role in list(session.query(Role).filter(Role.external_object == self)):
-            role.external_object = their
+        session.query(Role).filter(Role.external_object_id == self.id).\
+            update({Role.external_object_id: their.id})
 
-        for episode in list(session.query(Episode).filter(Episode.external_object == self)):
-            if session.query(Episode).filter(Episode.external_object_id == their.id).first() is not None:
-                session.delete(episode)
-            else:
-                episode.external_object = their
+        session.query(Episode).filter(Episode.external_object_id == self.id).\
+            update({Episode.external_object_id: their.id})
 
-        for episode in list(session.query(Episode).filter(Episode.series == self)):
-            episode.series = their
+        session.query(Episode).filter(Episode.series_id == self.id).\
+            update({Episode.series_id: their.id})
 
     def merge_and_delete(self, their, session):
         """Merge into another ExternalObject, and delete the old one.
@@ -701,20 +699,21 @@ class ExternalObject(Base):
 
         """
         session = db.session
-        obj = ExternalObject.lookup_or_create(
-            obj_type=data['type'],
-            links=data['links'],
-            external_object_id=data['external_object_id'],
-            session=session,
-        )
 
-        for key, value in data['meta'].items():
-            if value is not None:
-                obj.add_meta(key, value)
+        with session.begin_nested():
+            obj = ExternalObject.lookup_or_create(
+                obj_type=data['type'],
+                links=data['links'],
+                external_object_id=data['external_object_id'],
+                session=session,
+            )
 
-        # We need to save the object first to reload the links
-        session.add(obj)
-        session.commit()
+            for key, value in data['meta'].items():
+                if value is not None:
+                    obj.add_meta(key, value)
+
+            # We need to save the object first to reload the links
+            session.add(obj)
 
         # This checks if we explicitly scrapped the given object by giving
         # attributes
