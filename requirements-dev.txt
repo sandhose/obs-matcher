@@ -294,9 +294,9 @@ pyparsing==2.2.2 \
     --hash=sha256:bc6c7146b91af3f567cf6daeaec360bc07d45ffec4cf5353f4d7a208ce7ca30a \
     --hash=sha256:d29593d8ebe7b57d6967b62494f8c72b03ac0262b1eed63826c6f788b3606401 \
     # via packaging
-pytest-cov==2.6.0 \
-    --hash=sha256:513c425e931a0344944f84ea47f3956be0e416d95acbd897a44970c8d926d5d7 \
-    --hash=sha256:e360f048b7dae3f2f2a9a4d067b2dd6b6a015d384d1577c994a43f3f7cbad762
+pytest-cov==2.6.1 \
+    --hash=sha256:0ab664b25c6aa9716cbf203b17ddb301932383046082c081b9848a0edf5add33 \
+    --hash=sha256:230ef817450ab0699c6cc3c9c8f7a829c34674456f2ed8df1fe1d39780f7c87f
 pytest-runner==4.2 \
     --hash=sha256:d23f117be39919f00dd91bffeb4f15e031ec797501b717a245e377aee0f577be \
     --hash=sha256:d987fec1e31287592ffe1cb823a8c613c533db4c6aaca0ee1191dbc91e2fcc61
