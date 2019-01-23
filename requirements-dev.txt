@@ -241,8 +241,8 @@ pockets==0.7.2 \
     --hash=sha256:109eb91588e9cf722de98c98d300e1c5896e877f5704dc61176fa09686ca635b \
     --hash=sha256:21a2405543c439ac091453ed187f558cf5294d3f85f15310f214ad4de057e0af \
     # via sphinxcontrib-napoleon
-psycogreen==1.0 \
-    --hash=sha256:9acfa6cb5373bcf1eaf27c904d98d59c9f3bb0065cbb005f83ccc45055ace9a1
+psycogreen==1.0.1 \
+    --hash=sha256:86fe2a066d99526b3cff74ca45fd265b5b412a570195488603e298266e91be17
 psycopg2-binary==2.7.6.1 \
     --hash=sha256:036bcb198a7cc4ce0fe43344f8c2c9a8155aefa411633f426c8c6ed58a6c0426 \
     --hash=sha256:1d770fcc02cdf628aebac7404d56b28a7e9ebec8cfc0e63260bd54d6edfa16d4 \

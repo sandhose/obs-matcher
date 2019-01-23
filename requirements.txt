@@ -142,8 +142,8 @@ pendulum==2.0.4 \
     --hash=sha256:bfc7b33ae193a204ec0bec12ad0d2d3300cd7e51d91d992da525ba3b28f0d265 \
     --hash=sha256:cd70b75800439794e1ad8dbfa24838845e171918df81fa98b68d0d5a6f9b8bf2 \
     --hash=sha256:cf535d36c063575d4752af36df928882b2e0e31541b4482c97d63752785f9fcb
-psycogreen==1.0 \
-    --hash=sha256:9acfa6cb5373bcf1eaf27c904d98d59c9f3bb0065cbb005f83ccc45055ace9a1
+psycogreen==1.0.1 \
+    --hash=sha256:86fe2a066d99526b3cff74ca45fd265b5b412a570195488603e298266e91be17
 psycopg2-binary==2.7.6.1 \
     --hash=sha256:036bcb198a7cc4ce0fe43344f8c2c9a8155aefa411633f426c8c6ed58a6c0426 \
     --hash=sha256:1d770fcc02cdf628aebac7404d56b28a7e9ebec8cfc0e63260bd54d6edfa16d4 \
