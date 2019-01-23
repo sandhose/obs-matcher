@@ -202,8 +202,8 @@ six==1.11.0 \
     --hash=sha256:70e8a77beed4562e7f14fe23a786b54f6296e34344c23bc42f07b15018ff98e9 \
     --hash=sha256:832dc0e10feb1aa2c68dcc57dbb658f1c7e65b9b61af69048abc87a2db00a0eb \
     # via flask-restful, flask-restplus, python-dateutil
-sqlalchemy==1.2.15 \
-    --hash=sha256:809547455d012734b4252081db1e6b4fc731de2299f3755708c39863625e1c77
+sqlalchemy==1.2.16 \
+    --hash=sha256:6af3ca2f7f00844465ab4fa78337d487b39e53f516c51328aed4ed3a719d4264
 tqdm==4.28.1 \
     --hash=sha256:3c4d4a5a41ef162dd61f1edb86b0e1c7859054ab656b2e7c7b77e7fbf6d9f392 \
     --hash=sha256:5b4d5549984503050883bc126280b386f5f4ca87e6c023c5d015655ad75bdebb
