@@ -18,9 +18,8 @@ class EnumField(Select2Field):
                 assert False
 
         super(EnumField, self).__init__(
-            choices=[(v, v) for v in column.type.enums],
-            coerce=coercer,
-            **kwargs)
+            choices=[(v, v) for v in column.type.enums], coerce=coercer, **kwargs
+        )
 
     def pre_validate(self, form):
         # we need to override the default SelectField validation because it
@@ -32,7 +31,7 @@ class EnumField(Select2Field):
             if self.data == self.coerce(v):
                 break
         else:
-            raise ValueError(self.gettext('Not a valid choice'))
+            raise ValueError(self.gettext("Not a valid choice"))
 
 
 class CustomAdminConverter(AdminModelConverter):

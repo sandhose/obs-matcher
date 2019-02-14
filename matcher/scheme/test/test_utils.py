@@ -6,7 +6,7 @@ from matcher.exceptions import InvalidTransition
 from matcher.scheme.utils import CustomEnum, Transition, after, before
 
 
-class TestCustomEnum():
+class TestCustomEnum:
     def test_transitions(self):
         class TestEnum(CustomEnum):
             SCHEDULED = 1
@@ -15,13 +15,13 @@ class TestCustomEnum():
             FAILED = 4
 
             __transitions__ = [
-                Transition('schedule', [FAILED, None], SCHEDULED),
-                Transition('run', [SCHEDULED], RUNNING),
-                Transition('success', [RUNNING], SUCCESS),
-                Transition('fail', [RUNNING], FAILED),
+                Transition("schedule", [FAILED, None], SCHEDULED),
+                Transition("run", [SCHEDULED], RUNNING),
+                Transition("success", [RUNNING], SUCCESS),
+                Transition("fail", [RUNNING], FAILED),
             ]
 
-        @TestEnum.act_as_statemachine('my_state')
+        @TestEnum.act_as_statemachine("my_state")
         class TestMachine(object):
             my_state = None
 
@@ -51,10 +51,10 @@ class TestCustomEnum():
             FINISHED = 4
 
             __transitions__ = [
-                Transition('run', [NOT_STARTED], RUNNING),
-                Transition('stop', [RUNNING], STOPPED),
-                Transition('finish', [RUNNING], FINISHED),
-                Transition('restart', [STOPPED, FINISHED], RUNNING),
+                Transition("run", [NOT_STARTED], RUNNING),
+                Transition("stop", [RUNNING], STOPPED),
+                Transition("finish", [RUNNING], FINISHED),
+                Transition("restart", [STOPPED, FINISHED], RUNNING),
             ]
 
         @State.act_as_statemachine
@@ -108,9 +108,7 @@ class TestCustomEnum():
             SECOND = 2
             THIRD = 3
 
-            __transitions__ = [
-                Transition('first', [None], FIRST)
-            ]
+            __transitions__ = [Transition("first", [None], FIRST)]
 
         @TestEnum.act_as_statemachine
         class TestMachine(object):
@@ -143,8 +141,8 @@ class TestCustomEnum():
             SECOND_STATE = 2
 
             __transitions__ = [
-                Transition('first', [SECOND_STATE], FIRST_STATE),
-                Transition('second', [FIRST_STATE], SECOND_STATE),
+                Transition("first", [SECOND_STATE], FIRST_STATE),
+                Transition("second", [FIRST_STATE], SECOND_STATE),
             ]
 
         parent = Mock()
@@ -161,24 +159,24 @@ class TestCustomEnum():
 
             before_each = before(parent.before_each)
             after_each = after(parent.after_each)
-            before_first = before('first')(parent.before_first)
-            after_first = after('first')(parent.after_first)
-            before_second = before('second')(parent.before_second)
-            after_second = after('second')(parent.after_second)
+            before_first = before("first")(parent.before_first)
+            after_first = after("first")(parent.after_first)
+            before_second = before("second")(parent.before_second)
+            after_second = after("second")(parent.after_second)
 
         machine = TestMachine()
         machine.first()
-        machine.second('arg', key='value')
+        machine.second("arg", key="value")
 
         assert parent.mock_calls == [
             call.before_each(machine),
             call.before_first(machine),
             call.after_each(machine),
             call.after_first(machine),
-            call.before_each(machine, 'arg', key='value'),
-            call.before_second(machine, 'arg', key='value'),
-            call.after_each(machine, 'arg', key='value'),
-            call.after_second(machine, 'arg', key='value'),
+            call.before_each(machine, "arg", key="value"),
+            call.before_second(machine, "arg", key="value"),
+            call.after_each(machine, "arg", key="value"),
+            call.after_second(machine, "arg", key="value"),
         ]
 
     def test_hook_return(self):
@@ -188,9 +186,9 @@ class TestCustomEnum():
             THIRD_STATE = 2
 
             __transitions__ = [
-                Transition('first', [SECOND_STATE, None], FIRST_STATE),
-                Transition('second', [FIRST_STATE], SECOND_STATE),
-                Transition('third', [FIRST_STATE, SECOND_STATE], THIRD_STATE),
+                Transition("first", [SECOND_STATE, None], FIRST_STATE),
+                Transition("second", [FIRST_STATE], SECOND_STATE),
+                Transition("third", [FIRST_STATE, SECOND_STATE], THIRD_STATE),
             ]
 
         parent = Mock()
@@ -211,12 +209,12 @@ class TestCustomEnum():
 
             before_each = before(parent.before_each)
             after_each = after(parent.after_each)
-            before_first = before('first')(parent.before_first)
-            after_first = after('first')(parent.after_first)
-            before_second = before('second')(parent.before_second)
-            after_second = after('second')(parent.after_second)
-            before_third = before('third')(parent.before_third)
-            after_third = after('third')(parent.after_third)
+            before_first = before("first")(parent.before_first)
+            after_first = after("first")(parent.after_first)
+            before_second = before("second")(parent.before_second)
+            after_second = after("second")(parent.after_second)
+            before_third = before("third")(parent.before_third)
+            after_third = after("third")(parent.after_third)
             before_each_prime = before(parent.before_each_prime)
             after_each_prime = after(parent.after_each_prime)
 
@@ -239,10 +237,8 @@ class TestCustomEnum():
             call.after_each(machine),
             call.after_first(machine),
             call.after_each_prime(machine),
-
             call.before_each(machine),
             call.before_second(machine),  # Failed on this one
-
             call.before_each(machine),
             call.before_third(machine),
             call.before_each_prime(machine),

@@ -5,8 +5,12 @@ from pathlib import Path
 import click
 from flask.cli import with_appcontext
 
-from matcher.scheme.enums import (ExternalObjectType, PlatformType,
-                                  ScrapStatus, ValueType,)
+from matcher.scheme.enums import (
+    ExternalObjectType,
+    PlatformType,
+    ScrapStatus,
+    ValueType,
+)
 
 
 class ValueTypeParamType(click.ParamType):
@@ -518,7 +522,8 @@ def attach_session(platform, before, after, session, type, limit, status):
             .correlate(Scrap)
             .filter(ExternalObject.type == type)
             .filter(scrap_link.columns.scrap_id == Scrap.id)
-            .as_scalar() >= limit
+            .as_scalar()
+            >= limit
         )
     else:
         query = query.filter(
@@ -527,7 +532,8 @@ def attach_session(platform, before, after, session, type, limit, status):
             .join(scrap_link)
             .correlate(Scrap)
             .filter(scrap_link.columns.scrap_id == Scrap.id)
-            .as_scalar() >= limit
+            .as_scalar()
+            >= limit
         )
 
     for scrap in query:

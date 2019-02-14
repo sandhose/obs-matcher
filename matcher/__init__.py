@@ -1,6 +1,8 @@
 from gevent.monkey import patch_all
+
 patch_all()
 from psycogreen.gevent import patch_psycopg  # noqa: E402
+
 patch_psycopg()
 
 from werkzeug.contrib.fixers import ProxyFix  # noqa: E402

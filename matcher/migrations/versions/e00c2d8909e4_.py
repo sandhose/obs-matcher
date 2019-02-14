@@ -8,15 +8,16 @@ Create Date: 2018-06-25 14:49:18.666022
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = 'e00c2d8909e4'
-down_revision = 'a862b5ec1efb'
+revision = "e00c2d8909e4"
+down_revision = "a862b5ec1efb"
 branch_labels = None
 depends_on = None
 
 
 def upgrade():
     op.execute("CREATE EXTENSION IF NOT EXISTS tablefunc")
-    op.execute("""\
+    op.execute(
+        """\
         CREATE MATERIALIZED VIEW vw_value_score AS
         SELECT
             value_source.value_id,
@@ -27,8 +28,10 @@ def upgrade():
             )) AS score
         FROM value_source
         GROUP BY value_source.value_id
-    """)
-    op.execute("""\
+    """
+    )
+    op.execute(
+        """\
         CREATE MATERIALIZED VIEW vw_attributes AS
         SELECT crosstab.external_object_id,
                crosstab.titles,
@@ -59,14 +62,17 @@ def upgrade():
                      durations double precision[],
                      names text[],
                      countries character(2)[])
-    """)
+    """
+    )
 
-    op.create_index('vw_value_score_pkey', 'vw_value_score', ['value_id'], unique=True)
-    op.create_index('vw_attributes_pkey', 'vw_attributes', ['external_object_id'], unique=True)
+    op.create_index("vw_value_score_pkey", "vw_value_score", ["value_id"], unique=True)
+    op.create_index(
+        "vw_attributes_pkey", "vw_attributes", ["external_object_id"], unique=True
+    )
 
 
 def downgrade():
-    op.drop_index('vw_value_score_pkey')
-    op.drop_index('vw_attributes')
+    op.drop_index("vw_value_score_pkey")
+    op.drop_index("vw_attributes")
     op.execute("DROP MATERIALIZED vw_attributes")
     op.execute("DROP MATERIALIZED vw_value_score")

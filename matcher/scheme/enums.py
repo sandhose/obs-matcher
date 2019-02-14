@@ -31,11 +31,11 @@ class ScrapStatus(CustomEnum):
     """The job has failed"""
 
     __transitions__ = [
-        Transition('reschedule', [ABORTED, FAILED], SCHEDULED),
-        Transition('run', [SCHEDULED], RUNNING),
-        Transition('succeeded', [RUNNING], SUCCESS),
-        Transition('failed', [RUNNING], FAILED),
-        Transition('abort', [RUNNING], ABORTED),
+        Transition("reschedule", [ABORTED, FAILED], SCHEDULED),
+        Transition("run", [SCHEDULED], RUNNING),
+        Transition("succeeded", [RUNNING], SUCCESS),
+        Transition("failed", [RUNNING], FAILED),
+        Transition("abort", [RUNNING], ABORTED),
     ]
 
 
@@ -61,12 +61,17 @@ class ExportFileStatus(CustomEnum):
     """The file was empty or was deleted"""
 
     __transitions__ = [
-        Transition('schedule', [SCHEDULED, FAILED, ABSENT, None], SCHEDULED, doc="Process this file"),
-        Transition('start', [SCHEDULED, FAILED, ABSENT], QUERYING),
-        Transition('processing', [QUERYING], PROCESSING),
-        Transition('done', [PROCESSING, QUERYING], DONE),
-        Transition('failed', [SCHEDULED, QUERYING, PROCESSING, FAILED, DONE], FAILED),
-        Transition('delete', [DONE, PROCESSING], ABSENT, doc="Delete this file"),
+        Transition(
+            "schedule",
+            [SCHEDULED, FAILED, ABSENT, None],
+            SCHEDULED,
+            doc="Process this file",
+        ),
+        Transition("start", [SCHEDULED, FAILED, ABSENT], QUERYING),
+        Transition("processing", [QUERYING], PROCESSING),
+        Transition("done", [PROCESSING, QUERYING], DONE),
+        Transition("failed", [SCHEDULED, QUERYING, PROCESSING, FAILED, DONE], FAILED),
+        Transition("delete", [DONE, PROCESSING], ABSENT, doc="Delete this file"),
     ]
 
 
@@ -88,10 +93,10 @@ class ImportFileStatus(CustomEnum):
     FAILED = 4
 
     __transitions__ = [
-        Transition('upload', [UPLOADED, FAILED, None], UPLOADED),
-        Transition('process', [UPLOADED], PROCESSING, doc="Process this file"),
-        Transition('done', [PROCESSING], DONE),
-        Transition('failed', [UPLOADED, PROCESSING, None], FAILED)
+        Transition("upload", [UPLOADED, FAILED, None], UPLOADED),
+        Transition("process", [UPLOADED], PROCESSING, doc="Process this file"),
+        Transition("done", [PROCESSING], DONE),
+        Transition("failed", [UPLOADED, PROCESSING, None], FAILED),
     ]
 
 
@@ -141,14 +146,14 @@ class ValueType(CustomEnum):
             result = re.match(r, t)
             return result.group(1) if result is not None else None
 
-        duration_regex = r'^[^\d]*(\d+(?:.\d*)?)[^\d]*$'
-        date_regex = r'(\d{4})'
-        parenthesis_regex = r'\([^)]*\)'
+        duration_regex = r"^[^\d]*(\d+(?:.\d*)?)[^\d]*$"
+        date_regex = r"(\d{4})"
+        parenthesis_regex = r"\([^)]*\)"
         fmt_map = {
             ValueType.DURATION: partial(m, duration_regex),
             ValueType.COUNTRY: lookup,
             ValueType.DATE: partial(m, date_regex),
-            ValueType.TITLE: lambda t: re.sub(parenthesis_regex, '', t).strip()
+            ValueType.TITLE: lambda t: re.sub(parenthesis_regex, "", t).strip(),
         }
 
         return fmt_map.get(self, lambda _: None)(value)
