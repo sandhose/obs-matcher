@@ -6,26 +6,26 @@ from matcher.scheme.value import Value, ValueSource
 
 class TestExternalObjectMerge(object):
     def test_source_merging(self, session):
-        platform1 = Platform(name='Platform 1', slug='platform-1',
-                             base_score=200)
-        platform2 = Platform(name='Platform 2', slug='platform-2',
-                             base_score=300)
+        platform1 = Platform(name="Platform 1", slug="platform-1", base_score=200)
+        platform2 = Platform(name="Platform 2", slug="platform-2", base_score=300)
         session.add_all([platform1, platform2])
 
         object1 = ExternalObject(type=ExternalObjectType.MOVIE)
         object2 = ExternalObject(type=ExternalObjectType.MOVIE)
         session.add_all([object1, object2])
 
-        value1 = Value(external_object=object1,
-                       type=ValueType.TITLE,
-                       text="Foo",
-                       sources=[ValueSource(platform=platform1,
-                                            score_factor=200)])
-        value2 = Value(external_object=object2,
-                       type=ValueType.TITLE,
-                       text="Foo",
-                       sources=[ValueSource(platform=platform2,
-                                            score_factor=300)])
+        value1 = Value(
+            external_object=object1,
+            type=ValueType.TITLE,
+            text="Foo",
+            sources=[ValueSource(platform=platform1, score_factor=200)],
+        )
+        value2 = Value(
+            external_object=object2,
+            type=ValueType.TITLE,
+            text="Foo",
+            sources=[ValueSource(platform=platform2, score_factor=300)],
+        )
         session.add_all([value1, value2])
 
         session.commit()
@@ -43,10 +43,8 @@ class TestExternalObjectMerge(object):
     def test_value_moving(self, session):
         # This tests for moving a lot of values at once. There was an issue of
         # value disappearing, hence this test.
-        platform1 = Platform(name='Platform 1', slug='platform-1',
-                             base_score=200)
-        platform2 = Platform(name='Platform 2', slug='platform-2',
-                             base_score=300)
+        platform1 = Platform(name="Platform 1", slug="platform-1", base_score=200)
+        platform2 = Platform(name="Platform 2", slug="platform-2", base_score=300)
         session.add_all([platform1, platform2])
 
         object1 = ExternalObject(type=ExternalObjectType.MOVIE)
@@ -57,19 +55,21 @@ class TestExternalObjectMerge(object):
         # on the second one. With this, the first 5 should only have their
         # sources moved, while the 5 others should have the whole value moved
         values1 = [
-            Value(external_object=object1,
-                  type=ValueType.TITLE,
-                  text="{}".format(i),
-                  sources=[ValueSource(platform=platform1,
-                                       score_factor=100 * i)])
+            Value(
+                external_object=object1,
+                type=ValueType.TITLE,
+                text="{}".format(i),
+                sources=[ValueSource(platform=platform1, score_factor=100 * i)],
+            )
             for i in range(5)
         ]
         values2 = [
-            Value(external_object=object2,
-                  type=ValueType.TITLE,
-                  text="{}".format(i),
-                  sources=[ValueSource(platform=platform2,
-                                       score_factor=100 * i)])
+            Value(
+                external_object=object2,
+                type=ValueType.TITLE,
+                text="{}".format(i),
+                sources=[ValueSource(platform=platform2, score_factor=100 * i)],
+            )
             for i in range(10)
         ]
         session.add_all(values1 + values2)

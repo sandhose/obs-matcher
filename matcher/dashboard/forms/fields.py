@@ -4,7 +4,13 @@ from wtforms import SelectFieldBase, widgets
 class SelectAJAXMultipleField(SelectFieldBase):
     widget = widgets.Select(multiple=True)
 
-    def __init__(self, label=None, validators=None, text_map=lambda l: ((v, v) for v in l), **kwargs):
+    def __init__(
+        self,
+        label=None,
+        validators=None,
+        text_map=lambda l: ((v, v) for v in l),
+        **kwargs,
+    ):
         super(SelectAJAXMultipleField, self).__init__(label, validators, **kwargs)
         self.text_map = text_map
 

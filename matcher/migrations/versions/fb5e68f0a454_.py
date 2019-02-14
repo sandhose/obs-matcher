@@ -19,7 +19,8 @@ def upgrade():
     op.execute(
         "DROP MATERIALIZED VIEW IF EXISTS vw_platform_source_order_by_value_type"
     )
-    op.execute("""
+    op.execute(
+        """
         CREATE MATERIALIZED VIEW vw_platform_source_order_by_value_type AS
         SELECT value.external_object_id AS val_eo_id,
                value.type AS val_type,
@@ -47,20 +48,26 @@ def upgrade():
                    platform.id,
                    platform.name,
                    platform.type
-    """)
-    op.execute("""
+    """
+    )
+    op.execute(
+        """
         CREATE UNIQUE INDEX
         IF NOT EXISTS ix_vw_platform_source_order_by_value_type_eo_type_pl
         ON vw_platform_source_order_by_value_type
         USING btree (val_eo_id, val_type, pl_id)
-    """)
-    op.execute("""
+    """
+    )
+    op.execute(
+        """
         CREATE INDEX
         IF NOT EXISTS ix_vw_platform_source_order_by_value_type_order_type_eo
         ON vw_platform_source_order_by_value_type
         USING btree (pl_order, val_type, val_eo_id)
-    """)
-    op.execute("""
+    """
+    )
+    op.execute(
+        """
         CREATE MATERIALIZED VIEW vw_attributes AS
         SELECT crosstab.external_object_id,
             crosstab.titles,
@@ -109,13 +116,16 @@ def upgrade():
                      durations double precision[],
                      names text[],
                      countries character(2)[])
-    """)
-    op.execute("""
+    """
+    )
+    op.execute(
+        """
         CREATE UNIQUE INDEX
         IF NOT EXISTS pk_vw_attributes
         ON vw_attributes
         USING btree (external_object_id)
-    """)
+    """
+    )
 
 
 def downgrade():

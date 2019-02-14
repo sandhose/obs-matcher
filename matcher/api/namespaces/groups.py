@@ -5,27 +5,27 @@ from matcher.scheme.platform import PlatformGroup
 from .. import models, pagination
 from ..resources import DbResource
 
-api = Namespace('groups', description='Platform group operations')
+api = Namespace("groups", description="Platform group operations")
 
 platform_group_arguments = reqparse.RequestParser()
-platform_group_arguments.add_argument('name', type=str, required=False)
+platform_group_arguments.add_argument("name", type=str, required=False)
 
-for key in ['platform_base', 'platform', 'platform_group']:
+for key in ["platform_base", "platform", "platform_group"]:
     model = getattr(models, key)
     api.models[model.name] = model
 
 
-@api.route('/')
+@api.route("/")
 class PlatformGroupList(DbResource):
     """List and create platform groups"""
 
-    @api.doc('list_platform_groups')
+    @api.doc("list_platform_groups")
     @pagination.wrap(api, models.platform_group)
     def get(self):
         """List all platform groups"""
         return self.query(PlatformGroup)
 
-    @api.doc('create_platform_group')
+    @api.doc("create_platform_group")
     @api.expect(platform_group_arguments)
     @api.marshal_with(models.platform_group)
     def post(self):
@@ -39,8 +39,8 @@ class PlatformGroupList(DbResource):
         return platform_group
 
 
-@api.route('/<int:id>')
-@api.response(404, 'Platform group not found')
+@api.route("/<int:id>")
+@api.response(404, "Platform group not found")
 class PlatformGroupItem(DbResource):
     """Show a single platform group and lets you edit and delete them"""
 
@@ -50,21 +50,21 @@ class PlatformGroupItem(DbResource):
 
         return super().dispatch_request(platform_group, *args, **kwargs)
 
-    @api.doc('get_platform_group')
+    @api.doc("get_platform_group")
     @api.marshal_with(models.platform_group)
     def get(self, platform_group):
         """Fetch a single group"""
         return platform_group
 
-    @api.doc('delete_platform_group')
+    @api.doc("delete_platform_group")
     def delete(self, platform_group):
         """Delete a group"""
         self.session.delete(platform_group)
         self.session.commit()
 
-        return 'ok'
+        return "ok"
 
-    @api.doc('put_platform_group')
+    @api.doc("put_platform_group")
     @api.expect(platform_group_arguments)
     @api.marshal_with(models.platform_group)
     def put(self, platform_group):

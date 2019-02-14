@@ -11,8 +11,8 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = '152dea884d0d'
-down_revision = '39018d98191f'
+revision = "152dea884d0d"
+down_revision = "39018d98191f"
 branch_labels = None
 depends_on = None
 
@@ -22,12 +22,14 @@ def upgrade():
     op.execute("ALTER TYPE externalobjecttype RENAME TO externalobjecttype_old")
 
     # Create the new one
-    externalobjecttype = postgresql.ENUM('PERSON', 'MOVIE', 'SERIES', 'EPISODE',
-                                         name='externalobjecttype')
+    externalobjecttype = postgresql.ENUM(
+        "PERSON", "MOVIE", "SERIES", "EPISODE", name="externalobjecttype"
+    )
     externalobjecttype.create(op.get_bind())
 
     # Adjust the column
-    op.execute("""
+    op.execute(
+        """
         ALTER TABLE external_object
         ALTER COLUMN type
         TYPE externalobjecttype
@@ -38,7 +40,8 @@ def upgrade():
             WHEN type='EPISODE' THEN 'EPISODE'::externalobjecttype
             WHEN type='PERSON' THEN 'PERSON'::externalobjecttype
           END
-    """)
+    """
+    )
 
     # Drop the old type
     op.execute("DROP TYPE externalobjecttype_old")
@@ -46,13 +49,14 @@ def upgrade():
 
 def downgrade():
     # Re-create the old type
-    externalobjecttype = postgresql.ENUM('PERSON', 'MOVIE', 'SERIE', 'SEASON',
-                                         'EPISODE',
-                                         name='externalobjecttype_old')
+    externalobjecttype = postgresql.ENUM(
+        "PERSON", "MOVIE", "SERIE", "SEASON", "EPISODE", name="externalobjecttype_old"
+    )
     externalobjecttype.create(op.get_bind())
 
     # Adjust the column
-    op.execute("""
+    op.execute(
+        """
         ALTER TABLE external_object
         ALTER COLUMN type
         TYPE externalobjecttype_old
@@ -63,7 +67,8 @@ def downgrade():
             WHEN type='EPISODE' THEN 'EPISODE'::externalobjecttype_old
             WHEN type='PERSON' THEN 'PERSON'::externalobjecttype_old
           END
-    """)
+    """
+    )
 
     # Drop the new type
     op.execute("DROP TYPE externalobjecttype")

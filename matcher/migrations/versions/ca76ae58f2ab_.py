@@ -8,15 +8,16 @@ Create Date: 2018-08-01 15:27:37.583118
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = 'ca76ae58f2ab'
-down_revision = 'c5a121398c36'
+revision = "ca76ae58f2ab"
+down_revision = "c5a121398c36"
 branch_labels = None
 depends_on = None
 
 
 def upgrade():
     op.execute("DROP MATERIALIZED VIEW vw_attributes")
-    op.execute("""\
+    op.execute(
+        """\
         CREATE MATERIALIZED VIEW vw_attributes AS
         SELECT crosstab.external_object_id,
                crosstab.titles,
@@ -51,7 +52,8 @@ def upgrade():
                      durations double precision[],
                      names text[],
                      countries character(2)[])
-    """)
+    """
+    )
 
 
 def downgrade():

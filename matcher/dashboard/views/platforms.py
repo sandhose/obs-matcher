@@ -12,26 +12,37 @@ from matcher.utils import apply_ordering, parse_ordering
 
 from ..forms.platforms import PlatformListFilter
 
-__all__ = ['PlatformListView', 'ShowPlatformView']
+__all__ = ["PlatformListView", "ShowPlatformView"]
 
 
 class PlatformListView(View, DbMixin):
     def dispatch_request(self):
         form = PlatformListFilter(request.args)
-        form.country.query = self.query(Platform.country).group_by(Platform.country).order_by(Platform.country)
+        form.country.query = (
+            self.query(Platform.country)
+            .group_by(Platform.country)
+            .order_by(Platform.country)
+        )
         form.group.query = self.query(PlatformGroup).order_by(PlatformGroup.name)
-        query = self.query(Platform).\
-            options(undefer(Platform.links_count),
-                    joinedload(Platform.group))
+        query = self.query(Platform).options(
+            undefer(Platform.links_count), joinedload(Platform.group)
+        )
 
-        ordering_key, ordering_direction = parse_ordering(request.args.get('ordering', None, str))
-        query = apply_ordering({
-            'name': Platform.name,
-            'slug': Platform.slug,
-            'country': Platform.country,
-            'links': Platform.links_count,
-            None: Platform.id
-        }, query, key=ordering_key, direction=ordering_direction)
+        ordering_key, ordering_direction = parse_ordering(
+            request.args.get("ordering", None, str)
+        )
+        query = apply_ordering(
+            {
+                "name": Platform.name,
+                "slug": Platform.slug,
+                "country": Platform.country,
+                "links": Platform.links_count,
+                None: Platform.id,
+            },
+            query,
+            key=ordering_key,
+            direction=ordering_direction,
+        )
 
         if form.validate():
             if form.search.data:
@@ -44,14 +55,16 @@ class PlatformListView(View, DbMixin):
                 query = query.filter(Platform.country.in_(form.country.data))
 
             if form.group.data:
-                query = query.filter(Platform.group_id.in_(group.id for group in form.group.data))
+                query = query.filter(
+                    Platform.group_id.in_(group.id for group in form.group.data)
+                )
 
         ctx = {}
-        ctx['ordering'] = request.args.get('ordering', None, str)
-        ctx['filter_form'] = form
-        ctx['page'] = query.paginate()
+        ctx["ordering"] = request.args.get("ordering", None, str)
+        ctx["filter_form"] = form
+        ctx["page"] = query.paginate()
 
-        return render_template('platforms/list.html', **ctx)
+        return render_template("platforms/list.html", **ctx)
 
 
 class ShowPlatformView(View, DbMixin):
@@ -62,36 +75,43 @@ class ShowPlatformView(View, DbMixin):
             abort(404)
 
         ctx = {}
-        ctx['platform'] = platform
-        ctx['link_stats'] = {type_.name: count for (type_, count) in (
-            self.query(ExternalObject.type, func.count(ExternalObject.id)).
-            join(ObjectLink).
-            filter(ObjectLink.platform == platform).
-            group_by(ExternalObject.type)
-        )}
+        ctx["platform"] = platform
+        ctx["link_stats"] = {
+            type_.name: count
+            for (type_, count) in (
+                self.query(ExternalObject.type, func.count(ExternalObject.id))
+                .join(ObjectLink)
+                .filter(ObjectLink.platform == platform)
+                .group_by(ExternalObject.type)
+            )
+        }
 
         now = datetime.datetime.utcnow()
 
         def last_scraps(timedelta):
             return (
-                self
-                .query(Scrap)
+                self.query(Scrap)
                 .filter(Scrap.date >= (now - timedelta))
                 .filter(Scrap.platform == platform)
                 .count()
             )
 
-        ctx['recent_scraps_count'] = {
-            'week': last_scraps(datetime.timedelta(weeks=1)),
-            'month': last_scraps(datetime.timedelta(days=30)),
-            'year': last_scraps(datetime.timedelta(days=365)),
+        ctx["recent_scraps_count"] = {
+            "week": last_scraps(datetime.timedelta(weeks=1)),
+            "month": last_scraps(datetime.timedelta(days=30)),
+            "year": last_scraps(datetime.timedelta(days=365)),
         }
 
-        ctx['objects_sample'] = (
-            self.query(ExternalObject).
-            filter(ExternalObject.id.in_(self.query(ObjectLink.external_object_id).
-                                         filter(ObjectLink.platform == platform))).
-            order_by(func.random())
+        ctx["objects_sample"] = (
+            self.query(ExternalObject)
+            .filter(
+                ExternalObject.id.in_(
+                    self.query(ObjectLink.external_object_id).filter(
+                        ObjectLink.platform == platform
+                    )
+                )
+            )
+            .order_by(func.random())
         )
 
-        return render_template('platforms/show.html', **ctx)
+        return render_template("platforms/show.html", **ctx)

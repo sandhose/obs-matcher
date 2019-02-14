@@ -8,10 +8,8 @@ from sqlalchemy.types import Float, Integer
 
 
 class ExternalObjectPlatformFilter(BaseFilter):
-    def __init__(self, column, name, invert=False, options=None,
-                 data_type=None):
-        super(ExternalObjectPlatformFilter, self).__init__(name, options,
-                                                           data_type)
+    def __init__(self, column, name, invert=False, options=None, data_type=None):
+        super(ExternalObjectPlatformFilter, self).__init__(name, options, data_type)
         self.column = column
         self.invert = invert
 
@@ -29,14 +27,16 @@ class ExternalObjectPlatformFilter(BaseFilter):
                 .exists()
             )
         else:
-            return query.\
-                join(ObjectLink,
-                     ExternalObject.id == ObjectLink.external_object_id).\
-                join(Platform, ObjectLink.platform_id == Platform.id).\
-                filter(self.column == value)
+            return (
+                query.join(
+                    ObjectLink, ExternalObject.id == ObjectLink.external_object_id
+                )
+                .join(Platform, ObjectLink.platform_id == Platform.id)
+                .filter(self.column == value)
+            )
 
     def operation(self):
-        return 'not ' + self.column.key if self.invert else self.column.key
+        return "not " + self.column.key if self.invert else self.column.key
 
 
 class ExternalObjectSimilarFilter(BaseFilter):
@@ -47,23 +47,26 @@ class ExternalObjectSimilarFilter(BaseFilter):
         similar = list(db.session.query(ExternalObject).get(int(value)).similar())
         json_data = json.dumps([s._asdict() for s in similar])
 
-        c = column('data', JSON)
-        subquery = select([
-            c['into'].astext.cast(Integer).label('into'),
-            c['score'].astext.cast(Float).label('score')
-        ])\
-            .select_from(func.json_array_elements(json_data).alias('data'))\
-            .alias('similar')
+        c = column("data", JSON)
+        subquery = (
+            select(
+                [
+                    c["into"].astext.cast(Integer).label("into"),
+                    c["score"].astext.cast(Float).label("score"),
+                ]
+            )
+            .select_from(func.json_array_elements(json_data).alias("data"))
+            .alias("similar")
+        )
 
-        query = query.join(subquery,
-                           subquery.c.into == ExternalObject.id)
+        query = query.join(subquery, subquery.c.into == ExternalObject.id)
 
         # TODO: way to order_by similar.score
 
         return query
 
     def operation(self):
-        return 'similar to'
+        return "similar to"
 
 
 class SeriesFilter(BaseFilter):
@@ -71,11 +74,12 @@ class SeriesFilter(BaseFilter):
         from ..app import db
         from ..scheme.object import Episode, ExternalObject
 
-        episodes = db.session.query(Episode.external_object_id).\
-            filter(Episode.series_id == int(value))
+        episodes = db.session.query(Episode.external_object_id).filter(
+            Episode.series_id == int(value)
+        )
         query = query.filter(ExternalObject.id.in_(episodes))
 
         return query
 
     def operation(self):
-        return 'in series'
+        return "in series"

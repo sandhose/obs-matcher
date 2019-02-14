@@ -11,12 +11,17 @@ from matcher.scheme.export import ExportFactory, ExportFile, ExportTemplate
 from matcher.scheme.platform import Platform, PlatformGroup, Session
 from matcher.utils import apply_ordering, parse_ordering
 
-from ..forms.exports import (ExportFactoryListFilter, ExportFileFilter,
-                             NewExportFileForm,)
+from ..forms.exports import ExportFactoryListFilter, ExportFileFilter, NewExportFileForm
 
-__all__ = ['ExportIndexView', 'ExportFileListView', 'DownloadExportFileView',
-           'NewExportFileView', 'ShowExportFileView', 'ExportFactoryListView',
-           'ShowExportFactoryView']
+__all__ = [
+    "ExportIndexView",
+    "ExportFileListView",
+    "DownloadExportFileView",
+    "NewExportFileView",
+    "ShowExportFileView",
+    "ExportFactoryListView",
+    "ShowExportFactoryView",
+]
 
 
 def build_filter_cache(files, session) -> Dict[str, Dict[int, Any]]:
@@ -25,28 +30,40 @@ def build_filter_cache(files, session) -> Dict[str, Dict[int, Any]]:
     for file in files:
         for key, value in file.filters.items():
             existing = filters.get(key, set())  # type: Set[str]
-            existing.update(k.strip().upper() for k in value.split(','))
+            existing.update(k.strip().upper() for k in value.split(","))
             filters[key] = existing
 
     cache = {}
-    if 'platform.id' in filters:
-        cache['platform.id'] = dict(session.query(Platform.id, Platform).
-                                    filter(Platform.id.in_(int(i) for i in filters['platform.id']
-                                                           if i not in ['NONE', 'NULL'])).
-                                    all())
+    if "platform.id" in filters:
+        cache["platform.id"] = dict(
+            session.query(Platform.id, Platform)
+            .filter(
+                Platform.id.in_(
+                    int(i) for i in filters["platform.id"] if i not in ["NONE", "NULL"]
+                )
+            )
+            .all()
+        )
 
-    if 'platform.group_id' in filters:
-        cache['platform.group_id'] = dict(session.query(PlatformGroup.id, PlatformGroup).
-                                          filter(PlatformGroup.id.in_(int(i) for i in filters['platform.group_id']
-                                                                      if i not in ['NONE', 'NULL'])).
-                                          all())
+    if "platform.group_id" in filters:
+        cache["platform.group_id"] = dict(
+            session.query(PlatformGroup.id, PlatformGroup)
+            .filter(
+                PlatformGroup.id.in_(
+                    int(i)
+                    for i in filters["platform.group_id"]
+                    if i not in ["NONE", "NULL"]
+                )
+            )
+            .all()
+        )
 
     return cache
 
 
 class ExportIndexView(View):
     def dispatch_request(self):
-        return render_template('exports/index.html')
+        return render_template("exports/index.html")
 
 
 class ExportFileListView(View, DbMixin):
@@ -56,16 +73,25 @@ class ExportFileListView(View, DbMixin):
         form.template.query = self.query(ExportTemplate)
         form.session.query = self.query(Session)
 
-        query = self.query(ExportFile)\
-            .join(ExportFile.template)\
+        query = (
+            self.query(ExportFile)
+            .join(ExportFile.template)
             .options(undefer(ExportFile.last_activity))
+        )
 
-        ordering_key, ordering_direction = parse_ordering(request.args.get('ordering', None, str))
-        query = apply_ordering({
-            'date': ExportFile.last_activity,
-            'filename': ExportFile.path,
-            None: ExportFile.id
-        }, query, key=ordering_key, direction=ordering_direction)
+        ordering_key, ordering_direction = parse_ordering(
+            request.args.get("ordering", None, str)
+        )
+        query = apply_ordering(
+            {
+                "date": ExportFile.last_activity,
+                "filename": ExportFile.path,
+                None: ExportFile.id,
+            },
+            query,
+            key=ordering_key,
+            direction=ordering_direction,
+        )
 
         if form.validate():
             if form.status.data:
@@ -75,24 +101,36 @@ class ExportFileListView(View, DbMixin):
                 query = query.filter(ExportTemplate.row_type.in_(form.row_type.data))
 
             if form.external_object_type.data:
-                query = query.filter(ExportTemplate.external_object_type.in_(form.external_object_type.data))
+                query = query.filter(
+                    ExportTemplate.external_object_type.in_(
+                        form.external_object_type.data
+                    )
+                )
 
             if form.template.data:
-                query = query.filter(ExportFile.export_template_id.in_(t.id for t in form.template.data))
+                query = query.filter(
+                    ExportFile.export_template_id.in_(t.id for t in form.template.data)
+                )
 
             if form.factory.data:
-                query = query.filter(ExportFile.export_factory_id.in_(f.id for f in form.factory.data))
+                query = query.filter(
+                    ExportFile.export_factory_id.in_(f.id for f in form.factory.data)
+                )
 
             if form.session.data:
-                query = query.filter(ExportFile.session_id.in_(s.id for s in form.session.data))
+                query = query.filter(
+                    ExportFile.session_id.in_(s.id for s in form.session.data)
+                )
 
         ctx = {}
-        ctx['ordering'] = request.args.get('ordering', None, str)
-        ctx['page'] = query.paginate()
-        ctx['filter_form'] = form
-        ctx['export_file_filter_cache'] = build_filter_cache(ctx['page'].items, self.session)
+        ctx["ordering"] = request.args.get("ordering", None, str)
+        ctx["page"] = query.paginate()
+        ctx["filter_form"] = form
+        ctx["export_file_filter_cache"] = build_filter_cache(
+            ctx["page"].items, self.session
+        )
 
-        return render_template('exports/files/list.html', **ctx)
+        return render_template("exports/files/list.html", **ctx)
 
 
 class DownloadExportFileView(View, DbMixin):
@@ -100,11 +138,13 @@ class DownloadExportFileView(View, DbMixin):
         export_file = self.query(ExportFile).get_or_404(id)
 
         # FIXME: not every client supports gzip, we should look at the Accept-Encoding header
-        response = send_file(export_file.open(mode='rb'),
-                             mimetype="text/csv",
-                             as_attachment=True,
-                             attachment_filename=export_file.path.split('/')[-1])
-        response.headers['Content-Encoding'] = 'gzip'
+        response = send_file(
+            export_file.open(mode="rb"),
+            mimetype="text/csv",
+            as_attachment=True,
+            attachment_filename=export_file.path.split("/")[-1],
+        )
+        response.headers["Content-Encoding"] = "gzip"
         return response
 
 
@@ -114,7 +154,7 @@ class DeleteExportFileView(View, DbMixin):
         export_file.delete()
         self.session.add(export_file)
         self.session.commit()
-        return redirect(url_for('.show_export_file', id=export_file.id))
+        return redirect(url_for(".show_export_file", id=export_file.id))
 
 
 class ProcessExportFileView(View, DbMixin, CeleryMixin):
@@ -125,9 +165,9 @@ class ProcessExportFileView(View, DbMixin, CeleryMixin):
         self.session.add(export_file)
         self.session.commit()
 
-        flash('Export started, the file will be available soon')
+        flash("Export started, the file will be available soon")
 
-        return redirect(url_for('.show_export_file', id=export_file.id))
+        return redirect(url_for(".show_export_file", id=export_file.id))
 
 
 class NewExportFileView(View, DbMixin, CeleryMixin):
@@ -138,16 +178,21 @@ class NewExportFileView(View, DbMixin, CeleryMixin):
         form.filters.platform_id.query = self.query(Platform)
         form.filters.platform_group_id.query = self.query(PlatformGroup)
         form.filters.platform_country.choices = [
-            (v, v) for (v, ) in
-            self.query(Platform.country).
-            order_by(Platform.country).
-            filter(func.char_length(Platform.country) == 2).
-            filter(or_(Platform.type == PlatformType.TVOD, Platform.type == PlatformType.SVOD)).
-            filter(Platform.ignore_in_exports.is_(False)).
-            distinct()
+            (v, v)
+            for (v,) in self.query(Platform.country)
+            .order_by(Platform.country)
+            .filter(func.char_length(Platform.country) == 2)
+            .filter(
+                or_(
+                    Platform.type == PlatformType.TVOD,
+                    Platform.type == PlatformType.SVOD,
+                )
+            )
+            .filter(Platform.ignore_in_exports.is_(False))
+            .distinct()
         ]
 
-        if request.method == 'POST' and form.validate():
+        if request.method == "POST" and form.validate():
             file = ExportFile(
                 path=form.path.data,
                 session=form.session.data,
@@ -157,42 +202,60 @@ class NewExportFileView(View, DbMixin, CeleryMixin):
             file.schedule(celery=self.celery)
             self.session.add(file)
             self.session.commit()
-            return redirect(url_for('.show_export_file', id=file.id))
+            return redirect(url_for(".show_export_file", id=file.id))
 
         ctx = {}
-        ctx['form'] = form
+        ctx["form"] = form
 
-        return render_template('exports/files/new.html', **ctx)
+        return render_template("exports/files/new.html", **ctx)
 
 
 class ShowExportFileView(View, DbMixin):
     def dispatch_request(self, id):
-        export_file = self.query(ExportFile).options(joinedload(ExportFile.session),
-                                                     joinedload(ExportFile.template),
-                                                     joinedload(ExportFile.factory),
-                                                     undefer(ExportFile.last_activity)).get_or_404(id)
+        export_file = (
+            self.query(ExportFile)
+            .options(
+                joinedload(ExportFile.session),
+                joinedload(ExportFile.template),
+                joinedload(ExportFile.factory),
+                undefer(ExportFile.last_activity),
+            )
+            .get_or_404(id)
+        )
 
         ctx = {}
-        ctx['file'] = export_file
-        ctx['export_file_filter_cache'] = build_filter_cache([export_file], self.session)
+        ctx["file"] = export_file
+        ctx["export_file_filter_cache"] = build_filter_cache(
+            [export_file], self.session
+        )
 
-        return render_template('exports/files/show.html', **ctx)
+        return render_template("exports/files/show.html", **ctx)
 
 
 class ExportFactoryListView(View, DbMixin, CeleryMixin):
     def dispatch_request(self):
-        query = self.query(ExportFactory).join(ExportFactory.template).order_by(ExportFactory.id)
+        query = (
+            self.query(ExportFactory)
+            .join(ExportFactory.template)
+            .order_by(ExportFactory.id)
+        )
 
-        if request.method == 'POST':
-            if request.form.get('action') == 'run':
-                factories = [self.query(ExportFactory).get_or_404(factory_id)
-                             for factory_id in request.form.getlist('factories', type=int)]
-                session = self.query(Session).get_or_404(request.form.get('session', type=int))
+        if request.method == "POST":
+            if request.form.get("action") == "run":
+                factories = [
+                    self.query(ExportFactory).get_or_404(factory_id)
+                    for factory_id in request.form.getlist("factories", type=int)
+                ]
+                session = self.query(Session).get_or_404(
+                    request.form.get("session", type=int)
+                )
 
                 for factory in factories:
-                    self.celery.send_task('matcher.tasks.export.run_factory', (factory.id, session.id))
+                    self.celery.send_task(
+                        "matcher.tasks.export.run_factory", (factory.id, session.id)
+                    )
 
-                flash('Exports were scheduled')
+                flash("Exports were scheduled")
 
         form = ExportFactoryListFilter(request.args)
 
@@ -204,24 +267,32 @@ class ExportFactoryListView(View, DbMixin, CeleryMixin):
                 query = query.filter(ExportFactory.iterator.in_(form.iterator.data))
 
             if form.external_object_type.data:
-                query = query.filter(ExportTemplate.external_object_type.in_(form.external_object_type.data))
+                query = query.filter(
+                    ExportTemplate.external_object_type.in_(
+                        form.external_object_type.data
+                    )
+                )
 
         ctx = {}
-        ctx['filter_form'] = form
-        ctx['page'] = query.paginate()
-        ctx['sessions'] = self.query(Session)
+        ctx["filter_form"] = form
+        ctx["page"] = query.paginate()
+        ctx["sessions"] = self.query(Session)
 
-        return render_template('exports/factories/list.html', **ctx)
+        return render_template("exports/factories/list.html", **ctx)
 
 
 class ShowExportFactoryView(View, DbMixin):
     def dispatch_request(self, id):
-        export_factory = self.query(ExportFactory)\
-            .options(joinedload(ExportFactory.files).joinedload(ExportFile.session),
-                     joinedload(ExportFactory.files).undefer(ExportFile.last_activity))\
+        export_factory = (
+            self.query(ExportFactory)
+            .options(
+                joinedload(ExportFactory.files).joinedload(ExportFile.session),
+                joinedload(ExportFactory.files).undefer(ExportFile.last_activity),
+            )
             .get_or_404(id)
+        )
 
         ctx = {}
-        ctx['factory'] = export_factory
+        ctx["factory"] = export_factory
 
-        return render_template('exports/factories/show.html', **ctx)
+        return render_template("exports/factories/show.html", **ctx)

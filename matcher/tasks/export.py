@@ -5,7 +5,7 @@ from matcher.scheme.export import ExportFactory, ExportFile
 from matcher.scheme.platform import Session
 
 
-@celery.task(autoretry_for=(Exception, ), max_retries=5)
+@celery.task(autoretry_for=(Exception,), max_retries=5)
 def run_factory(factory_id, session_id):
     scrap_session = db.session.query(Session).get(session_id)
     factory = db.session.query(ExportFactory).get(factory_id)

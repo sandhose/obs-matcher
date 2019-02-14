@@ -15,26 +15,44 @@ import math
 import re
 from operator import attrgetter, itemgetter
 
-from sqlalchemy import (Column, Enum, ForeignKey, Integer,
-                        PrimaryKeyConstraint, Sequence, Table, Text, and_,
-                        column, func, select, table, tuple_,)
+from sqlalchemy import (
+    Column,
+    Enum,
+    ForeignKey,
+    Integer,
+    PrimaryKeyConstraint,
+    Sequence,
+    Table,
+    Text,
+    and_,
+    column,
+    func,
+    select,
+    table,
+    tuple_,
+)
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm import (aliased, column_property, foreign, joinedload,
-                            relationship,)
+from sqlalchemy.orm import aliased, column_property, foreign, joinedload, relationship
 from sqlalchemy.orm.session import object_session
 from tqdm import tqdm
 from unidecode import unidecode
 
-from matcher.exceptions import (AmbiguousLinkError, ExternalIDMismatchError,
-                                InvalidMetadata, InvalidMetadataValue,
-                                InvalidRelation, LinkNotFound, LinksOverlap,
-                                ObjectTypeMismatchError, UnknownAttribute,
-                                UnknownRelation,)
+from matcher.exceptions import (
+    AmbiguousLinkError,
+    ExternalIDMismatchError,
+    InvalidMetadata,
+    InvalidMetadataValue,
+    InvalidRelation,
+    LinkNotFound,
+    LinksOverlap,
+    ObjectTypeMismatchError,
+    UnknownAttribute,
+    UnknownRelation,
+)
 from matcher.utils import Lock
 
 from .base import Base
-from .enums import (ExternalObjectType, Gender, PlatformType, RoleType,
-                    ValueType,)
+from .enums import ExternalObjectType, Gender, PlatformType, RoleType, ValueType
 
 # FIXME: this is an ugly wrapper to lazy-load the session. This file should
 # *not* depend on the session therefore it should be passed as an parameter of
@@ -45,29 +63,32 @@ class db_(object):
     @property
     def session(self):
         from matcher.app import db
+
         return db.session
 
 
 db = db_()
 
 
-lookup_lock = Lock('lookup')
-links_lock = Lock('links')
-role_lock = Lock('role')
-attributes_lock = Lock('attribute')
+lookup_lock = Lock("lookup")
+links_lock = Lock("links")
+role_lock = Lock("role")
+attributes_lock = Lock("attribute")
 
 
 scrap_link = Table(
-    'scrap_link',
+    "scrap_link",
     Base.metadata,
-    Column('scrap_id',
-           ForeignKey('scrap.id', ondelete='CASCADE', onupdate='CASCADE'),
-           primary_key=True),
-    Column('object_link_id',
-           ForeignKey('object_link.id',
-                      ondelete='CASCADE',
-                      onupdate='CASCADE'),
-           primary_key=True),
+    Column(
+        "scrap_id",
+        ForeignKey("scrap.id", ondelete="CASCADE", onupdate="CASCADE"),
+        primary_key=True,
+    ),
+    Column(
+        "object_link_id",
+        ForeignKey("object_link.id", ondelete="CASCADE", onupdate="CASCADE"),
+        primary_key=True,
+    ),
 )
 
 
@@ -85,25 +106,26 @@ def create_relationship(relation, parent, child):
 
     """
     relationship_map = {
-        'played in': lambda parent, child:
-            child.related_object.add_role(parent, role=RoleType.ACTOR),
-        'featured': lambda parent, child:
-            parent.related_object.add_role(child, role=RoleType.ACTOR),
-
-        'directed': lambda parent, child:
-            child.related_object.add_role(parent, role=RoleType.DIRECTOR),
-        'directed by': lambda parent, child:
-            parent.related_object.add_role(child, role=RoleType.DIRECTOR),
-
-        'wrote': lambda parent, child:
-            child.related_object.add_role(parent, role=RoleType.WRITER),
-        'wrote by': lambda parent, child:
-            parent.related_object.add_role(child, role=RoleType.WRITER),
-
-        'part of': lambda parent, child:
-            child.related_object.set_parent(parent),
-        'contains': lambda parent, child:
-            parent.related_object.set_parent(child),
+        "played in": lambda parent, child: child.related_object.add_role(
+            parent, role=RoleType.ACTOR
+        ),
+        "featured": lambda parent, child: parent.related_object.add_role(
+            child, role=RoleType.ACTOR
+        ),
+        "directed": lambda parent, child: child.related_object.add_role(
+            parent, role=RoleType.DIRECTOR
+        ),
+        "directed by": lambda parent, child: parent.related_object.add_role(
+            child, role=RoleType.DIRECTOR
+        ),
+        "wrote": lambda parent, child: child.related_object.add_role(
+            parent, role=RoleType.WRITER
+        ),
+        "wrote by": lambda parent, child: parent.related_object.add_role(
+            child, role=RoleType.WRITER
+        ),
+        "part of": lambda parent, child: child.related_object.set_parent(parent),
+        "contains": lambda parent, child: parent.related_object.set_parent(child),
     }
 
     try:
@@ -133,14 +155,14 @@ def _normalize_attribute(type, values):
             continue
 
         if isinstance(value, (str, int, float)):
-            value = {'text': str(value), 'score_factor': 1}
+            value = {"text": str(value), "score_factor": 1}
 
-        yield {'type': type, **value}
+        yield {"type": type, **value}
 
         # Try a formatted version of the attribute
-        fmt = ValueType.from_name(type).fmt(str(value['text']))
+        fmt = ValueType.from_name(type).fmt(str(value["text"]))
         if fmt is not None:
-            yield {'type': type, **value, 'text': fmt}
+            yield {"type": type, **value, "text": fmt}
 
 
 def _normalize_link(link):
@@ -152,65 +174,67 @@ def _normalize_link(link):
         (platform, external_id) = link
     else:
         # …or a dict
-        platform = link.get('platform', None)
-        external_id = link.get('external_id', None)
+        platform = link.get("platform", None)
+        external_id = link.get("external_id", None)
         if external_id is None:
-            external_id = link.get('id', None)
+            external_id = link.get("id", None)
 
     # We check if the platform exists (if this doesn't crush
     # performance)
     platform = Platform.lookup(db.session, platform)
     if platform is None:
         # TODO: custom exception
-        raise Exception('platform not found')
+        raise Exception("platform not found")
     else:
         platform_id = platform.id
 
     return (int(platform_id), str(external_id))
 
 
-MergeCandidate = collections.namedtuple('MergeCandidate', 'obj into score')
+MergeCandidate = collections.namedtuple("MergeCandidate", "obj into score")
 
 
 class ExternalObject(Base):
     """An object imported from scraping."""
 
-    __tablename__ = 'external_object'
+    __tablename__ = "external_object"
 
-    external_object_id_seq = Sequence('external_object_id_seq', metadata=Base.metadata)
-    id = Column(Integer,
-                external_object_id_seq,
-                server_default=external_object_id_seq.next_value(),
-                primary_key=True)
+    external_object_id_seq = Sequence("external_object_id_seq", metadata=Base.metadata)
+    id = Column(
+        Integer,
+        external_object_id_seq,
+        server_default=external_object_id_seq.next_value(),
+        primary_key=True,
+    )
     """:obj:`int` : primary key"""
 
     type = Column(Enum(ExternalObjectType))
     """:obj:`ExternalObjectType` : the type of object"""
 
-    links = relationship('ObjectLink',
-                         back_populates='external_object',
-                         cascade='all')
+    links = relationship("ObjectLink", back_populates="external_object", cascade="all")
     """list of :obj:`ObjectLink` : Links to where the object should be found"""
 
-    values = relationship('Value',
-                          back_populates='external_object',
-                          cascade='all')
+    values = relationship("Value", back_populates="external_object", cascade="all")
     """list of :obj:`.value.Value` : arbitrary attributes for this object"""
 
     @declared_attr
     def attributes(cls):
         from .views import AttributesView
-        return relationship(AttributesView,
-                            primaryjoin=(foreign(AttributesView.external_object_id) == cls.id),
-                            viewonly=True,
-                            uselist=False)
+
+        return relationship(
+            AttributesView,
+            primaryjoin=(foreign(AttributesView.external_object_id) == cls.id),
+            viewonly=True,
+            uselist=False,
+        )
+
     """:obj:`.views.AttributesView` : a computed list of attributes"""
 
     links_count = column_property(
-        select([func.count('platform_id')]).
-        select_from(table('object_link')).
-        where(column('external_object_id') == id),
-        deferred=True
+        select([func.count("platform_id")])
+        .select_from(table("object_link"))
+        .where(column("external_object_id") == id),
+        deferred=True,
     )
 
     @property
@@ -233,10 +257,14 @@ class ExternalObject(Base):
 
     @property
     def episodes(self):
-        return object_session(self).query(Episode).filter(Episode.series == self).\
-            options(joinedload('external_object')).\
-            order_by(Episode.season, Episode.episode).\
-            limit(10)
+        return (
+            object_session(self)
+            .query(Episode)
+            .filter(Episode.series == self)
+            .options(joinedload("external_object"))
+            .order_by(Episode.season, Episode.episode)
+            .limit(10)
+        )
 
     def add_meta(self, key, content):
         """Add a metadata on the related_object.
@@ -274,15 +302,16 @@ class ExternalObject(Base):
 
         """
         from .value import Value, ValueSource
-        text = str(attribute['text']).strip()
-        type = attribute['type']
+
+        text = str(attribute["text"]).strip()
+        type = attribute["type"]
         if not isinstance(type, ValueType):
             type = ValueType.from_name(type)
         if type is None:
-            raise UnknownAttribute(attribute['type'])
+            raise UnknownAttribute(attribute["type"])
 
-        if 'score_factor' in attribute:
-            score_factor = attribute['score_factor'] * 100
+        if "score_factor" in attribute:
+            score_factor = attribute["score_factor"] * 100
         else:
             score_factor = 100
 
@@ -299,8 +328,9 @@ class ExternalObject(Base):
             value = Value(type=type, text=text)
             self.values.append(value)
 
-        existing = next((source for source in value.sources
-                         if source.platform == platform), None)
+        existing = next(
+            (source for source in value.sources if source.platform == platform), None
+        )
         if existing is None:
             existing = ValueSource(platform=platform)
             value.sources.append(existing)
@@ -325,17 +355,18 @@ class ExternalObject(Base):
 
         """
         # Existing links from DB
-        db_links = db.session.query(ObjectLink)\
-            .filter(tuple_(ObjectLink.platform_id,
-                           ObjectLink.external_id).in_(links))\
+        db_links = (
+            db.session.query(ObjectLink)
+            .filter(tuple_(ObjectLink.platform_id, ObjectLink.external_id).in_(links))
             .all()
+        )
 
         if len(db_links) == 0:
             return None
         else:
             # Check if they all link to the same object.
             # We may want to merge afterwards if they don't match
-            objects = set(map(attrgetter('external_object'), db_links))
+            objects = set(map(attrgetter("external_object"), db_links))
 
             # A set of those IDs should have a length of one
             # because there is only one distinct value in the array
@@ -361,13 +392,18 @@ class ExternalObject(Base):
         """
         for (platform_id, external_id) in links:
             # Lookup for an existing link
-            existing_link = next((link for link in self.links if
-                                  link.platform_id == platform_id), None)
+            existing_link = next(
+                (link for link in self.links if link.platform_id == platform_id), None
+            )
             if existing_link is None:
                 # and create a new link if none found
-                self.links.append(ObjectLink(external_object=self,
-                                             platform_id=platform_id,
-                                             external_id=external_id))
+                self.links.append(
+                    ObjectLink(
+                        external_object=self,
+                        platform_id=platform_id,
+                        external_id=external_id,
+                    )
+                )
 
             elif existing_link.external_id != external_id:
                 # Duplicate link with different ID for object
@@ -396,14 +432,19 @@ class ExternalObject(Base):
             except AmbiguousLinkError as err:
                 external_object = err.resolve(session)
 
-            if external_object_id is not None and external_object_id != external_object.id:
+            if (
+                external_object_id is not None
+                and external_object_id != external_object.id
+            ):
                 other = session.query(ExternalObject).get(external_object_id)
 
                 if other is not None:
                     if external_object is None:
                         external_object = other
                     else:
-                        external_object = external_object.merge_and_delete(other, session)
+                        external_object = external_object.merge_and_delete(
+                            other, session
+                        )
 
             if external_object is None:
                 if obj_type is None:
@@ -439,6 +480,7 @@ class ExternalObject(Base):
 
         """
         from .value import ValueSource
+
         # FIXME: A lot of other references needs merging (!)
         # First check if the merge is possible
 
@@ -448,22 +490,27 @@ class ExternalObject(Base):
 
         with session.begin_nested():
             if self.type is not their.type:
-                raise ObjectTypeMismatchError(is_type=self.type,
-                                              should_be=their.type)
+                raise ObjectTypeMismatchError(is_type=self.type, should_be=their.type)
 
             to_delete = []
             for our_link in self.links:
-                same_links = [link for link in their.links
-                              if link.platform == our_link.platform and
-                              our_link.external_id == link.external_id]
+                same_links = [
+                    link
+                    for link in their.links
+                    if link.platform == our_link.platform
+                    and our_link.external_id == link.external_id
+                ]
                 to_delete += same_links
 
                 if our_link.platform.allow_links_overlap:
                     continue
 
-                overlapping_links = [link for link in their.links
-                                     if link.platform == our_link.platform and
-                                     our_link.external_id != link.external_id]
+                overlapping_links = [
+                    link
+                    for link in their.links
+                    if link.platform == our_link.platform
+                    and our_link.external_id != link.external_id
+                ]
                 if overlapping_links:
                     raise LinksOverlap(self, their)
 
@@ -478,9 +525,14 @@ class ExternalObject(Base):
         # Then merge the attributes
         for our_attr in list(self.values):
             # Lookup for a matching attribute
-            their_attr = next((attr for attr in their.values
-                               if our_attr.text == attr.text and
-                               our_attr.type == attr.type), None)
+            their_attr = next(
+                (
+                    attr
+                    for attr in their.values
+                    if our_attr.text == attr.text and our_attr.type == attr.type
+                ),
+                None,
+            )
 
             if their_attr is None:
                 # Move attribute if it was not present on their side
@@ -493,18 +545,25 @@ class ExternalObject(Base):
                 # not the same as ours.
                 # We might wanna check for this.
                 for our_source in list(our_attr.sources):
-                    session.merge(ValueSource(score_factor=our_source.score_factor,
-                                              platform_id=our_source.platform_id,
-                                              value_id=their_attr.id))
+                    session.merge(
+                        ValueSource(
+                            score_factor=our_source.score_factor,
+                            platform_id=our_source.platform_id,
+                            value_id=their_attr.id,
+                        )
+                    )
 
-        session.query(Role).filter(Role.external_object_id == self.id).\
-            update({Role.external_object_id: their.id})
+        session.query(Role).filter(Role.external_object_id == self.id).update(
+            {Role.external_object_id: their.id}
+        )
 
-        session.query(Episode).filter(Episode.external_object_id == self.id).\
-            update({Episode.external_object_id: their.id})
+        session.query(Episode).filter(Episode.external_object_id == self.id).update(
+            {Episode.external_object_id: their.id}
+        )
 
-        session.query(Episode).filter(Episode.series_id == self.id).\
-            update({Episode.series_id: their.id})
+        session.query(Episode).filter(Episode.series_id == self.id).update(
+            {Episode.series_id: their.id}
+        )
 
     def merge_and_delete(self, their, session):
         """Merge into another ExternalObject, and delete the old one.
@@ -574,7 +633,7 @@ class ExternalObject(Base):
             try:
                 src.merge_and_delete(dest, db.session)
                 db.session.commit()
-                it.write('Merged {} into {}'.format(src, dest))
+                it.write("Merged {} into {}".format(src, dest))
             except Exception as e:
                 it.write(repr(e))
 
@@ -592,38 +651,46 @@ class ExternalObject(Base):
         session = object_session(self)
 
         # FIXME: use other_value aliased name instead of value_1
-        session.execute('SELECT set_limit(0.6)')
+        session.execute("SELECT set_limit(0.6)")
         other_value = aliased(Value)
-        matches = session.query(
-            other_value.external_object_id,
-            func.sum(func.similarity(Value.text, other_value.text))
-        )\
-            .join(Value, and_(
-                Value.type == ValueType.TITLE,
-                Value.external_object == self,
-                Value.text % other_value.text,
-            ))\
-            .join(other_value.external_object)\
-            .filter(ExternalObject.type == self.type)\
-            .filter(other_value.type == ValueType.TITLE)\
+        matches = (
+            session.query(
+                other_value.external_object_id,
+                func.sum(func.similarity(Value.text, other_value.text)),
+            )
+            .join(
+                Value,
+                and_(
+                    Value.type == ValueType.TITLE,
+                    Value.external_object == self,
+                    Value.text % other_value.text,
+                ),
+            )
+            .join(other_value.external_object)
+            .filter(ExternalObject.type == self.type)
+            .filter(other_value.type == ValueType.TITLE)
             .group_by(other_value.external_object_id)
+        )
 
         def links_overlap(a, b):
             platforms = set([l.platform for l in a]) & set([l.platform for l in b])
-            return [p for p in platforms if p.type != PlatformType.GLOBAL and not p.allow_links_overlap]
+            return [
+                p
+                for p in platforms
+                if p.type != PlatformType.GLOBAL and not p.allow_links_overlap
+            ]
 
         objects = [
-            MergeCandidate(obj=self.id,
-                           into=v[0],
-                           score=v[1])
-            for v in matches if not links_overlap(
+            MergeCandidate(obj=self.id, into=v[0], score=v[1])
+            for v in matches
+            if not links_overlap(
                 session.query(ObjectLink).filter(ObjectLink.external_object_id == v[0]),
-                self.links
+                self.links,
             )
         ]
 
         def into_year(text):
-            m = re.search(r'(\d{4})', text)
+            m = re.search(r"(\d{4})", text)
             return int(m.group(1)) if m else None
 
         def into_float(i):
@@ -633,39 +700,47 @@ class ExternalObject(Base):
                 return None
 
         def numeric_attr(mine, their, type, process=into_float):
-            my_attrs = set([process(attr.text) for attr in mine.values
-                            if attr.type == type])
-            their_attrs = set([process(attr.text) for attr in their.values
-                               if attr.type == type])
+            my_attrs = set(
+                [process(attr.text) for attr in mine.values if attr.type == type]
+            )
+            their_attrs = set(
+                [process(attr.text) for attr in their.values if attr.type == type]
+            )
 
-            return len([True
-                        for x in my_attrs
-                        for y in their_attrs
-                        if x is not None and
-                        y is not None and
-                        abs(x - y) < 1])
+            return len(
+                [
+                    True
+                    for x in my_attrs
+                    for y in their_attrs
+                    if x is not None and y is not None and abs(x - y) < 1
+                ]
+            )
 
         def text_attr(mine, their, type, process=lambda n: n.lower()):
-            my_attrs = set([process(attr.text) for attr in mine.values
-                            if attr.type == type])
-            their_attrs = set([process(attr.text) for attr in their.values
-                               if attr.type == type])
+            my_attrs = set(
+                [process(attr.text) for attr in mine.values if attr.type == type]
+            )
+            their_attrs = set(
+                [process(attr.text) for attr in their.values if attr.type == type]
+            )
 
             def sanitize(s):
-                return ''.join(filter(str.isalnum, unidecode(s).lower()))
+                return "".join(filter(str.isalnum, unidecode(s).lower()))
 
-            return len([True
-                        for x in my_attrs
-                        for y in their_attrs
-                        if x is not None and
-                        y is not None and
-                        sanitize(x) == sanitize(y)])
+            return len(
+                [
+                    True
+                    for x in my_attrs
+                    for y in their_attrs
+                    if x is not None and y is not None and sanitize(x) == sanitize(y)
+                ]
+            )
 
         criterias = [
-            lambda self, their: numeric_attr(self, their,
-                                             ValueType.DATE, into_year),
-            lambda self, their: numeric_attr(self, their,
-                                             ValueType.DURATION, into_float),
+            lambda self, their: numeric_attr(self, their, ValueType.DATE, into_year),
+            lambda self, their: numeric_attr(
+                self, their, ValueType.DURATION, into_float
+            ),
             lambda self, their: text_attr(self, their, ValueType.COUNTRY),
             lambda self, their: 2 * text_attr(self, their, ValueType.TITLE),
         ]
@@ -678,9 +753,9 @@ class ExternalObject(Base):
             their = session.query(ExternalObject).get(candidate.into)
             for criteria in criterias:
                 factor *= math.pow(2, math.log2(1 + criteria(self, their)))
-            yield MergeCandidate(obj=candidate.obj,
-                                 into=candidate.into,
-                                 score=candidate.score * factor)
+            yield MergeCandidate(
+                obj=candidate.obj, into=candidate.into, score=candidate.score * factor
+            )
 
     @staticmethod
     def insert_dict(data, scrap):
@@ -702,13 +777,13 @@ class ExternalObject(Base):
 
         with session.begin_nested():
             obj = ExternalObject.lookup_or_create(
-                obj_type=data['type'],
-                links=data['links'],
-                external_object_id=data['external_object_id'],
+                obj_type=data["type"],
+                links=data["links"],
+                external_object_id=data["external_object_id"],
                 session=session,
             )
 
-            for key, value in data['meta'].items():
+            for key, value in data["meta"].items():
                 if value is not None:
                     obj.add_meta(key, value)
 
@@ -720,9 +795,9 @@ class ExternalObject(Base):
         # FIXME: maybe have this explicitly set in the input dict
         has_attributes = False
 
-        if data['attributes'] is not None:
+        if data["attributes"] is not None:
             with attributes_lock, session.begin_nested():
-                for attribute in data['attributes']:
+                for attribute in data["attributes"]:
                     has_attributes = True
                     try:
                         obj.add_attribute(attribute, scrap.platform)
@@ -733,23 +808,29 @@ class ExternalObject(Base):
         if has_attributes:
             # Find the link created for this platform and add the scrap to it
             with links_lock, session.begin_nested():
-                link = session.query(ObjectLink).filter(ObjectLink.external_object == obj,
-                                                        ObjectLink.platform == scrap.platform).first()
+                link = (
+                    session.query(ObjectLink)
+                    .filter(
+                        ObjectLink.external_object == obj,
+                        ObjectLink.platform == scrap.platform,
+                    )
+                    .first()
+                )
                 if link is not None:
                     link.scraps.append(scrap)
                 else:
                     raise LinkNotFound(links=obj.links, platform=scrap.platform)
 
         # Chech for related objects
-        if data['related'] is not None:
-            for child in data['related']:
+        if data["related"] is not None:
+            for child in data["related"]:
                 # Insert them…
                 child_obj = ExternalObject.insert_dict(child, scrap)
 
                 # …and if a relationship is specified, use a map to bind the
                 # two objects together
-                if 'relation' in child:
-                    create_relationship(child['relation'], obj, child_obj)
+                if "relation" in child:
+                    create_relationship(child["relation"], obj, child_obj)
 
         session.commit()
 
@@ -782,113 +863,102 @@ class ExternalObject(Base):
         # FIXME: how do i comment this?
         data = {
             # ExternalObjectType
-            'type': None,
-
-            'any_type': False,
-
+            "type": None,
+            "any_type": False,
             # Array<{'type': string, 'text': str, 'score_factor': float}>
-            'attributes': None,
-
+            "attributes": None,
             # Array<(int, str)>
-            'links': None,
-
+            "links": None,
             # Array<self>
-            'related': None,
-
+            "related": None,
             # str
-            'relation': None,
-
+            "relation": None,
             # int
-            'external_object_id': None,
-
+            "external_object_id": None,
             # dict<str, any>
-            'meta': {}
+            "meta": {},
         }
 
-        if 'type' in raw and raw['type'] is not None:
+        if "type" in raw and raw["type"] is not None:
             # 'SERIES' was once named 'SERIE'
-            if raw['type'].lower() == 'serie':
-                raw['type'] = 'series'
+            if raw["type"].lower() == "serie":
+                raw["type"] = "series"
 
             # FIXME: workaround for IMDb scraping
-            if raw['type'].lower() == 'any':
-                data['any_type'] = True
+            if raw["type"].lower() == "any":
+                data["any_type"] = True
 
-            data['type'] = ExternalObjectType.from_name(raw['type'])
+            data["type"] = ExternalObjectType.from_name(raw["type"])
 
-        if 'attributes' in raw and raw['attributes'] is not None:
-            data['attributes'] = list(itertools.chain.from_iterable(
-                [_normalize_attribute(t, a)
-                 for t, a in raw['attributes'].items()]))
-            data['attributes'] = deduplicate(data['attributes'],
-                                             itemgetter('text'))
+        if "attributes" in raw and raw["attributes"] is not None:
+            data["attributes"] = list(
+                itertools.chain.from_iterable(
+                    [_normalize_attribute(t, a) for t, a in raw["attributes"].items()]
+                )
+            )
+            data["attributes"] = deduplicate(data["attributes"], itemgetter("text"))
 
-        if 'links' in raw and raw['links'] is not None:
-            data['links'] = list(map(_normalize_link, raw['links']))
+        if "links" in raw and raw["links"] is not None:
+            data["links"] = list(map(_normalize_link, raw["links"]))
 
-        if 'related' in raw and raw['related'] is not None:
-            data['related'] = list(map(ExternalObject.normalize_dict,
-                                       raw['related']))
+        if "related" in raw and raw["related"] is not None:
+            data["related"] = list(map(ExternalObject.normalize_dict, raw["related"]))
 
-        if 'relation' in raw and raw['relation'] is not None:
-            data['relation'] = str(raw['relation'])
+        if "relation" in raw and raw["relation"] is not None:
+            data["relation"] = str(raw["relation"])
 
-        if 'meta' in raw and raw['meta'] is not None:
-            data['meta'] = raw['meta']
+        if "meta" in raw and raw["meta"] is not None:
+            data["meta"] = raw["meta"]
 
-        if 'external_object_id' in raw and raw['external_object_id'] is not None:
+        if "external_object_id" in raw and raw["external_object_id"] is not None:
             try:
-                data['external_object_id'] = int(raw['external_object_id'])
+                data["external_object_id"] = int(raw["external_object_id"])
             except ValueError:
                 pass
 
         return data
 
     def __repr__(self):
-        return '<ExternalObject {} {}>'.format(self.id, self.type)
+        return "<ExternalObject {} {}>".format(self.id, self.type)
 
 
 class ObjectLink(Base):
     """Links an object to a platform, with it's ID on the platform."""
 
-    __tablename__ = 'object_link'
+    __tablename__ = "object_link"
 
-    object_link_id_seq = Sequence('object_link_id_seq', metadata=Base.metadata)
-    id = Column(Integer,
-                object_link_id_seq,
-                server_default=object_link_id_seq.next_value(),
-                primary_key=True)
+    object_link_id_seq = Sequence("object_link_id_seq", metadata=Base.metadata)
+    id = Column(
+        Integer,
+        object_link_id_seq,
+        server_default=object_link_id_seq.next_value(),
+        primary_key=True,
+    )
     """:obj:`int` : primary key"""
 
-    external_object_id = Column(Integer,
-                                ForeignKey('external_object.id'),
-                                nullable=False)
+    external_object_id = Column(
+        Integer, ForeignKey("external_object.id"), nullable=False
+    )
     """:obj:`int` : Foreign key to the linked object"""
 
-    platform_id = Column(Integer,
-                         ForeignKey('platform.id'),
-                         nullable=False)
+    platform_id = Column(Integer, ForeignKey("platform.id"), nullable=False)
     """:obj:`int` : Foreign key to the linked platform"""
 
     external_id = Column(Text)
     """:obj:`str` : ID of the external_object on the platform"""
 
-    external_object = relationship('ExternalObject',
-                                   back_populates='links')
+    external_object = relationship("ExternalObject", back_populates="links")
     """:obj:`ExternalObject` : Relationship to the linked object"""
 
-    platform = relationship('Platform',
-                            back_populates='links')
+    platform = relationship("Platform", back_populates="links")
     """:obj:`.platform.Platform` : Relationship to the linked platform"""
 
-    scraps = relationship('Scrap',
-                          secondary='scrap_link',
-                          back_populates='links')
+    scraps = relationship("Scrap", secondary="scrap_link", back_populates="links")
     """list of :obj:`Scrap` : scraps where the link was found"""
 
-    imports = relationship('ImportFile',
-                           secondary='import_link',
-                           back_populates='links')
+    imports = relationship(
+        "ImportFile", secondary="import_link", back_populates="links"
+    )
 
     @property
     def url(self):
@@ -896,33 +966,26 @@ class ObjectLink(Base):
         return None if format is None else format.format(self.external_id)
 
     def __repr__(self):
-        return '<ObjectLink ({}, {})>'.format(self.external_object,
-                                              self.platform)
+        return "<ObjectLink ({}, {})>".format(self.external_object, self.platform)
 
 
 class Role(Base):
     """A role of a person on another object (movie/episode/series…)."""
 
-    __tablename__ = 'role'
+    __tablename__ = "role"
 
     # FIXME: how to represent multiple roles of a person on the same object?
-    __table_args__ = (
-        PrimaryKeyConstraint('person_id', 'external_object_id'),
-    )
+    __table_args__ = (PrimaryKeyConstraint("person_id", "external_object_id"),)
 
-    person_id = Column(Integer,
-                       ForeignKey('external_object.id'))
+    person_id = Column(Integer, ForeignKey("external_object.id"))
     """:obj:`int` : The ID of the person concerned"""
-    external_object_id = Column(Integer,
-                                ForeignKey('external_object.id'))
+    external_object_id = Column(Integer, ForeignKey("external_object.id"))
     """:obj:`int` : The ID of the object concerned"""
 
-    person = relationship('ExternalObject',
-                          foreign_keys=[person_id])
+    person = relationship("ExternalObject", foreign_keys=[person_id])
     """:obj:`ExternalObject` : The person concerned"""
 
-    external_object = relationship('ExternalObject',
-                                   foreign_keys=[external_object_id])
+    external_object = relationship("ExternalObject", foreign_keys=[external_object_id])
     """:obj:`ExternalObject` : The object concerned"""
 
     role = Column(Enum(RoleType))
@@ -947,17 +1010,16 @@ class ExternalObjectMetaMixin(object):
     @declared_attr
     def external_object_id(cls):
         """Get the type of the external_object_id attribute."""
-        return Column(Integer,
-                      ForeignKey('external_object.id',
-                                 onupdate='CASCADE',
-                                 ondelete='CASCADE'),
-                      primary_key=True)
+        return Column(
+            Integer,
+            ForeignKey("external_object.id", onupdate="CASCADE", ondelete="CASCADE"),
+            primary_key=True,
+        )
 
     @declared_attr
     def external_object(cls):
         """Get the type of the external_object attribute."""
-        return relationship('ExternalObject',
-                            foreign_keys=[cls.external_object_id])
+        return relationship("ExternalObject", foreign_keys=[cls.external_object_id])
 
     @classmethod
     def from_external_object(cls, external_object):
@@ -983,13 +1045,13 @@ class ExternalObjectMetaMixin(object):
     def register(cls):
         """Register the class to the external_object_meta_map."""
         if cls.object_type is None:
-            raise Exception("object_type isn't defined for {!r}"
-                            .format(cls))
+            raise Exception("object_type isn't defined for {!r}".format(cls))
 
         if cls.object_type in external_object_meta_map:
             raise Exception(
-                "ExternalObjectMetaMixin was already registered for {!r}"
-                .format(cls.object_type)
+                "ExternalObjectMetaMixin was already registered for {!r}".format(
+                    cls.object_type
+                )
             )
 
         external_object_meta_map[cls.object_type] = cls
@@ -1013,13 +1075,13 @@ class ExternalObjectMetaMixin(object):
 class Episode(Base, ExternalObjectMetaMixin):
     """An episode of a TV series."""
 
-    __tablename__ = 'episode'
+    __tablename__ = "episode"
     object_type = ExternalObjectType.EPISODE
 
-    series_id = Column(Integer,
-                       ForeignKey('external_object.id',
-                                  ondelete='CASCADE',
-                                  onupdate='CASCADE'))
+    series_id = Column(
+        Integer,
+        ForeignKey("external_object.id", ondelete="CASCADE", onupdate="CASCADE"),
+    )
 
     # FIXME: how to handle special episodes?
     episode = Column(Integer)
@@ -1028,8 +1090,7 @@ class Episode(Base, ExternalObjectMetaMixin):
     season = Column(Integer)
     """:obj:`int` : The season number in the series"""
 
-    series = relationship('ExternalObject',
-                          foreign_keys=[series_id])
+    series = relationship("ExternalObject", foreign_keys=[series_id])
     """:obj:`ExternalObject` : The series in which this episode is in"""
 
     def set_parent(self, parent):
@@ -1071,12 +1132,12 @@ class Episode(Base, ExternalObjectMetaMixin):
 class Person(Base, ExternalObjectMetaMixin):
     """Represents a person."""
 
-    __tablename__ = 'person'
+    __tablename__ = "person"
     object_type = ExternalObjectType.PERSON
 
-    gender = Column(Enum(Gender, name='gender'),
-                    nullable=False,
-                    default=Gender.NOT_KNOWN)
+    gender = Column(
+        Enum(Gender, name="gender"), nullable=False, default=Gender.NOT_KNOWN
+    )
     """:obj:`Gender` : The gender of the person"""
 
     def add_role(self, movie, role):
@@ -1089,11 +1150,18 @@ class Person(Base, ExternalObjectMetaMixin):
 
         """
         with role_lock, db.session.begin_nested():
-            if db.session.query(Role).filter(Role.person == self.external_object and
-                                             Role.external_object == movie).first() is None:
-                db.session.merge(Role(person=self.external_object,
-                                      external_object=movie,
-                                      role=role))
+            if (
+                db.session.query(Role)
+                .filter(
+                    Role.person == self.external_object
+                    and Role.external_object == movie
+                )
+                .first()
+                is None
+            ):
+                db.session.merge(
+                    Role(person=self.external_object, external_object=movie, role=role)
+                )
 
     def add_meta(self, key, content):
         """Add a metadata to the object.

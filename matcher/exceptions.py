@@ -34,8 +34,7 @@ class AmbiguousLinkError(Exception):
         self.objects = objects
 
     def __str__(self):
-        return "Existing links resolve to different objects {!r}"\
-            .format(self.objects)
+        return "Existing links resolve to different objects {!r}".format(self.objects)
 
 
 class ObjectTypeMismatchError(Exception):
@@ -56,8 +55,9 @@ class ObjectTypeMismatchError(Exception):
         self.should_be = should_be
 
     def __str__(self):
-        return "Object type is {!r}, should be {!r}".format(self.is_type,
-                                                            self.should_be)
+        return "Object type is {!r}, should be {!r}".format(
+            self.is_type, self.should_be
+        )
 
 
 class UnknownRelation(Exception):
@@ -99,9 +99,7 @@ class InvalidRelation(Exception):
         self.child = child
 
     def __str__(self):
-        return "{!r} can't be “{}” {!r}".format(self.parent,
-                                                self.relation,
-                                                self.child)
+        return "{!r} can't be “{}” {!r}".format(self.parent, self.relation, self.child)
 
 
 class ExternalIDMismatchError(Exception):
@@ -122,8 +120,7 @@ class ExternalIDMismatchError(Exception):
         self.external_id = external_id
 
     def __str__(self):
-        return "Link {!r} ID does not match {!r}".format(self.link,
-                                                         self.external_id)
+        return "Link {!r} ID does not match {!r}".format(self.link, self.external_id)
 
 
 class UnknownAttribute(Exception):
@@ -161,8 +158,9 @@ class InvalidTransition(Exception):
         self.to_state = to_state
 
     def __str__(self):
-        return "Invalid transition from {!r} to {!r}".format(self.from_state,
-                                                             self.to_state)
+        return "Invalid transition from {!r} to {!r}".format(
+            self.from_state, self.to_state
+        )
 
 
 class LinkNotFound(Exception):
@@ -183,8 +181,7 @@ class LinkNotFound(Exception):
         self.platform = platform
 
     def __str__(self):
-        return "Could not find link for {!r} in {!r}".format(self.platform,
-                                                             self.links)
+        return "Could not find link for {!r} in {!r}".format(self.platform, self.links)
 
 
 class InvalidMetadata(Exception):
@@ -205,8 +202,7 @@ class InvalidMetadata(Exception):
         self.key = key
 
     def __str__(self):
-        return "Can't add metadata {!r} in type {!r}".format(self.key,
-                                                             self.object_type)
+        return "Can't add metadata {!r} in type {!r}".format(self.key, self.object_type)
 
 
 class InvalidMetadataValue(Exception):
@@ -227,8 +223,7 @@ class InvalidMetadataValue(Exception):
         self.content = content
 
     def __str__(self):
-        return "Invalid metadata value {!r} for {!r}".format(self.key,
-                                                             self.content)
+        return "Invalid metadata value {!r} for {!r}".format(self.key, self.content)
 
 
 class LinksOverlap(Exception):
@@ -249,5 +244,6 @@ class LinksOverlap(Exception):
         self.their = their
 
     def __str__(self):
-        return "Links in {!r} overlaps with the ones in {!r}".format(self.mine,
-                                                                     self.their)
+        return "Links in {!r} overlaps with the ones in {!r}".format(
+            self.mine, self.their
+        )

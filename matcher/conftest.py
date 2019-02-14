@@ -13,23 +13,19 @@ from matcher.scheme import Base
 def app():
     """The flask app"""
     app = Flask(__name__)
-    app.config.from_object('matcher.config.TestConfig')
+    app.config.from_object("matcher.config.TestConfig")
 
     _db.init_app(app)
 
     setup_routes(app, admin=False)
 
     def configure(binder):
-        binder.bind(
-            SQLAlchemy,
-            to=_db,
-            scope=request,
-        )
+        binder.bind(SQLAlchemy, to=_db, scope=request)
 
     FlaskInjector(app=app, modules=[configure])
 
     with app.app_context():
-        _db.engine.execute(text('CREATE EXTENSION IF NOT EXISTS tablefunc'))
+        _db.engine.execute(text("CREATE EXTENSION IF NOT EXISTS tablefunc"))
         Base.metadata.create_all(bind=_db.engine, checkfirst=True)
 
         yield app
@@ -42,10 +38,12 @@ def app():
 @pytest.fixture(scope="function")
 def db(app):
     _db.session.remove()
-    table_names = [table.name for table in
-                   reversed(Base.metadata.sorted_tables)
-                   if not table.name.startswith('vw_')]
-    _db.session.execute('TRUNCATE TABLE {}'.format(','.join(table_names)))
+    table_names = [
+        table.name
+        for table in reversed(Base.metadata.sorted_tables)
+        if not table.name.startswith("vw_")
+    ]
+    _db.session.execute("TRUNCATE TABLE {}".format(",".join(table_names)))
     _db.session.commit()
     return _db
 

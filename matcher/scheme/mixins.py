@@ -84,14 +84,16 @@ def _visit_view(
     ashint=False,
     fromhints=None,
     use_schema=True,
-    **kwargs
+    **kwargs,
 ):
     if asfrom or ashint:
         effective_schema = self.preparer.schema_for_object(view)
 
         if use_schema and effective_schema:
             ret = (
-                self.preparer.quote_schema(effective_schema) + "." + self.preparer.quote(view.name)
+                self.preparer.quote_schema(effective_schema)
+                + "."
+                + self.preparer.quote(view.name)
             )
         else:
             ret = self.preparer.quote(view.name)

@@ -9,8 +9,8 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = 'a7655b33b7d1'
-down_revision = 'f9cf022e4e05'
+revision = "a7655b33b7d1"
+down_revision = "f9cf022e4e05"
 branch_labels = None
 depends_on = None
 
@@ -20,12 +20,14 @@ def upgrade():
     op.execute("ALTER TYPE exportfilestatus RENAME TO exportfilestatus_old")
 
     # Create the new one
-    exportfilestatus = postgresql.ENUM('SCHEDULED', 'QUERYING', 'PROCESSING', 'DONE', 'FAILED',
-                                       name='exportfilestatus')
+    exportfilestatus = postgresql.ENUM(
+        "SCHEDULED", "QUERYING", "PROCESSING", "DONE", "FAILED", name="exportfilestatus"
+    )
     exportfilestatus.create(op.get_bind())
 
     # Adjust the column
-    op.execute("""
+    op.execute(
+        """
         ALTER TABLE export_file
         ALTER COLUMN status
         DROP DEFAULT,
@@ -38,7 +40,8 @@ def upgrade():
           END,
         ALTER COLUMN status
         SET DEFAULT 'SCHEDULED'::exportfilestatus
-    """)
+    """
+    )
 
     # Drop the old type
     op.execute("DROP TYPE exportfilestatus_old")
@@ -46,12 +49,14 @@ def upgrade():
 
 def downgrade():
     # Re-create the old type
-    exportfilestatus = postgresql.ENUM('SCHEDULED', 'PROCESSING',
-                                       name='exportfilestatus_old')
+    exportfilestatus = postgresql.ENUM(
+        "SCHEDULED", "PROCESSING", name="exportfilestatus_old"
+    )
     exportfilestatus.create(op.get_bind())
 
     # Adjust the column
-    op.execute("""
+    op.execute(
+        """
         ALTER TABLE export_file
         ALTER COLUMN status
         DROP DEFAULT,
@@ -64,7 +69,8 @@ def downgrade():
           END,
         ALTER COLUMN status
         SET DEFAULT 'PROCESSING'::exportfilestatus_old
-    """)
+    """
+    )
 
     # Drop the new type
     op.execute("DROP TYPE exportfilestatus")

@@ -1,8 +1,23 @@
-from sqlalchemy import (CHAR, Column, Float, Index, Integer, Text, and_, cast,
-                        column, func, join, or_, outerjoin, select, table,
-                        text, tuple_,)
-from sqlalchemy.dialects.postgresql import (ARRAY, aggregate_order_by, array,
-                                            array_agg,)
+from sqlalchemy import (
+    CHAR,
+    Column,
+    Float,
+    Index,
+    Integer,
+    Text,
+    and_,
+    cast,
+    column,
+    func,
+    join,
+    or_,
+    outerjoin,
+    select,
+    table,
+    text,
+    tuple_,
+)
+from sqlalchemy.dialects.postgresql import ARRAY, aggregate_order_by, array, array_agg
 
 from . import Base
 from .enums import PlatformType, ValueType
@@ -65,8 +80,9 @@ class PlatformSourceOrderByValueType(Base, ViewMixin):
             ]
         )
         .select_from(
-            outerjoin(Value, ValueSource, Value.id == ValueSource.value_id).
-            outerjoin(Platform, ValueSource.platform_id == Platform.id)
+            outerjoin(Value, ValueSource, Value.id == ValueSource.value_id).outerjoin(
+                Platform, ValueSource.platform_id == Platform.id
+            )
         )
         .where(and_(_attribute_filter, ValueSource.value_id.isnot(None)))
         .group_by(
@@ -167,8 +183,10 @@ class AttributesView(Base, ViewMixin):
                                 and_(
                                     PlatformSourceOrderByValueType.pl_order == 1,
                                     or_(
-                                        PlatformSourceOrderByValueType.pl_type == PlatformType.INFO,
-                                        PlatformSourceOrderByValueType.val_type == ValueType.TITLE,
+                                        PlatformSourceOrderByValueType.pl_type
+                                        == PlatformType.INFO,
+                                        PlatformSourceOrderByValueType.val_type
+                                        == ValueType.TITLE,
                                     ),
                                 )
                             )
@@ -190,8 +208,12 @@ class AttributesView(Base, ViewMixin):
                 auto_order=False,
             )
         ),
-        "dependencies": (Value, ValueScoreView, ValueSource,
-                         PlatformSourceOrderByValueType),
+        "dependencies": (
+            Value,
+            ValueScoreView,
+            ValueSource,
+            PlatformSourceOrderByValueType,
+        ),
         "materialized": True,
         "indexes": (Index("pk_vw_attributes", "external_object_id", unique=True),),
     }
