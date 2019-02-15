@@ -26,6 +26,17 @@ blueprint.add_url_rule(
 )
 
 blueprint.add_url_rule(
+    "/providers/",
+    view_func=views.providers.ProviderListView.as_view("provider_list"),
+    methods=["GET", "POST"],
+)
+blueprint.add_url_rule(
+    "/providers/<slug>",
+    view_func=views.providers.ShowProviderView.as_view("show_provider"),
+    methods=["GET", "POST"],
+)
+
+blueprint.add_url_rule(
     "/objects", view_func=views.objects.ObjectListView.as_view("object_list")
 )
 blueprint.add_url_rule(

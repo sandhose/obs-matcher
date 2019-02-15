@@ -1,8 +1,9 @@
 from .base import Base, metadata
-from .export import ExportTemplate, ExportFactory, ExportFile
+from .export import ExportFactory, ExportFile, ExportTemplate
 from .import_ import ImportFile
+from .object import Episode, ExternalObject, ObjectLink, Person, Role
 from .platform import Platform, PlatformGroup, Scrap, Session
-from .object import ExternalObject, ObjectLink, Role, Episode, Person
+from .provider import Provider, ProviderPlatform
 from .utils import ensure_extension
 from .value import Value, ValueSource
 
@@ -21,6 +22,8 @@ __all__ = [
     "Person",
     "Platform",
     "PlatformGroup",
+    "Provider",
+    "ProviderPlatform",
     "Role",
     "Scrap",
     "Session",
