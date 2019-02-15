@@ -6,6 +6,7 @@ from sqlalchemy import text
 
 from matcher.app import db as _db
 from matcher.app import setup_routes
+from matcher.filters import register as register_filters
 from matcher.scheme import Base
 
 
@@ -16,6 +17,9 @@ def app():
     app.config.from_object("matcher.config.TestConfig")
 
     _db.init_app(app)
+
+    app.jinja_env.add_extension("jinja2.ext.do")
+    register_filters(app)
 
     setup_routes(app, admin=False)
 
