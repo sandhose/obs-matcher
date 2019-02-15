@@ -108,6 +108,13 @@ class EditImport(FlaskForm):
         render_kw={"class": "select2 form-control"},
     )
     platform = QuerySelectField("Platform", render_kw={"class": "select2 form-control"})
+    provider = QuerySelectField(
+        "Provider",
+        get_label=lambda p: p.name,
+        validators=[validators.Optional()],
+        allow_blank=True,
+        render_kw={"class": "select2 form-control"},
+    )
     fields = CustomFieldList(
         FormField(Column, render_kw={"class": "dynamic-input-container"})
     )

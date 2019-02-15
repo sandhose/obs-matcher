@@ -30,38 +30,26 @@
         </div>
       </div>
 
-      <div class="card mt-5">
-        <!-- Fake data -->
-        <div class="card-header card-header-success">
-          <h4 class="card-title">
-            Available sources <em>(fake data)</em>
-          </h4>
-        </div>
+      {% if platform.providers %}
+        <div class="card mt-5">
+          <div class="card-header card-header-success">
+            <h4 class="card-title">
+              Providers
+            </h4>
+          </div>
 
-        <div class="d-flex justify-content-between align-items-center card-body">
-          <div>
-            <h5 class="my-0">Whole movies scraper</h5>
-            <div>Last run: never</div>
+          {% for provider in platform.providers %}
+          <div class="d-flex justify-content-between align-items-center card-body">
+            <div>
+              <h5 class="my-0">{{ provider.name }}</h5>
+              <div>–</div>
+            </div>
+            <a href="{{ url_for(".show_provider", slug=provider.slug) }}" class="btn btn-secondary">View</a>
           </div>
-          <button class="btn btn-success">Run</button>
+          <hr class="my-0" />
+          {% endfor %}
         </div>
-        <hr class="my-0" />
-        <div class="d-flex justify-content-between align-items-center card-body">
-          <div>
-            <h5 class="my-0">Whole series scraper</h5>
-            <div>Last run: 2 days ago</div>
-          </div>
-          <button class="btn btn-success">Run</button>
-        </div>
-        <hr class="my-0" />
-        <div class="d-flex justify-content-between align-items-center card-body">
-          <div>
-            <h5 class="my-0">AMPERE file import</h5>
-            <div>Last import: 3 hours ago</div>
-          </div>
-          <button class="btn btn-success">Import</button>
-        </div>
-      </div>
+      {% endif %}
 
       {% if platform.group %}
         {% with group=platform.group %}

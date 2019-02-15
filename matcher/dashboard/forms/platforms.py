@@ -21,3 +21,9 @@ class PlatformListFilter(Form):
     group = QuerySelectMultipleField(
         "Group", get_label=lambda g: g.name, render_kw={"class": "form-control select2"}
     )
+    provider = QuerySelectMultipleField(
+        "Provider",
+        get_label=lambda p: p.name,
+        get_pk=lambda p: p.slug,
+        render_kw={"class": "form-control select2"},
+    )

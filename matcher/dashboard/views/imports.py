@@ -9,6 +9,7 @@ from matcher.mixins import CeleryMixin, DbMixin
 from matcher.scheme.enums import ImportFileStatus
 from matcher.scheme.import_ import ImportFile
 from matcher.scheme.platform import Platform, Session
+from matcher.scheme.provider import Provider
 from matcher.utils import apply_ordering, parse_ordering
 
 from ..forms.imports import EditImport, UploadImport
@@ -82,6 +83,7 @@ class ShowImportFileView(View, DbMixin, CeleryMixin):
         formdata = request.form if request.method == "POST" else None
         form = EditImport(formdata, obj=file)
         form.platform.query = self.query(Platform)
+        form.provider.query = self.query(Provider)
         form.sessions.query = self.query(Session)
 
         platform_choices = self.query(Platform.slug, Platform.name).all()

@@ -116,6 +116,10 @@ class Platform(Base):
 
     imports = relationship("ImportFile", back_populates="platform")
 
+    providers = relationship(
+        "Provider", back_populates="platforms", secondary="provider_platform"
+    )
+
     links_count = column_property(
         select([func.count("external_object_id")])
         .select_from(table("object_link"))

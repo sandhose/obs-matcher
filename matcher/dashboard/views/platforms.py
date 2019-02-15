@@ -8,6 +8,7 @@ from sqlalchemy.orm import joinedload, undefer
 from matcher.mixins import DbMixin
 from matcher.scheme.object import ExternalObject, ObjectLink
 from matcher.scheme.platform import Platform, PlatformGroup, Scrap
+from matcher.scheme.provider import Provider
 from matcher.utils import apply_ordering, parse_ordering
 
 from ..forms.platforms import PlatformListFilter
@@ -24,6 +25,7 @@ class PlatformListView(View, DbMixin):
             .order_by(Platform.country)
         )
         form.group.query = self.query(PlatformGroup).order_by(PlatformGroup.name)
+        form.provider.query = self.query(Provider).order_by(Provider.name)
         query = self.query(Platform).options(
             undefer(Platform.links_count), joinedload(Platform.group)
         )
@@ -57,6 +59,11 @@ class PlatformListView(View, DbMixin):
             if form.group.data:
                 query = query.filter(
                     Platform.group_id.in_(group.id for group in form.group.data)
+                )
+
+            if form.provider.data:
+                query = query.join(Platform.providers).filter(
+                    Provider.id.in_(p.id for p in form.provider.data)
                 )
 
         ctx = {}

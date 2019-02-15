@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+
+{% block title %}Providers • Page {{ page.page }}/{{ page.pages }} • Scraping{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-12 col-md-4 filters">
+      <div class="card">
+        <div class="card-header card-header-primary">
+          <h4 class="card-title">Filters</h4>
+        </div>
+
+        {{ m.render_form(filter_form, class_="card-body", action="GET") }}
+      </div>
+    </div>
+    <div class="col-12 col-md">
+      <div class="card">
+        <div class="card-body table-responsive">
+          <table class="table">
+            <thead class="text-primary">
+              <tr>
+                <th>{{ m.render_ordering_link("name", "Name", ordering=ordering, args=query) }}</th>
+                <th>{{ m.render_ordering_link("slug", "Slug", ordering=ordering, args=query) }}</th>
+                <th>{{ m.render_ordering_link("platforms", "Platforms", ordering=ordering, args=query) }}</th>
+                <th>{{ m.render_ordering_link("imports", "Imports", ordering=ordering, args=query) }}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for provider in page.items %}
+                  <td>{{ provider.name }}</td>
+                  <td>{{ provider.slug }}</td>
+                  <td>{{ provider.platform_count }}</td>
+                  <td>{{ provider.import_count }}</td>
+                  <td class="td-actions">
+                    <a class="btn btn-sm btn-link" href="{{ url_for('.show_provider', slug=provider.slug) }}" rel="tooltip" title="View provider">
+                      <i class="material-icons">arrow_forward</i>
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="card-footer">
+          {{ m.render_pagination(page, args=query) }}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -82,6 +82,12 @@ class ImportFile(Base):
     imported_external_object_type = Column(Enum(ExternalObjectType), nullable=True)
     """The type of the newly imported objects"""
 
+    provider_id = Column(
+        Integer,
+        ForeignKey("provider.id", ondelete="SET NULL", onupdate="SET NULL"),
+        nullable=True,
+    )
+
     platform = relationship(Platform, back_populates="imports")
     logs = relationship("ImportFileLog", back_populates="file")
 
@@ -101,6 +107,8 @@ class ImportFile(Base):
     sessions = relationship(
         "Session", secondary="session_import_file", back_populates="imports"
     )
+
+    provider = relationship("Provider", back_populates="imports")
 
     def __init__(self, **kwargs):
         super(ImportFile, self).__init__(**kwargs)
