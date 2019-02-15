@@ -1,9 +1,25 @@
 import fcntl
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Callable, Optional, Tuple
 
-from flask import current_app
+from flask import current_app, template_rendered
 from sqlalchemy import desc
+
+
+@contextmanager
+def captured_templates(app):
+    """Capture rendered templates, useful for testing"""
+    recorded = []
+
+    def record(sender, template, context, **extra):
+        recorded.append((template, context))
+
+    template_rendered.connect(record, app)
+    try:
+        yield recorded
+    finally:
+        template_rendered.disconnect(record, app)
 
 
 class Lock:
