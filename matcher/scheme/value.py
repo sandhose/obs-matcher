@@ -21,7 +21,9 @@ class Value(Base):
     )
     type = Column(Enum(ValueType, name="value_type"), nullable=False)
     external_object_id = Column(
-        Integer, ForeignKey("external_object.id"), nullable=False
+        Integer,
+        ForeignKey("external_object.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
     )
     text = Column(Text, nullable=False)
 
@@ -52,8 +54,16 @@ class Value(Base):
 class ValueSource(Base):
     __tablename__ = "value_source"
 
-    value_id = Column(Integer, ForeignKey("value.id"), primary_key=True)
-    platform_id = Column(Integer, ForeignKey("platform.id"), primary_key=True)
+    value_id = Column(
+        Integer,
+        ForeignKey("value.id", ondelete="CASCADE", onupdate="CASCADE"),
+        primary_key=True,
+    )
+    platform_id = Column(
+        Integer,
+        ForeignKey("platform.id", ondelete="CASCADE", onupdate="CASCADE"),
+        primary_key=True,
+    )
     score_factor = Column(Integer, nullable=False, default=100)
     comment = Column(Text)
 

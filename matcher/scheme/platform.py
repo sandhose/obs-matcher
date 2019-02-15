@@ -29,22 +29,6 @@ from .utils import before
 __all__ = ["PlatformGroup", "Platform", "Scrap", "Session"]
 
 
-platform_group_platform = Table(
-    "platform_group_platform",
-    Base.metadata,
-    Column(
-        "platform_id",
-        ForeignKey("platform.id", ondelete="CASCADE", onupdate="CASCADE"),
-        primary_key=True,
-    ),
-    Column(
-        "platform_group_id",
-        ForeignKey("platform_group.id", ondelete="CASCADE", onupdate="CASCADE"),
-        primary_key=True,
-    ),
-)
-
-
 class PlatformGroup(Base):
     """A group of platform
 

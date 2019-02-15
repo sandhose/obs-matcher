@@ -30,6 +30,13 @@ target_metadata = Base.metadata
 # ... etc.
 
 
+def include_object(object, name: str, type_: str, reflected: bool, compare_to):
+    if type_ == "table" and name.startswith("vw_"):
+        return False
+    else:
+        return True
+
+
 def run_migrations_offline():
     """Run migrations in 'offline' mode.
 
@@ -43,7 +50,7 @@ def run_migrations_offline():
 
     """
     url = config.get_main_option("sqlalchemy.url")
-    context.configure(url=url)
+    context.configure(url=url, include_object=include_object)
 
     with context.begin_transaction():
         context.run_migrations()
@@ -77,6 +84,7 @@ def run_migrations_online():
     context.configure(
         connection=connection,
         target_metadata=target_metadata,
+        include_object=include_object,
         process_revision_directives=process_revision_directives,
         **current_app.extensions["migrate"].configure_args,
     )

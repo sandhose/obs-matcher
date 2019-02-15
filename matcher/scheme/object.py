@@ -937,7 +937,9 @@ class ObjectLink(Base):
     """:obj:`int` : primary key"""
 
     external_object_id = Column(
-        Integer, ForeignKey("external_object.id"), nullable=False
+        Integer,
+        ForeignKey("external_object.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
     )
     """:obj:`int` : Foreign key to the linked object"""
 
@@ -977,9 +979,15 @@ class Role(Base):
     # FIXME: how to represent multiple roles of a person on the same object?
     __table_args__ = (PrimaryKeyConstraint("person_id", "external_object_id"),)
 
-    person_id = Column(Integer, ForeignKey("external_object.id"))
+    person_id = Column(
+        Integer,
+        ForeignKey("external_object.id", ondelete="CASCADE", onupdate="CASCADE"),
+    )
     """:obj:`int` : The ID of the person concerned"""
-    external_object_id = Column(Integer, ForeignKey("external_object.id"))
+    external_object_id = Column(
+        Integer,
+        ForeignKey("external_object.id", ondelete="CASCADE", onupdate="CASCADE"),
+    )
     """:obj:`int` : The ID of the object concerned"""
 
     person = relationship("ExternalObject", foreign_keys=[person_id])
