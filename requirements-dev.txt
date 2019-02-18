@@ -387,8 +387,8 @@ sphinxcontrib-websupport==1.1.0 \
     --hash=sha256:68ca7ff70785cbe1e7bccc71a48b5b6d965d79ca50629606c7861a21b206d9dd \
     --hash=sha256:9de47f375baf1ea07cdb3436ff39d7a9c76042c10a769c52353ec46e4e8fc3b9 \
     # via sphinx
-sqlalchemy==1.2.17 \
-    --hash=sha256:52a42dbf02d0562d6e90e7af59f177f1cc027e72833cc29c3a821eefa009c71d
+sqlalchemy==1.2.18 \
+    --hash=sha256:8027fa183f5be466030617a497b2d64e0e16c8d615e5a34bdf9fab6f66bf4723
 testfixtures==6.5.0 \
     --hash=sha256:59df1b51118978400d9926d5c1efb295f900ae626a54113323732647e453a80f \
     --hash=sha256:cbd0f095d178de578709bcf4cc6eea896964635d2b41386d1cc7583674809b0e \
