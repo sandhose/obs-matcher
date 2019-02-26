@@ -77,9 +77,9 @@ entrypoints==0.3 \
 flake8-isort==2.6.0 \
     --hash=sha256:3c107c405dd6e3dbdcccb2f84549d76d58a07120cd997a0560fab8b84c305f2a \
     --hash=sha256:76d7dd6aec2762c608b442abebb0aaedb72fc75f9a075241a89e4784d8a39900
-flake8==3.7.6 \
-    --hash=sha256:6d8c66a65635d46d54de59b027a1dda40abbe2275b3164b634835ac9c13fd048 \
-    --hash=sha256:6eab21c6e34df2c05416faa40d0c59963008fff29b6f0ccfe8fa28152ab3e383
+flake8==3.7.7 \
+    --hash=sha256:859996073f341f2670741b51ec1e67a01da142831aa1fdc6242dbf88dffbe661 \
+    --hash=sha256:a796a115208f5c03b18f332f7c11729812c8c3ded6c46319c59b53efd3819da8
 flask-admin==1.5.3 \
     --hash=sha256:ca0be6ec11a6913b73f656c65c444ae5be416c57c75638dd3199376ce6bc7422
 flask-injector==0.11.0 \
