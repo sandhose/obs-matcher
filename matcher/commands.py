@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from operator import attrgetter
 from pathlib import Path
@@ -11,6 +12,8 @@ from matcher.scheme.enums import (
     ScrapStatus,
     ValueType,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class ValueTypeParamType(click.ParamType):
@@ -626,6 +629,7 @@ def fix_countries():
         new = lookup(v.text)
         if new is not None:
             added += 1
+            logger.debug("Fixing {} by adding {}", v.text, new)
 
             value = Value(
                 type=ValueType.COUNTRY,
@@ -641,8 +645,10 @@ def fix_countries():
                         platform=source.platform, score_factor=source.score_factor
                     )
                 )
+        else:
+            logger.debug("{} does not need to be fixed", v.text)
     db.session.commit()
-    print("Fixed {} countries out of {}".format(added, len(values)))
+    logger.info("Fixed {} countries out of {}".format(added, len(values)))
 
 
 def setup_cli(app):
