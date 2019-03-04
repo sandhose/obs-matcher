@@ -1,14 +1,20 @@
-from flask import abort, render_template, request
+from flask import abort, redirect, render_template, request, url_for
 from flask.views import View
 from sqlalchemy.orm import undefer
 
 from matcher.mixins import DbMixin
-from matcher.scheme.provider import Provider
+from matcher.scheme.platform import Platform
+from matcher.scheme.provider import Provider, ProviderPlatform
 from matcher.utils import apply_ordering, parse_ordering
 
-from ..forms.providers import ProviderListFilter
+from ..forms.providers import EditProviderForm, NewProviderForm, ProviderListFilter
 
-__all__ = ["ProviderListView", "ShowProviderView"]
+__all__ = [
+    "ProviderListView",
+    "ShowProviderView",
+    "NewProviderView",
+    "EditProviderView",
+]
 
 
 class ProviderListView(View, DbMixin):
@@ -59,3 +65,64 @@ class ShowProviderView(View, DbMixin):
         ctx["provider"] = provider
 
         return render_template("providers/show.html", **ctx)
+
+
+class EditProviderView(View, DbMixin):
+    def dispatch_request(self, slug):
+        provider = self.query(Provider).filter(Provider.slug == slug).first()
+
+        if provider is None:
+            abort(404)
+
+        form = EditProviderForm(request.form, obj=provider)
+        form.platform_to_add.query = self.query(Platform)
+
+        if request.method == "POST" and form.validate():
+            form.populate_obj(provider)
+
+            for index, subform in enumerate(form.provider_platforms):
+                if subform.delete.data:
+                    provider.platforms.remove(
+                        provider.provider_platforms[index].platform
+                    )
+                    break
+
+            self.session.add(provider)
+            self.session.commit()
+
+            if form.add_platform.data:
+                self.session.merge(
+                    ProviderPlatform(
+                        platform=form.platform_to_add.data, provider=provider
+                    )
+                )
+
+                self.session.commit()
+
+            self.session.expire(provider)
+
+        form.process(obj=provider)
+        form.platform_to_add.data = None
+
+        ctx = {}
+        ctx["provider"] = provider
+        ctx["form"] = form
+
+        return render_template("providers/edit.html", **ctx)
+
+
+class NewProviderView(View, DbMixin):
+    def dispatch_request(self):
+        provider = Provider()
+        form = NewProviderForm(request.form)
+        form.populate_obj(provider)
+
+        if request.method == "POST" and form.validate():
+            self.session.add(provider)
+            self.session.commit()
+            return redirect(url_for(".show_provider", slug=provider.slug))
+
+        ctx = {}
+        ctx["form"] = form
+
+        return render_template("providers/new.html", **ctx)

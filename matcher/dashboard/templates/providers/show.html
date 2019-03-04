@@ -7,15 +7,59 @@
   <div class="row">
     <div class="col-4">
       <div class="card">
-        <div class="card-header card-header-primary">
+        <div class="card-header card-header-info d-flex justify-content-between align-items-center">
           <h3 class="card-title">
             {{ provider.name }}
           </h3>
+          <a href="{{ url_for(".edit_provider", slug=provider.slug) }}" class="btn btn-white btn-sm">Edit</a>
         </div>
         <div class="list-group list-group-flush" style="margin-top: 1rem">
           <a href="#" class="list-group-item list-group-item-action">{{ m.stat(provider.platform_count, 'platform') }}</a>
           <a href="{{ url_for(".object_list", provider=provider.slug) }}" class="list-group-item list-group-item-action">{{ m.stat(provider.import_count, 'import') }}</a>
         </div>
       </div>
+    </div>
+
+    <div class="col-8">
+      <div class="card">
+        <div class="card-body table-responsive">
+          <table class="table">
+            <thead class="text-primary">
+              <tr>
+                <th>Public</th>
+                <th>Platform</th>
+                <th>URL</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for provider_platform in provider.provider_platforms %}
+                <tr>
+                  <td>
+                    {% if provider_platform.public %}
+                      <span class="badge badge-pill badge-success">Yes</span>
+                    {% else %}
+                      <span class="badge badge-pill badge-danger">No</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {{ provider_platform.platform.name }}
+                    <a href="{{ url_for('.show_platform', slug=provider_platform.platform.slug) }}" class="btn btn-sm btn-link">
+                      <i class="material-icons">arrow_forward</i>
+                    </a>
+                  </td>
+                  <td>
+                    {% if provider_platform.home_url %}
+                      <a href="{{ provider_platform.home_url }}">{{ provider_platform.home_url }}</a>
+                    {% else %}
+                      –
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
 {% endblock %}

@@ -28,12 +28,22 @@ blueprint.add_url_rule(
 blueprint.add_url_rule(
     "/providers/",
     view_func=views.providers.ProviderListView.as_view("provider_list"),
+    methods=["GET"],
+)
+blueprint.add_url_rule(
+    "/providers/new",
+    view_func=views.providers.NewProviderView.as_view("new_provider"),
+    methods=["GET", "POST"],
+)
+blueprint.add_url_rule(
+    "/providers/<slug>/edit",
+    view_func=views.providers.EditProviderView.as_view("edit_provider"),
     methods=["GET", "POST"],
 )
 blueprint.add_url_rule(
     "/providers/<slug>",
     view_func=views.providers.ShowProviderView.as_view("show_provider"),
-    methods=["GET", "POST"],
+    methods=["GET"],
 )
 
 blueprint.add_url_rule(
