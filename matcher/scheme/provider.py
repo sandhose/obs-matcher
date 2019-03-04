@@ -1,4 +1,5 @@
 from sqlalchemy import (
+    Boolean,
     Column,
     ForeignKey,
     Integer,
@@ -11,6 +12,7 @@ from sqlalchemy import (
     table,
 )
 from sqlalchemy.orm import column_property, relationship
+from wtforms import StringField
 
 from . import Base
 
@@ -30,15 +32,27 @@ class Provider(Base):
         primary_key=True,
     )
 
-    name = Column(Text, nullable=False)
+    name = Column(
+        Text, nullable=False, info={"label": "Name", "form_field_class": StringField}
+    )
     """A human readable name"""
 
-    slug = Column(Text, nullable=False)
+    slug = Column(
+        Text,
+        nullable=False,
+        info={
+            "label": "Slug",
+            "description": "Unique identifier",
+            "form_field_class": StringField,
+        },
+    )
     """A unique identifier"""
 
     platforms = relationship(
         "Platform", back_populates="providers", secondary="provider_platform"
     )
+
+    # provider_platforms = relationship("ProviderPlatform", back_populates="provider")
 
     imports = relationship("ImportFile", back_populates="provider")
 
@@ -82,5 +96,8 @@ class ProviderPlatform(Base):
         nullable=False,
     )
 
+    public = Column(Boolean, default=True, nullable=False, server_default="t")
+    home_url = Column(Text, nullable=True, info={"form_field_class": StringField})
+
     platform = relationship("Platform")
-    provider = relationship("Provider")
+    provider = relationship("Provider", backref="provider_platforms")

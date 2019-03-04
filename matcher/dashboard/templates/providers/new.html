@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+
+{% block title %}New provider • Scraping{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-4">
+      <div class="card">
+        <div class="card-header card-header-primary">
+          <h3 class="card-title">New provider</h3>
+        </div>
+        {{ m.render_form(form, action="POST", class_="card-body") }}
+      </div>
+    </div>
+  </div>
+{% endblock %}

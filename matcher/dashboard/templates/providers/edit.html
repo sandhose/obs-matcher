@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+
+{% block title %}Edit provider {{ provider.slug }} • Scraping{% endblock %}
+
+{% block content %}
+  <form method="POST">
+    <div class="row">
+      <div class="col-4">
+        <div class="card">
+          <div class="card-header card-header-primary">
+            <h3 class="card-title">Edit provider</h3>
+          </div>
+
+          <div class="card-body">
+            {{ m.render_field(form.name) }}
+            {{ m.render_field(form.slug) }}
+            <button class="btn btn-default float-right" type="submit">Submit</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-8">
+        {% for error in form.provider_platforms.errors %}
+          <div class="alert alert-error">
+            {{ error }}
+          </div>
+        {% endfor %}
+
+        <div class="card">
+          <div class="card-body table-responsive">
+            <table class="table">
+              <thead class="text-primary">
+                <tr>
+                  <th>Public</th>
+                  <th>Platform</th>
+                  <th>URL</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for subform in form.provider_platforms %}
+                  <tr>
+                    <td>{{ subform.public }}</td>
+                    <td>{{ subform.platform_obj.name }}</td>
+                    <td>{{ subform.home_url }}</td>
+                    <td>
+                      {{ subform.delete }}
+                      {{ subform.provider_id }}
+                      {{ subform.platform_id }}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td></td>
+                  <td>{{ form.platform_to_add }}</td>
+                  <td></td>
+                  <td>{{ form.add_platform }}</td>
+                </tr>
+              </tfoot>
+            </table>
+            <button class="btn btn-default" type="submit">Submit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+{% endblock %}
