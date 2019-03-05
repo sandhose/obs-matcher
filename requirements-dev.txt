@@ -38,11 +38,11 @@ billiard==3.5.0.5 \
     --hash=sha256:42d9a227401ac4fba892918bba0a0c409def5435c4b483267ebfe821afaaba0e
 blinker==1.4 \
     --hash=sha256:471aee25f3992bd325afa3772f1063dbdbbca947a041b8b89466dc00d606f8b6
+celery-once==2.1.0 \
+    --hash=sha256:02e464e60e5610c7832d68108550bedc5ccf175ce8d8b087ce9849eed230cfb9
 celery==4.2.1 \
     --hash=sha256:77dab4677e24dc654d42dfbdfed65fa760455b6bb563a0877ecc35f4cfcfc678 \
     --hash=sha256:ad7a7411772b80a4d6c64f2f7f723200e39fb66cf614a7fdfab76d345acc7b13
-celery_once==2.1.0 \
-    --hash=sha256:02e464e60e5610c7832d68108550bedc5ccf175ce8d8b087ce9849eed230cfb9
 certifi==2018.11.29 \
     --hash=sha256:47f9c83ef4c0c621eaef743f133f09fa8a74a9b75f037e8624f83bd1b6626cb7 \
     --hash=sha256:993f830721089fef441cdfeb4b2c8c9df86f0c63239f06bd025a76a7daddb033 \
@@ -396,8 +396,8 @@ sphinxcontrib-websupport==1.1.0 \
     # via sphinx
 sqlalchemy-utils==0.33.11 \
     --hash=sha256:3f1cb542cf0549a0de508d4919f3ad693a36230bf4cd13fdd6253549fec71182
-sqlalchemy==1.2.18 \
-    --hash=sha256:8027fa183f5be466030617a497b2d64e0e16c8d615e5a34bdf9fab6f66bf4723
+sqlalchemy==1.3.0 \
+    --hash=sha256:11ead7047ff3f394ed0d4b62aded6c5d970a9b718e1dc6add9f5e79442cc5b14
 testfixtures==6.5.0 \
     --hash=sha256:59df1b51118978400d9926d5c1efb295f900ae626a54113323732647e453a80f \
     --hash=sha256:cbd0f095d178de578709bcf4cc6eea896964635d2b41386d1cc7583674809b0e \
