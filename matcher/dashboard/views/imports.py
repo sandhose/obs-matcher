@@ -22,8 +22,6 @@ class ImportFileListView(View, DbMixin):
         form = UploadImport()
 
         if form.validate_on_submit():
-            f = form.file.data
-
             file = ImportFile()
 
             last_import = (
