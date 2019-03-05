@@ -23,10 +23,6 @@ class ImportFileListView(View, DbMixin):
 
         if form.validate_on_submit():
             f = form.file.data
-            assert (
-                f.filename.split(".")[-1].lower() == "csv"
-                or f.content_type == "text/csv"
-            )
 
             file = ImportFile()
 
