@@ -79,9 +79,12 @@ class ExportFileListView(View, DbMixin):
             .options(undefer(ExportFile.last_activity))
         )
 
-        ordering_key, ordering_direction = parse_ordering(
+        ordering = parse_ordering(
             request.args.get("ordering", None, str)
         )
+        ordering_key, ordering_direction = (ordering
+                                            if ordering != (None, None)
+                                            else ("date", "desc"))
         query = apply_ordering(
             {
                 "date": ExportFile.last_activity,
