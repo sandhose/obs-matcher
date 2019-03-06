@@ -21,9 +21,12 @@ class ScrapListView(View, DbMixin):
 
         query = self.query(Scrap).options(joinedload(Scrap.platform))
 
-        ordering_key, ordering_direction = parse_ordering(
+        ordering = parse_ordering(
             request.args.get("ordering", None, str)
         )
+        ordering_key, ordering_direction = (ordering
+                                            if ordering != (None, None)
+                                            else ("date", "desc"))
         query = apply_ordering(
             {"date": Scrap.date, None: Scrap.id},
             query,
