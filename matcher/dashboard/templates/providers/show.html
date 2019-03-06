@@ -14,7 +14,7 @@
           <a href="{{ url_for(".edit_provider", slug=provider.slug) }}" class="btn btn-white btn-sm">Edit</a>
         </div>
         <div class="list-group list-group-flush" style="margin-top: 1rem">
-          <a href="#" class="list-group-item list-group-item-action">{{ m.stat(provider.platform_count, 'platform') }}</a>
+          <a href="{{ url_for(".platform_list", provider=provider.slug) }}" class="list-group-item list-group-item-action">{{ m.stat(provider.platform_count, 'platform') }}</a>
           <a href="{{ url_for(".object_list", provider=provider.slug) }}" class="list-group-item list-group-item-action">{{ m.stat(provider.import_count, 'import') }}</a>
         </div>
       </div>
