@@ -20,10 +20,12 @@ class UploadImport(FlaskForm):
 
     def validate_file(form, field):
         f = form.file.data
-        if not (f.filename.split(".")[-1].lower() == "csv" or
-            f.filename.split(".")[-1].lower() == "tsv" or
-            f.content_type == "text/csv" or
-            f.content_type == "text/tab-separated-values"):
+        if not (
+            f.filename.split(".")[-1].lower() == "csv"
+            or f.filename.split(".")[-1].lower() == "tsv"
+            or f.content_type == "text/csv"
+            or f.content_type == "text/tab-separated-values"
+        ):
             raise validators.ValidationError("File must be CSV")
 
 

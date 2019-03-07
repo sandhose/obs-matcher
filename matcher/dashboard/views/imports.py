@@ -47,12 +47,10 @@ class ImportFileListView(View, DbMixin):
 
         query = self.query(ImportFile).options(undefer(ImportFile.last_activity))
 
-        ordering = parse_ordering(
-            request.args.get("ordering", None, str)
+        ordering = parse_ordering(request.args.get("ordering", None, str))
+        ordering_key, ordering_direction = (
+            ordering if ordering != (None, None) else ("date", "desc")
         )
-        ordering_key, ordering_direction = (ordering
-                                            if ordering != (None, None)
-                                            else ("date", "desc"))
         query = apply_ordering(
             {
                 "date": ImportFile.last_activity,
