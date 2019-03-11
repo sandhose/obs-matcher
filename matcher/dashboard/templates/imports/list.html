@@ -34,6 +34,9 @@
                   <td>{{ file.last_activity | relative_date }}</td>
                   <td>{{ file.filename }}</td>
                   <td class="td-actions">
+                    <a class="btn btn-sm btn-link" href="{{ url_for('.download_import_file', id=file.id) }}" rel="tooltip" title="Download file">
+                      <i class="material-icons">get_app</i>
+                    </a>
                     <a class="btn btn-sm btn-link" href="{{ url_for('.show_import_file', id=file.id) }}" rel="tooltip" title="View file">
                       <i class="material-icons">arrow_forward</i>
                     </a>

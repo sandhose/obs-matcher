@@ -1,6 +1,7 @@
+import os
 from collections import OrderedDict
 
-from flask import flash, redirect, render_template, request, url_for
+from flask import flash, redirect, render_template, request, send_file, url_for
 from flask.views import View
 from sqlalchemy.orm import undefer
 from sqlalchemy.orm.attributes import flag_modified
@@ -14,7 +15,7 @@ from matcher.utils import apply_ordering, parse_ordering
 
 from ..forms.imports import EditImport, UploadImport
 
-__all__ = ["ImportFileListView", "ShowImportFileView"]
+__all__ = ["DownloadImportFileView", "ImportFileListView", "ShowImportFileView"]
 
 
 class ImportFileListView(View, DbMixin):
@@ -106,3 +107,16 @@ class ShowImportFileView(View, DbMixin, CeleryMixin):
         ctx["file"] = file
         ctx["form"] = form
         return render_template("imports/show.html", **ctx)
+
+
+class DownloadImportFileView(View, DbMixin):
+    def dispatch_request(self, id):
+        import_file = self.query(ImportFile).get_or_404(id)
+
+        response = send_file(
+            import_file.open(),
+            mimetype="text/csv",
+            as_attachment=True,
+            attachment_filename=os.path.split(import_file.path)[-1],
+        )
+        return response
