@@ -101,3 +101,7 @@ blueprint.add_url_rule(
     view_func=views.imports.ShowImportFileView.as_view("show_import_file"),
     methods=["GET", "POST"],
 )
+blueprint.add_url_rule(
+    "/imports/<int:id>/download",
+    view_func=views.imports.DownloadImportFileView.as_view("download_import_file"),
+)
