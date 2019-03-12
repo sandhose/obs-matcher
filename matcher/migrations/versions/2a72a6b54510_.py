@@ -27,8 +27,8 @@ def upgrade():
         column("status"),
     )
     upload_date = (
-        select([logs.timestamp])
-        .where(files.id == logs.import_file_id)
+        select([logs.c.timestamp])
+        .where(files.c.id == logs.c.import_file_id)
         .where(column("status") == "UPLOADED")
         .limit(1)
     )
