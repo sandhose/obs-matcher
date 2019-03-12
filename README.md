@@ -39,8 +39,9 @@ Ctrl+D
 matcher db upgrade
 ```
 
-**NOTE**: the `<user>` user needs to be superuser to be able to create extensions. Alternatively, you can create them from another superuser before running `matcher db upgrade`:
+**NOTE**: the `<user>` user needs to be superuser to be able to create extensions. Alternatively, you can create them *on the `<matcher>` database* from another superuser before running `matcher db upgrade`:
 ```bash
+>>> \c <matcher>
 >>> CREATE EXTENSION tablefunc
 >>> CREATE EXTENSION pg_trgm
 >>> CREATE EXTENSION hstore
