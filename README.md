@@ -31,12 +31,19 @@ python3 setup.py develop
 #sudo su - postgres -c "initdb --locale en_US. UTF-8 -D 'var/lib/postgres/data'"
 systemctl start postgresql
 sudo -u postgres psql
->>> CREATE ROLE "user" INHERIT LOGIN;
->>> CREATE DATABASE matcher;
->>> GRANT ALL PRIVILEGES ON DATABASE matcher TO "user";
+>>> CREATE ROLE <user> INHERIT LOGIN;
+>>> CREATE DATABASE <matcher>;
+>>> GRANT ALL PRIVILEGES ON DATABASE <matcher> TO <user>;
 Ctrl+D
 # Upgrade the database
 matcher db upgrade
+```
+
+**NOTE**: the `<user>` user needs to be superuser to be able to create extensions. Alternatively, you can create them from another superuser before running `matcher db upgrade`:
+```bash
+>>> CREATE EXTENSION tablefunc
+>>> CREATE EXTENSION pg_trgm
+>>> CREATE EXTENSION hstore
 ```
 
 Usage
