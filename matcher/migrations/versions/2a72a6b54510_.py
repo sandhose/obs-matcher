@@ -1,4 +1,4 @@
-"""empty message
+"""Add effective_date to import_file
 
 Revision ID: 2a72a6b54510
 Revises: b779d70f6c2a
