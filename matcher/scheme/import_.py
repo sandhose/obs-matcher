@@ -12,11 +12,11 @@ from chardet.universaldetector import UniversalDetector
 from sqlalchemy import (
     TIMESTAMP,
     Column,
+    Date,
     Enum,
     ForeignKey,
     Integer,
     Sequence,
-    Date,
     String,
     Table,
     column,
