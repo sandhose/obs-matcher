@@ -3,6 +3,7 @@ import csv
 import logging
 from collections import namedtuple
 from contextlib import contextmanager
+from datetime import datetime
 from io import TextIOWrapper
 from typing import Dict, List, Tuple, Union
 
@@ -11,6 +12,7 @@ from chardet.universaldetector import UniversalDetector
 from sqlalchemy import (
     TIMESTAMP,
     Column,
+    Date,
     Enum,
     ForeignKey,
     Integer,
@@ -75,6 +77,7 @@ class ImportFile(Base):
     status = Column(Enum(ImportFileStatus), default=None, nullable=False)
     filename = Column(String, nullable=False)
     fields = Column(HSTORE, nullable=False)
+    effective_date = Column(Date, default=datetime.now(), nullable=False)
 
     platform_id = Column(Integer, ForeignKey(Platform.id), nullable=True)
     """The platform the new object and attributes will be assigned to"""
