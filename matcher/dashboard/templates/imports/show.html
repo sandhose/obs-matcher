@@ -38,7 +38,6 @@
           </dl>
         </div>
         <div class="d-flex justify-content-between">
-          {{ m.transition(file, 'schedule', url_for('.process_import_file', id=file.id)) }}
           {% if file.is_done %}
             <a class="btn btn-primary" href="{{ url_for('.download_import_file', id=file.id) }}">
               <i class="material-icons">get_app</i>
