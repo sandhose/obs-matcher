@@ -41,7 +41,7 @@ psycogreen==1.0.1
 psycopg2-binary==2.7.7
 python-dateutil==2.8.0    # via alembic, pendulum
 python-editor==1.0.4      # via alembic
-python-slugify==2.0.1
+python-slugify==3.0.1
 pytz==2018.9              # via celery, flask-restful, flask-restplus
 pytzdata==2018.9          # via pendulum
 raven[flask]==6.10.0
@@ -49,6 +49,7 @@ redis==3.2.1
 six==1.12.0               # via flask-restful, flask-restplus, python-dateutil, sqlalchemy-utils, validators, wtforms-alchemy, wtforms-components
 sqlalchemy-utils==0.33.11  # via wtforms-alchemy
 sqlalchemy==1.2.18
+text-unidecode==1.2       # via python-slugify
 tqdm==4.31.1
 typing==3.6.6             # via flask-injector
 unidecode==1.0.23
