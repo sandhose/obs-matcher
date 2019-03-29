@@ -230,10 +230,10 @@ class ImportFile(Base):
         for attribute in ValueType:
             attr_list = []  # type: List[str]
             attr_list += [
-                line[i] for i in fields["attribute"].get(str(attribute), []) if line[i]
+                line[i].strip() for i in fields["attribute"].get(str(attribute), []) if line[i]
             ]
             attr_list += [
-                l
+                l.strip()
                 for i in fields["attribute_list"].get(str(attribute), [])
                 for l in line[i].split(",")
                 if l
