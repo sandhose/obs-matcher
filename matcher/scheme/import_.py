@@ -230,7 +230,9 @@ class ImportFile(Base):
         for attribute in ValueType:
             attr_list = []  # type: List[str]
             attr_list += [
-                line[i].strip() for i in fields["attribute"].get(str(attribute), []) if line[i]
+                line[i].strip()
+                for i in fields["attribute"].get(str(attribute), [])
+                if line[i]
             ]
             attr_list += [
                 l.strip()
@@ -253,25 +255,27 @@ class ImportFile(Base):
     @after("process")
     @inject_session
     def process_import(self, session=None):
+        from matcher.tasks.import_ import process_row
+
         with self.csv_reader() as reader:
             # Fetch the header and map to fields
             header = next(reader)
             fields = self.map_fields(header)
 
-            # Cache needed platforms
-            platforms = {}
-            for key in fields["link"]:
-                platforms[key] = Platform.lookup(session, key.replace("_", "-"))
-                assert platforms[key]
-
             # Start reading the file
             for ln, line in enumerate(reader):
-                logger.info("Processing line %d", ln)
                 ids, attributes, links = self.map_line(fields, line)
-                # Map the platforms slugs to real platform objects
-                links = [(platforms[key], ids) for key, ids in links]
 
-                self.process_row(ids, attributes, links, session=session)
+                # TODO: this is quite ugly, and this only because we need to
+                # only pass JSON-serializable objects to celery tasks.
+                attributes = [(str(k), v) for (k, v) in attributes]
+                task = process_row.apply_async((self.id, ids, attributes, links))
+                logger.info("Processing line %d (%s)", ln, task.task_id)
+
+            # TODO: show some progress somehow
+            # TODO: wait for all tasks to finish, not only the last one
+            if task:
+                task.wait()
 
     @inject_session
     def reduce_or_create_ids(self, external_object_ids: List[int], session=None):

@@ -1,6 +1,10 @@
+from typing import List, Tuple
+
 from matcher import celery
 from matcher.app import db
+from matcher.scheme.enums import ValueType
 from matcher.scheme.import_ import ImportFile
+from matcher.scheme.platform import Platform
 
 
 @celery.task(base=celery.OnceTask)
@@ -11,11 +15,32 @@ def process_file(file_id):
     try:
         file.process()
     except Exception as e:  # FIXME: be more specific?
+        # TODO: this should be done inside `process`
         file.failed(message=str(e))
         db.session.add(file)
         db.session.commit()
         raise
 
+    # TODO: this shoud be done inside `process`
     file.done()
     db.session.add(file)
     db.session.commit()
+
+
+# Import one row of a file
+# TODO: it works but its ugly
+@celery.task()
+def process_row(
+    file_id: int,
+    external_object_ids: List[int],
+    attributes: List[Tuple[str, List[str]]],
+    links: List[Tuple[str, List[str]]],
+):
+    file = db.session.query(ImportFile).get(file_id)
+    assert file
+
+    attributes = [(ValueType.from_name(k), v) for (k, v) in attributes]
+    links = [
+        (Platform.lookup(db.session, key.replace("_", "-")), ids) for key, ids in links
+    ]
+    file.process_row(external_object_ids, attributes, links)
