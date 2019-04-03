@@ -582,7 +582,12 @@ class ExternalObject(Base):
 
         """
         self.merge(their)
-        session.delete(self)
+
+        # It is safer to delete like this (and not `session.delete(self)`)
+        # because the session might not be in sync with the database and might
+        # delete object that we want to keep.
+        session.query(ExternalObject).filter(ExternalObject.id == self.id).delete()
+
         return their
 
     @classmethod
