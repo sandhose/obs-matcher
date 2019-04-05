@@ -11,7 +11,7 @@ aniso8601==4.1.0          # via flask-restful, flask-restplus
 billiard==3.6.0.0         # via celery
 blinker==1.4              # via raven
 celery-once==2.1.0
-celery==4.3.0rc3
+celery==4.3.0
 chardet==3.0.4
 click==7.0                # via flask
 decorator==4.3.2          # via validators
@@ -38,7 +38,7 @@ mako==1.0.7               # via alembic
 markupsafe==1.1.0         # via jinja2, mako
 pendulum==2.0.4
 psycogreen==1.0.1
-psycopg2-binary==2.7.7
+psycopg2-binary==2.8
 python-dateutil==2.8.0    # via alembic, pendulum
 python-editor==1.0.4      # via alembic
 python-slugify==2.0.1
@@ -53,7 +53,7 @@ tqdm==4.31.1
 typing==3.6.6             # via flask-injector
 unidecode==1.0.23
 validators==0.12.4        # via wtforms-components
-vine==1.2.0               # via amqp, celery
+vine==1.3.0               # via amqp, celery
 wcwidth==0.1.7            # via ftfy
 werkzeug==0.14.1          # via flask
 wtforms-alchemy==0.16.9
