@@ -1,3 +1,4 @@
+import logging
 from typing import List, Tuple
 
 from matcher import celery
@@ -5,6 +6,8 @@ from matcher.app import db
 from matcher.scheme.enums import ValueType
 from matcher.scheme.import_ import ImportFile
 from matcher.scheme.platform import Platform
+
+logger = logging.getLogger(__name__)
 
 
 @celery.task(base=celery.OnceTask)
@@ -43,4 +46,10 @@ def process_row(
     links = [
         (Platform.lookup(db.session, key.replace("_", "-")), ids) for key, ids in links
     ]
+    logger.debug(
+        "Processing row ids=%r attrs=%r links=%r",
+        external_object_ids,
+        attributes,
+        links,
+    )
     file.process_row(external_object_ids, attributes, links)

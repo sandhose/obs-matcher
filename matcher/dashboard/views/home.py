@@ -1,4 +1,5 @@
 import datetime
+import logging
 from collections import defaultdict
 
 from flask import flash, render_template, request
@@ -13,9 +14,12 @@ from matcher.scheme.platform import Platform, Scrap
 
 __all__ = ["HomeView"]
 
+logger = logging.getLogger(__name__)
+
 
 class HomeView(View, DbMixin, CeleryMixin):
     def dispatch_request(self):
+        logging.warn("Dispatching request")
         if request.method == "POST":
             if request.form.get("action") == "refresh":
                 self.celery.send_task("matcher.tasks.object.refresh_attributes", [])

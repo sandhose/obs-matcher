@@ -20,6 +20,7 @@ services:
       FLASK_APP: matcher
     volumes:
       - "./matcher:/app/matcher"
+      - "./instance:/app/instance"
     networks:
       - internal
       - proxy
@@ -41,6 +42,7 @@ services:
       watchmedo auto-restart -D -R -p "**/*.py" -- celery worker -A matcher:celery -P gevent -l info -E --uid nobody --gid nobody
     volumes:
       - "./matcher:/app/matcher"
+      - "./instance:/app/instance"
     <<: *internal
 
   redis: *internal

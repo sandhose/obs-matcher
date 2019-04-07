@@ -17,10 +17,5 @@ celery = injector.get(Celery)
 
 app.wsgi_app = ProxyFix(app.wsgi_app)
 
-# FIXME: This is needed to discover tasks
-import matcher.tasks.object  # noqa: E402,F401
-import matcher.tasks.export  # noqa: E402,F401
-import matcher.tasks.import_  # noqa: E402,F401
-
 
 load_data(app)

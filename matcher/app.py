@@ -1,5 +1,6 @@
 import contextlib
 import logging
+import logging.config
 import os
 
 from alembic.migration import MigrationContext
@@ -40,7 +41,12 @@ class CeleryModule(Module):
             app.import_name,
             backend=app.config["CELERY_RESULT_BACKEND"],
             broker=app.config["CELERY_BROKER_URL"],
-            imports=("matcher.tasks.object",),
+        )
+        celery.conf["CELERYD_HIJACK_ROOT_LOGGER"] = False
+        celery.conf["CELERY_IMPORTS"] = (
+            "matcher.tasks.export",
+            "matcher.tasks.import_",
+            "matcher.tasks.object",
         )
         celery.conf.update(app.config)
         celery.conf.ONCE = {
@@ -82,7 +88,7 @@ class SentryModule(Module):
     @provider
     @singleton
     def provide_sentry(self, app: Flask, celery: Celery) -> Sentry:
-        sentry = Sentry(app=app, logging=True, level=logging.ERROR)
+        sentry = Sentry(app=app, logging=True, level=logging.DEBUG)
 
         register_logger_signal(sentry.client)
         register_signal(sentry.client)
@@ -116,12 +122,18 @@ def setup_routes(app, admin=True):
 
 def create_app(info=None):
     app = Flask("matcher", instance_relative_config=True)
-    app.logger.addHandler(logging.StreamHandler())
-    app.logger.setLevel(logging.INFO)
 
     # Load config using environment variable
     app.config.from_object("matcher.config.Config")
     app.config.from_pyfile("application.cfg", silent=True)
+
+    logconfig = app.config.get("LOGGING", None)
+    if logconfig:
+        logging.config.dictConfig(logconfig)
+    else:
+        app.logger.addHandler(logging.StreamHandler())
+        app.logger.setLevel(logging.INFO)
+
     app.url_map.strict_slashes = False  # Trailing slashes are not required
     db.init_app(app)
 

@@ -1,10 +1,34 @@
 import fcntl
+import logging
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Callable, Optional, Tuple
 
 from flask import current_app, template_rendered
 from sqlalchemy import desc
+
+logger = logging.getLogger(__name__)
+
+
+class TaskFormatter(logging.Formatter):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        try:
+            from celery._state import get_current_task
+
+            self.get_current_task = get_current_task
+        except ImportError:
+            self.get_current_task = lambda: None
+
+    def format(self, record):
+        task = self.get_current_task()
+        if task and task.request:
+            record.__dict__.update(task_id=task.request.id, task_name=task.name)
+        else:
+            record.__dict__.setdefault("task_name", "")
+            record.__dict__.setdefault("task_id", "")
+
+        return super().format(record)
 
 
 @contextmanager
@@ -35,10 +59,12 @@ class Lock:
         return self._fd
 
     def __enter__(self):
+        logging.debug("Locking %s", self.name)
         if not current_app.config["BYPASS_LOCKS"]:
             fcntl.lockf(self.fd, fcntl.LOCK_EX)
 
     def __exit__(self, *args):
+        logging.debug("Unlocking %s", self.name)
         if not current_app.config["BYPASS_LOCKS"]:
             fcntl.lockf(self.fd, fcntl.LOCK_UN)
 

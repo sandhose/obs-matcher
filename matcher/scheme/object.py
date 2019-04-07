@@ -11,6 +11,7 @@ which has a type (:obj:`ExternalObjectType`), links to
 """
 import collections
 import itertools
+import logging
 import math
 import re
 from operator import attrgetter, itemgetter
@@ -68,6 +69,7 @@ class db_(object):
 
 
 db = db_()
+logger = logging.getLogger(__name__)
 
 
 lookup_lock = Lock("lookup")
@@ -480,6 +482,8 @@ class ExternalObject(Base):
 
         """
         from .value import ValueSource
+
+        logger.debug("Merging %r into %r", self, their)
 
         # FIXME: A lot of other references needs merging (!)
         # First check if the merge is possible
