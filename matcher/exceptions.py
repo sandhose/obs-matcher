@@ -120,7 +120,7 @@ class ExternalIDMismatchError(Exception):
         self.external_id = external_id
 
     def __str__(self):
-        return "Link {!r} ID does not match {!r}".format(self.link, self.external_id)
+        return "Link {} ID does not match {!r}".format(self.link.id, self.external_id)
 
 
 class UnknownAttribute(Exception):
@@ -181,7 +181,9 @@ class LinkNotFound(Exception):
         self.platform = platform
 
     def __str__(self):
-        return "Could not find link for {!r} in {!r}".format(self.platform, self.links)
+        return "Could not find link for {} in {!r}".format(
+            self.platform.name, self.links
+        )
 
 
 class InvalidMetadata(Exception):
@@ -244,6 +246,6 @@ class LinksOverlap(Exception):
         self.their = their
 
     def __str__(self):
-        return "Links in {!r} overlaps with the ones in {!r}".format(
-            self.mine, self.their
+        return "Links in {} overlaps with the ones in {}".format(
+            self.mine.id, self.their.id
         )

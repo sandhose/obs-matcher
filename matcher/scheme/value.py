@@ -44,9 +44,6 @@ class Value(Base):
             .label("total_score")
         )
 
-    def __repr__(self):
-        return '<Value "{}">'.format(self.text)
-
     def __str__(self):
         return "{}({}): {}".format(self.type, self.score, self.text)
 
@@ -79,6 +76,3 @@ class ValueSource(Base):
         return cls.score_factor * select([Platform.base_score]).where(
             Platform.id == cls.platform_id
         )
-
-    def __repr__(self):
-        return "<ValueSource {!r} on {!r}>".format(self.value.text, self.platform.name)

@@ -48,9 +48,6 @@ class PlatformGroup(Base):
 
     platforms = relationship("Platform", back_populates="group")
 
-    def __repr__(self):
-        return '<PlatformGroup "{}">'.format(self.name)
-
     def __str__(self):
         return self.name
 
@@ -129,9 +126,6 @@ class Platform(Base):
 
     def __str__(self):
         return self.name
-
-    def __repr__(self):
-        return "<Platform {!r}>".format(self.name)
 
     @classmethod
     def lookup(cls, session, platform: str) -> Optional["Platform"]:
@@ -244,9 +238,6 @@ class Scrap(Base):
 
         objs = [l.external_object for l in self.links]
         ExternalObject.match_objects(objs)
-
-    def __repr__(self):
-        return "<Scrap {} ({}, {})>".format(self.id, self.platform, self.date)
 
 
 class Session(Base):

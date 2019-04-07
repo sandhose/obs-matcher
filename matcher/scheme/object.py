@@ -927,9 +927,6 @@ class ExternalObject(Base):
 
         return data
 
-    def __repr__(self):
-        return "<ExternalObject {} {}>".format(self.id, self.type)
-
 
 class ObjectLink(Base):
     """Links an object to a platform, with it's ID on the platform."""
@@ -975,9 +972,6 @@ class ObjectLink(Base):
     def url(self):
         format = self.platform.url.get(str(self.external_object.type), None)
         return None if format is None else format.format(self.external_id)
-
-    def __repr__(self):
-        return "<ObjectLink ({}, {})>".format(self.external_object, self.platform)
 
 
 class Role(Base):
