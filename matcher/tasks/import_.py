@@ -24,7 +24,15 @@ def process_file(file_id):
         db.session.commit()
         raise
 
-    # TODO: this shoud be done inside `process`
+    db.session.add(file)
+    db.session.commit()
+
+
+@celery.task()
+def mark_done(file_id):
+    file = db.session.query(ImportFile).get(file_id)
+    assert file
+
     file.done()
     db.session.add(file)
     db.session.commit()

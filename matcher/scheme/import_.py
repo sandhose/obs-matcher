@@ -8,6 +8,7 @@ from io import TextIOWrapper
 from typing import Dict, List, Tuple, Union
 
 import ftfy.bad_codecs  # noqa
+from celery import chord
 from chardet.universaldetector import UniversalDetector
 from sqlalchemy import (
     TIMESTAMP,
@@ -255,7 +256,9 @@ class ImportFile(Base):
     @after("process")
     @inject_session
     def process_import(self, session=None):
-        from matcher.tasks.import_ import process_row
+        from matcher.tasks.import_ import process_row, mark_done
+
+        tasks = []
 
         with self.csv_reader() as reader:
             # Fetch the header and map to fields
@@ -269,13 +272,13 @@ class ImportFile(Base):
                 # TODO: this is quite ugly, and this only because we need to
                 # only pass JSON-serializable objects to celery tasks.
                 attributes = [(str(k), v) for (k, v) in attributes]
-                task = process_row.apply_async((self.id, ids, attributes, links))
-                logger.info("Processing line %d (%s)", ln, task.task_id)
+                tasks.append(process_row.si(self.id, ids, attributes, links))
 
-            # TODO: show some progress somehow
-            # TODO: wait for all tasks to finish, not only the last one
-            if task:
-                task.wait()
+        # FIXME(sandhose): is this really needed?
+        session.add(self)
+        session.commit()
+
+        chord(tasks, mark_done.si(self.id)).apply_async(countdown=10)
 
     @inject_session
     def reduce_or_create_ids(self, external_object_ids: List[int], session=None):
