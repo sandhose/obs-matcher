@@ -1,7 +1,12 @@
 import logging
 from typing import List, Tuple
 
-from sqlalchemy.exc import IntegrityError, OperationalError, ResourceClosedError
+from sqlalchemy.exc import (
+    IntegrityError,
+    OperationalError,
+    ResourceClosedError,
+    StaleDataError,
+)
 
 from matcher import celery
 from matcher.app import db
@@ -43,7 +48,13 @@ def mark_done(file_id):
 # Import one row of a file
 # TODO: it works but its ugly
 @celery.task(
-    autoretry_for=(ResourceClosedError, OperationalError, IntegrityError), max_retries=5
+    autoretry_for=(
+        ResourceClosedError,
+        OperationalError,
+        IntegrityError,
+        StaleDataError,
+    ),
+    max_retries=5,
 )
 def process_row(
     file_id: int,
