@@ -1,6 +1,8 @@
 import logging
 from typing import List, Tuple
 
+from sqlalchemy.exc import IntegrityError, OperationalError, ResourceClosedError
+
 from matcher import celery
 from matcher.app import db
 from matcher.scheme.enums import ValueType
@@ -40,7 +42,9 @@ def mark_done(file_id):
 
 # Import one row of a file
 # TODO: it works but its ugly
-@celery.task()
+@celery.task(
+    autoretry_for=(ResourceClosedError, OperationalError, IntegrityError), max_retries=5
+)
 def process_row(
     file_id: int,
     external_object_ids: List[int],
