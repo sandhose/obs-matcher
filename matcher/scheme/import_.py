@@ -453,7 +453,7 @@ class ImportFile(Base):
         ).delete(synchronize_session=False)
         session.commit()
 
-        logger.info("Imported  %r", obj)
+        logger.info("Imported %d", obj.id)
 
     @after
     def log_status(self, message=None, *_, **__):

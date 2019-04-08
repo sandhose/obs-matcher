@@ -88,7 +88,7 @@ class SentryModule(Module):
     @provider
     @singleton
     def provide_sentry(self, app: Flask, celery: Celery) -> Sentry:
-        sentry = Sentry(app=app, logging=True, level=logging.DEBUG)
+        sentry = Sentry(app=app, logging=True, level=logging.WARN)
 
         register_logger_signal(sentry.client)
         register_signal(sentry.client)
