@@ -1,12 +1,8 @@
 import logging
 from typing import List, Tuple
 
-from sqlalchemy.exc import (
-    IntegrityError,
-    OperationalError,
-    ResourceClosedError,
-    StaleDataError,
-)
+from sqlalchemy.exc import IntegrityError, OperationalError, ResourceClosedError
+from sqlalchemy.orm.exc import StaleDataError
 
 from matcher import celery
 from matcher.app import db
