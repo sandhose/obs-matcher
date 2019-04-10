@@ -300,7 +300,16 @@ class ImportFile(Base):
                         try:
                             to_merge.merge_and_delete(obj, session=session)
                         except (LinksOverlap, ObjectTypeMismatchError):
-                            logger.warning("Error while merging", exc_info=True)
+                            logger.warning(
+                                "Error while merging",
+                                exc_info=True,
+                                extra={
+                                    "tags": {
+                                        "external_object_id to merge": to_merge.id,
+                                        "external_object_id merge target": obj.id,
+                                    }
+                                },
+                            )
         else:
             # else create a new object
             assert self.imported_external_object_type
