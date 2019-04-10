@@ -298,7 +298,7 @@ class ImportFile(Base):
                         try:
                             to_merge.merge_and_delete(obj, session=session)
                         except (LinksOverlap, ObjectTypeMismatchError):
-                            logger.warn("Error while merging", exc_info=True)
+                            logger.warning("Error while merging", exc_info=True)
         else:
             # else create a new object
             assert self.imported_external_object_type
