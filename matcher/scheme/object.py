@@ -483,7 +483,7 @@ class ExternalObject(Base):
         """
         from .value import ValueSource
 
-        logger.debug("Merging %r into %r", self, their)
+        logger.debug("Merging %d into %d", self.id, their.id)
 
         # FIXME: A lot of other references needs merging (!)
         # First check if the merge is possible
