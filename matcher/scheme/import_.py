@@ -370,7 +370,7 @@ class ImportFile(Base):
                 if len(external_ids) == 0:
                     continue
 
-                logger.info("Deleting links (%r, %r)", platform, external_ids)
+                logger.info("Deleting links (%d, %r)", platform.id, external_ids)
                 existing_links = (
                     session.query(ObjectLink)
                     .filter(
