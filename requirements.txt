@@ -38,7 +38,7 @@ mako==1.0.7               # via alembic
 markupsafe==1.1.0         # via jinja2, mako
 pendulum==2.0.4
 psycogreen==1.0.1
-psycopg2-binary==2.8.1
+psycopg2-binary==2.8.2
 python-dateutil==2.8.0    # via alembic, pendulum
 python-editor==1.0.4      # via alembic
 python-slugify==2.0.1

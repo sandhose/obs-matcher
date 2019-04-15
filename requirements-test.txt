@@ -48,7 +48,7 @@ more-itertools==6.0.0     # via pytest
 pendulum==2.0.4
 pluggy==0.9.0             # via pytest
 psycogreen==1.0.1
-psycopg2-binary==2.8.1
+psycopg2-binary==2.8.2
 py==1.7.0                 # via pytest
 pycodestyle==2.5.0        # via flake8
 pyflakes==2.1.0           # via flake8
