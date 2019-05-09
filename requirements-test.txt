@@ -46,14 +46,14 @@ markupsafe==1.1.0
 mccabe==0.6.1             # via flake8
 more-itertools==6.0.0     # via pytest
 pendulum==2.0.4
-pluggy==0.9.0             # via pytest
+pluggy==0.11.0            # via pytest
 psycogreen==1.0.1
 psycopg2-binary==2.8.2
 py==1.7.0                 # via pytest
 pycodestyle==2.5.0        # via flake8
 pyflakes==2.1.0           # via flake8
 pytest-cov==2.6.1
-pytest==4.4.1
+pytest==4.4.2
 python-dateutil==2.8.0
 python-editor==1.0.4
 python-slugify==2.0.1
