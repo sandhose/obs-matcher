@@ -56,7 +56,7 @@ more-itertools==6.0.0     # via pytest
 packaging==19.0           # via sphinx
 pathtools==0.1.2          # via watchdog
 pendulum==2.0.4
-pip-tools==3.6.1
+pip-tools==3.7.0
 pluggy==0.9.0             # via pytest
 pockets==0.7.2            # via sphinxcontrib-napoleon
 psycogreen==1.0.1
