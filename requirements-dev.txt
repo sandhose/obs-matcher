@@ -15,8 +15,8 @@ attrs==18.2.0             # via pytest
 babel==2.6.0              # via sphinx
 billiard==3.6.0.0
 blinker==1.4
+celery-once==2.1.1
 celery==4.3.0
-celery_once==2.1.1
 certifi==2018.11.29       # via requests
 chardet==3.0.4
 click==7.0
@@ -89,7 +89,7 @@ sphinxcontrib-napoleon==0.7
 sphinxcontrib-qthelp==1.0.2  # via sphinx
 sphinxcontrib-serializinghtml==1.1.3  # via sphinx
 sqlalchemy-utils==0.33.11
-sqlalchemy==1.2.18
+sqlalchemy==1.3.3
 testfixtures==6.5.0       # via flake8-isort
 tqdm==4.31.1
 typing==3.6.6
