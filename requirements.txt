@@ -10,8 +10,8 @@ amqp==2.4.1               # via kombu
 aniso8601==4.1.0          # via flask-restful, flask-restplus
 billiard==3.6.0.0         # via celery
 blinker==1.4              # via raven
+celery-once==2.1.1
 celery==4.3.0
-celery_once==2.1.1
 chardet==3.0.4
 click==7.0                # via flask
 decorator==4.3.2          # via validators
@@ -22,7 +22,7 @@ flask-restful==0.3.7
 flask-restplus==0.12.1
 flask-sqlalchemy==2.4.0
 flask-wtf==0.14.2
-flask==1.0.2
+flask==1.0.3
 ftfy==5.5.1
 gevent==1.4.0
 greenlet==0.4.15          # via gevent
