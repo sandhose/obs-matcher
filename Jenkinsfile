@@ -10,11 +10,15 @@ node {
 		checkout scm
 	}
 
-	stage('web') {
-		stage('Build image obs-matcher') {
-			/* This builds the actual image; synonymous to
-			* docker build on the command line */
-			app1 = docker.build "dockerregistry.coe.int/councilofeurope/obs-matcher:latest"
+	stage('Build image obs-matcher') {
+		/* This builds the actual image; synonymous to
+		* docker build on the command line */
+		app1 = docker.build "dockerregistry.coe.int/councilofeurope/obs-matcher:latest"
+	}
+
+	stage('Lint') {
+		app1.inside {
+			sh 'python setup.py flake8'
 		}
 	}
 
