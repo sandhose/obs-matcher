@@ -41,6 +41,7 @@ greenlet==0.4.15
 gunicorn==19.9.0
 idna==2.8                 # via requests
 imagesize==1.1.0          # via sphinx
+importlib-metadata==0.17  # via pluggy, pytest
 infinity==1.4
 injector==0.15.0
 intervals==0.8.1
@@ -53,11 +54,11 @@ mako==1.0.7
 markupsafe==1.1.0
 mccabe==0.6.1             # via flake8
 more-itertools==6.0.0     # via pytest
-packaging==19.0           # via sphinx
+packaging==19.0           # via pytest, sphinx
 pathtools==0.1.2          # via watchdog
 pendulum==2.0.4
 pip-tools==3.7.0
-pluggy==0.9.0             # via pytest
+pluggy==0.12.0            # via pytest
 pockets==0.7.2            # via sphinxcontrib-napoleon
 psycogreen==1.0.1
 psycopg2-binary==2.8.2
@@ -68,7 +69,7 @@ pygments==2.3.1           # via sphinx
 pyparsing==2.3.1          # via packaging
 pytest-cov==2.7.1
 pytest-runner==4.4
-pytest==4.5.0
+pytest==4.6.1
 python-dateutil==2.8.0
 python-editor==1.0.4
 python-slugify==2.0.1
@@ -103,3 +104,4 @@ werkzeug==0.14.1
 wtforms-alchemy==0.16.9
 wtforms-components==0.10.3
 wtforms==2.2.1
+zipp==0.5.1               # via importlib-metadata
