@@ -80,7 +80,7 @@ redis==3.2.1
 requests==2.21.0          # via sphinx
 six==1.12.0
 snowballstemmer==1.2.1    # via sphinx
-sphinx==2.0.1
+sphinx==2.1.0
 sphinxcontrib-applehelp==1.0.1  # via sphinx
 sphinxcontrib-devhelp==1.0.1  # via sphinx
 sphinxcontrib-htmlhelp==1.0.2  # via sphinx
