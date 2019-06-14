@@ -80,7 +80,9 @@ class ImportFile(Base):
     fields = Column(HSTORE, nullable=False)
     effective_date = Column(Date, default=datetime.now(), nullable=False)
 
-    platform_id = Column(Integer, ForeignKey(Platform.id), nullable=True)
+    platform_id = Column(
+        Integer, ForeignKey(Platform.id, onupdate="CASCADE"), nullable=True
+    )
     """The platform the new object and attributes will be assigned to"""
 
     imported_external_object_type = Column(Enum(ExternalObjectType), nullable=True)
@@ -474,7 +476,11 @@ class ImportFileLog(Base):
         primary_key=True,
     )
 
-    import_file_id = Column(Integer, ForeignKey(ImportFile.id), nullable=False)
+    import_file_id = Column(
+        Integer,
+        ForeignKey(ImportFile.id, ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+    )
     file = relationship("ImportFile", back_populates="logs")
 
     timestamp = Column(

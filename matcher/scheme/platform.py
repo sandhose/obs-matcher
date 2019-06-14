@@ -181,7 +181,9 @@ class Scrap(Base):
         server_default=scrap_id_seq.next_value(),
         primary_key=True,
     )
-    platform_id = Column(Integer, ForeignKey("platform.id"), nullable=False)
+    platform_id = Column(
+        Integer, ForeignKey("platform.id", onupdate="CASCADE"), nullable=False
+    )
 
     date = Column(DateTime)
     """Date when the scrap was started"""

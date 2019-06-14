@@ -949,7 +949,9 @@ class ObjectLink(Base):
     )
     """:obj:`int` : Foreign key to the linked object"""
 
-    platform_id = Column(Integer, ForeignKey("platform.id"), nullable=False)
+    platform_id = Column(
+        Integer, ForeignKey("platform.id", onupdate="CASCADE"), nullable=False
+    )
     """:obj:`int` : Foreign key to the linked platform"""
 
     external_id = Column(Text)

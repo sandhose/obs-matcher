@@ -747,7 +747,11 @@ class ExportFileLog(Base):
         primary_key=True,
     )
 
-    export_file_id = Column(Integer, ForeignKey(ExportFile.id), nullable=False)
+    export_file_id = Column(
+        Integer,
+        ForeignKey(ExportFile.id, ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+    )
     file = relationship("ExportFile", back_populates="logs")
 
     timestamp = Column(
