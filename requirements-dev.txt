@@ -60,7 +60,7 @@ pip-tools==3.7.0
 pluggy==0.9.0             # via pytest
 pockets==0.7.2            # via sphinxcontrib-napoleon
 psycogreen==1.0.1
-psycopg2-binary==2.8.2
+psycopg2-binary==2.8.3
 py==1.7.0                 # via pytest
 pycodestyle==2.5.0        # via flake8
 pyflakes==2.1.0           # via flake8
