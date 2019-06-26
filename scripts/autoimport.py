@@ -23,14 +23,22 @@ session_id = 6  # 6 is 2019 session 2
 source_directory = "/tmp/importme/"
 root, import_directories, _ = next(os.walk(source_directory))
 for provider_slug in import_directories:
-    provider = db.session.query(Provider).filter(Provider.slug == provider_slug).one()
-    print(f"Importing files for {provider_slug} (id {provider.id})")
+    try:
+        provider = db.session.query(Provider).filter(Provider.slug == provider_slug).one()
+    except:
+        print(f"Failed to find provider {provider_slug} in database. Skipping.")
+        continue
+    print(f"Importing files for {provider_slug} (id {provider.id}).")
 
     platforms = os.listdir(join(root, provider_slug))
     for platform in platforms:
         filename = platform
         platform_slug, _ = os.path.splitext(filename)
-        platform = db.session.query(Platform).filter(Platform.slug == platform_slug).one()
+        try:
+            platform = db.session.query(Platform).filter(Platform.slug == platform_slug).one()
+        except:
+            print(f"Failed to find platform {platform_slug} in database. Skipping.")
+            continue
         print(f"* {platform_slug} (id {platform.id})")
         fields = f'"country": "attribute_list.country", "director": "attribute_list.name", "duration": "attribute.duration", "platform_id": "", "presence_date": "", "eidr_object_id": "link.eidr", "imdb_object_id": "link.imdb", "isan_object_id": "link.isan", "original_title": "attribute.title", "production_date": "attribute.date", "platform_object_id": "link.{platform_slug}", "provider_object_id": "link.{provider_slug}", "platform_object_title": "attribute.title"'
         new_file = ImportFile(
