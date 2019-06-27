@@ -24,7 +24,9 @@ source_directory = "/tmp/importme/"
 root, import_directories, _ = next(os.walk(source_directory))
 for provider_slug in import_directories:
     try:
-        provider = db.session.query(Provider).filter(Provider.slug == provider_slug).one()
+        provider = (
+            db.session.query(Provider).filter(Provider.slug == provider_slug).one()
+        )
     except:
         print(f"Failed to find provider {provider_slug} in database. Skipping.")
         continue
@@ -35,7 +37,9 @@ for provider_slug in import_directories:
         filename = platform
         platform_slug, _ = os.path.splitext(filename)
         try:
-            platform = db.session.query(Platform).filter(Platform.slug == platform_slug).one()
+            platform = (
+                db.session.query(Platform).filter(Platform.slug == platform_slug).one()
+            )
         except:
             print(f"Failed to find platform {platform_slug} in database. Skipping.")
             continue
@@ -64,17 +68,19 @@ for provider_slug in import_directories:
             provider_id=provider.id,
         )
 
-#        ses = db.session.query(Session).get(session_id)
-#        if ses is None:
-#            print("Could not find session", session_id, platform_slug)
-#            continue
-#        new_file.sessions.append(ses)
+        ses = db.session.query(Session).get(session_id)
+        if ses is None:
+            print("Could not find session", session_id, platform_slug)
+            continue
+        new_file.sessions.append(ses)
 
-#        db.session.add(new_file)
-#        db.session.commit()
+        db.session.add(new_file)
+        db.session.commit()
 
-#        shutil.copyfile(p, new_file.path)
+        old_path = os.path.join(root, provider_slug, filename)
+        # Debug info: print(f"Copying from {old_path} to {new_file.path}.")
+        shutil.copyfile(old_path, new_file.path)
 
-#        t = process_file.apply_async((new_file.id,))
+        t = process_file.apply_async((new_file.id,))
 
-#        print(new_file.id, t.task_id)
+        print(new_file.id, t.task_id)
