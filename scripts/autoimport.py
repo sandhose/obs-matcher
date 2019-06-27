@@ -40,7 +40,21 @@ for provider_slug in import_directories:
             print(f"Failed to find platform {platform_slug} in database. Skipping.")
             continue
         print(f"* {platform_slug} (id {platform.id})")
-        fields = f'"country": "attribute_list.country", "director": "attribute_list.name", "duration": "attribute.duration", "platform_id": "", "presence_date": "", "eidr_object_id": "link.eidr", "imdb_object_id": "link.imdb", "isan_object_id": "link.isan", "original_title": "attribute.title", "production_date": "attribute.date", "platform_object_id": "link.{platform_slug}", "provider_object_id": "link.{provider_slug}", "platform_object_title": "attribute.title"'
+        # fields = f'"country": "attribute_list.country", "director": "attribute_list.name", "duration": "attribute.duration", "platform_id": "", "presence_date": "", "eidr_object_id": "link.eidr", "imdb_object_id": "link.imdb", "isan_object_id": "link.isan", "original_title": "attribute.title", "production_date": "attribute.date", "platform_object_id": "link.{platform_slug}", "provider_object_id": "link.{provider_slug}", "platform_object_title": "attribute.title"'
+        fields = {}
+        fields["country"] = "attribute_list.country"
+        fields["director"] = "attribute_list.name"
+        fields["duration"] = "attribute.duration"
+        fields["platform_id"] = ""
+        fields["presence_date"] = ""
+        fields["eidr_object_id"] = "link.eidr"
+        fields["imdb_object_id"] = "link.imdb"
+        fields["isan_object_id"] = "link.isan"
+        fields["original_title"] = "attribute.title"
+        fields["production_date"] = "attribute.date"
+        fields["platform_object_id"] = f"link.{platform_slug}"
+        fields["provider_object_id"] = f"link.{provider_slug}"
+        fields["platform_object_title"] = "attribute.title"
         new_file = ImportFile(
             filename=filename,
             fields=fields,
