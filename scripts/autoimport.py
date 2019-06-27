@@ -16,7 +16,7 @@ from matcher.tasks.import_ import process_file
 app.app_context().push()
 
 # Hard coded session id, you should look up the value in db first
-#session_id = 5  # 5 is 2019 session 1
+# session_id = 5  # 5 is 2019 session 1
 session_id = 6  # 6 is 2019 session 2
 
 # Files to be imported. Path should be `provider_id/platform_slug`
