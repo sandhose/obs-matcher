@@ -32,6 +32,14 @@ for provider_slug in import_directories:
         continue
     print(f"Importing files for {provider_slug} (id {provider.id}).")
 
+    global_platform = next(
+        filter(lambda p: p.type == PlatformType.GLOBAL, provider.platforms), None
+    )
+    if global_platform is not None:
+        print(f"Global platform for {provider_slug} is {global_platform.slug}.")
+    else:
+        print(f"No global platform defined for {provider_slug}")
+
     platforms = os.listdir(join(root, provider_slug))
     for platform in platforms:
         filename = platform
@@ -57,7 +65,9 @@ for provider_slug in import_directories:
         fields["original_title"] = "attribute.title"
         fields["production_date"] = "attribute.date"
         fields["platform_object_id"] = f"link.{platform_slug}"
-        fields["provider_object_id"] = f"link.{provider_slug}"
+        fields["provider_object_id"] = (
+            f"link.{global_platform.slug}" if global_platform is not None else ""
+        )
         fields["platform_object_title"] = "attribute.title"
         new_file = ImportFile(
             filename=filename,
