@@ -49,7 +49,7 @@ redis==3.2.1
 six==1.12.0               # via flask-restful, flask-restplus, python-dateutil, sqlalchemy-utils, validators, wtforms-alchemy, wtforms-components
 sqlalchemy-utils==0.33.11  # via wtforms-alchemy
 sqlalchemy==1.2.18
-tqdm==4.32.1
+tqdm==4.32.2
 typing==3.6.6             # via flask-injector
 unidecode==1.1.1
 validators==0.12.4        # via wtforms-components

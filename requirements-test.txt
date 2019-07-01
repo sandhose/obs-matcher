@@ -68,7 +68,7 @@ six==1.12.0
 sqlalchemy-utils==0.33.11
 sqlalchemy==1.2.18
 testfixtures==6.5.0       # via flake8-isort
-tqdm==4.32.1
+tqdm==4.32.2
 typing==3.6.6
 unidecode==1.1.1
 validators==0.12.4
