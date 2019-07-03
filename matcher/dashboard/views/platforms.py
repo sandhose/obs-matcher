@@ -30,8 +30,9 @@ class PlatformListView(View, DbMixin):
             undefer(Platform.links_count), joinedload(Platform.group)
         )
 
-        ordering_key, ordering_direction = parse_ordering(
-            request.args.get("ordering", None, str)
+        ordering = parse_ordering(request.args.get("ordering", None, str))
+        ordering_key, ordering_direction = (
+            ordering if ordering != (None, None) else ("name", "asc")
         )
         query = apply_ordering(
             {

@@ -25,8 +25,9 @@ class ProviderListView(View, DbMixin):
             undefer(Provider.import_count), undefer(Provider.platform_count)
         )
 
-        ordering_key, ordering_direction = parse_ordering(
-            request.args.get("ordering", None, str)
+        ordering = parse_ordering(request.args.get("ordering", None, str))
+        ordering_key, ordering_direction = (
+            ordering if ordering != (None, None) else ("name", "asc")
         )
 
         query = apply_ordering(
@@ -61,6 +62,7 @@ class ShowProviderView(View, DbMixin):
         if provider is None:
             abort(404)
 
+        provider.provider_platforms.sort(key=lambda x: x.platform.name)
         ctx = {}
         ctx["provider"] = provider
 
@@ -73,6 +75,8 @@ class EditProviderView(View, DbMixin):
 
         if provider is None:
             abort(404)
+
+        provider.provider_platforms.sort(key=lambda x: x.platform.name)
 
         form = EditProviderForm(request.form, obj=provider)
         form.platform_to_add.query = self.query(Platform)
