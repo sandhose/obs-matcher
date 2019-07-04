@@ -56,7 +56,7 @@ mccabe==0.6.1             # via flake8
 more-itertools==6.0.0     # via pytest
 packaging==19.0           # via pytest, sphinx
 pathtools==0.1.2          # via watchdog
-pendulum==2.0.4
+pendulum==2.0.5
 pip-tools==3.8.0
 pluggy==0.12.0            # via pytest
 pockets==0.7.2            # via sphinxcontrib-napoleon
