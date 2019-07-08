@@ -14,6 +14,7 @@ from matcher.scheme.enums import (
     ScrapStatus,
     ValueType,
 )
+from matcher.scheme.import_ import ImportFile
 from matcher.scheme.utils import CustomEnum
 
 
@@ -36,6 +37,10 @@ def relative_date(dt):
         else {"title": human, "display": full}
     )
     return Markup('<abbr title="{title}">{display}</abbr>'.format(**fmt))
+
+
+def is_import_file(item):
+    return isinstance(item, ImportFile)
 
 
 def query():
@@ -151,6 +156,7 @@ def pluralize(number, singular="", plural="s"):
 def register(app: Flask):
     """Register the filters and context processors for jinja"""
     app.jinja_env.filters["relative_date"] = relative_date
+    app.jinja_env.filters["is_import_file"] = is_import_file
     app.jinja_env.filters["badge_color"] = badge_color
     app.jinja_env.filters["badge_display"] = badge_display
     app.jinja_env.filters["filter_display"] = filter_display
