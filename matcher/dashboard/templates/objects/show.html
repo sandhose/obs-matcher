@@ -174,35 +174,31 @@
                 <th>Date</th>
               </tr>
             <tbody>
-              {% for link in object.links | sort(attribute='platform.name') %}
-                {% for origins in (link.imports, link.scraps) %}
-                  {% for origin in origins %}
-                    <tr>
-                      <td>
-                        <a href="{{ url_for('.show_platform', slug=link.platform.slug) }}">
-                          {{ link.platform.name }}
-                        </a>
-                      </td>
-                      <td class="td-actions">
-                        <span class="text-monospace">
-                          {{ link.external_id }}
-                        </span>
-                        {% if link.url %}
-                          <a href="{{ link.url }}" class="btn btn-sm btn-link">
-                            <i class="material-icons">arrow_forward</i>
-                          </a>
-                        {% endif %}
-                      </td>
-                      {% if origin|is_import_file %}
-                        <td><a href="{{ url_for(".show_import_file", id=origin.id) }}">Import #{{ origin.id }}</a></td>
-                        <td>{{ origin.last_activity | relative_date }}</td>
-                      {% else %}
-                        <td><a href="{{ url_for(".show_scrap", id=origin.id) }}">Scrap #{{ origin.id }}</a></td>
-                        <td>{{ origin.date | relative_date }}</td>
-                      {% endif %}
-                    </tr>
-                  {% endfor %}
-                {% endfor %}
+              {% for link in object.links | chained_object_links_by_date %}
+                <tr>
+                  <td>
+                    <a href="{{ url_for('.show_platform', slug=link.platform.slug) }}">
+                      {{ link.platform.name }}
+                    </a>
+                  </td>
+                  <td class="td-actions">
+                    <span class="text-monospace">
+                      {{ link.external_id }}
+                    </span>
+                    {% if link.url %}
+                      <a href="{{ link.url }}" class="btn btn-sm btn-link">
+                        <i class="material-icons">arrow_forward</i>
+                      </a>
+                    {% endif %}
+                  </td>
+                  {% if link.origin|is_import_file %}
+                    <td><a href="{{ url_for(".show_import_file", id=link.origin.id) }}">Import #{{ link.origin.id }}</a></td>
+                    <td>{{ link.origin.last_activity | relative_date }}</td>
+                  {% else %}
+                    <td><a href="{{ url_for(".show_scrap", id=link.origin.id) }}">Scrap #{{ link.origin.id }}</a></td>
+                    <td>{{ link.origin.date | relative_date }}</td>
+                  {% endif %}
+                </tr>
               {% endfor %}
             </tbody>
           </table>
