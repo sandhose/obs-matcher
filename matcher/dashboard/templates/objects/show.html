@@ -69,8 +69,7 @@
         <div class="card-body table-responsive">
           <table class="table">
             <tbody>
-              {% for link in object.links | sort(attribute='platform.name') %}
-              {% if link.platform.type|string == 'global' %}
+              {% for link in object.links | sort(attribute='platform.name') if link.platform.type|string == 'global' %}
                 <tr>
                   <td>
                     <a href="{{ url_for('.show_platform', slug=link.platform.slug) }}">
@@ -88,10 +87,8 @@
                     {% endif %}
                   </td>
                 </tr>
-              {% endif %}
               {% endfor %}
-              {% for link in object.links | sort(attribute='platform.name') %}
-              {% if link.platform.type|string != 'global' %}
+              {% for link in object.links | sort(attribute='platform.name') if link.platform.type|string != 'global' %}
                 <tr>
                   <td>
                     <a href="{{ url_for('.show_platform', slug=link.platform.slug) }}">
@@ -109,7 +106,6 @@
                     {% endif %}
                   </td>
                 </tr>
-              {% endif %}
               {% endfor %}
             </tbody>
           </table>
