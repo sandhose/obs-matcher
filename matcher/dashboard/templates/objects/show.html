@@ -70,6 +70,7 @@
           <table class="table">
             <tbody>
               {% for link in object.links | sort(attribute='platform.name') %}
+              {% if link.platform.type|string == 'global' %}
                 <tr>
                   <td>
                     <a href="{{ url_for('.show_platform', slug=link.platform.slug) }}">
@@ -87,6 +88,28 @@
                     {% endif %}
                   </td>
                 </tr>
+              {% endif %}
+              {% endfor %}
+              {% for link in object.links | sort(attribute='platform.name') %}
+              {% if link.platform.type|string != 'global' %}
+                <tr>
+                  <td>
+                    <a href="{{ url_for('.show_platform', slug=link.platform.slug) }}">
+                      {{ link.platform.name }}
+                    </a>
+                  </td>
+                  <td class="td-actions">
+                    <span class="text-monospace">
+                      {{ link.external_id }}
+                    </span>
+                    {% if link.url %}
+                      <a href="{{ link.url }}" class="btn btn-sm btn-link">
+                        <i class="material-icons">arrow_forward</i>
+                      </a>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endif %}
               {% endfor %}
             </tbody>
           </table>
