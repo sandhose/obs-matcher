@@ -1,6 +1,8 @@
+from itertools import chain
 from typing import Mapping  # noqa
 
 import pendulum
+import pytz
 from flask import Flask, request
 from jinja2 import Markup, escape
 
@@ -41,6 +43,37 @@ def relative_date(dt):
 
 def is_import_file(item):
     return isinstance(item, ImportFile)
+
+
+def chained_object_links_by_date(links):
+    """Chain links from import files and scraps into a single list, sorted by date"""
+
+    def date(origin):
+        return (
+            origin.last_activity
+            if is_import_file(origin)
+            else origin.date.replace(tzinfo=pytz.UTC)
+        )
+
+    def trim_origins(link, origin):
+        """Replace link collections with a single origin
+
+        Links have been exploded into separate origins beforehand.
+        """
+        link.imports = []
+        link.scraps = []
+        link.origin = origin
+        return link
+
+    if links is not None:
+        links = [
+            (link, origin)
+            for link in links
+            for origin in chain(link.imports, link.scraps)
+        ]
+        links = sorted(links, key=lambda link: date(link[1]), reverse=True)
+        links = (trim_origins(link, origin) for (link, origin) in links)
+    return links
 
 
 def query():
@@ -157,6 +190,7 @@ def register(app: Flask):
     """Register the filters and context processors for jinja"""
     app.jinja_env.filters["relative_date"] = relative_date
     app.jinja_env.filters["is_import_file"] = is_import_file
+    app.jinja_env.filters["chained_object_links_by_date"] = chained_object_links_by_date
     app.jinja_env.filters["badge_color"] = badge_color
     app.jinja_env.filters["badge_display"] = badge_display
     app.jinja_env.filters["filter_display"] = filter_display
