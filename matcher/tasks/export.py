@@ -13,12 +13,20 @@ def run_factory(factory_id, session_id):
     assert scrap_session
     assert factory
 
+    files = []
+
     for file in factory.generate(scrap_session=scrap_session):
         file.status = ExportFileStatus.SCHEDULED
         if file.count_links(session=db.session) > 0:
-            file.schedule(celery=celery)
-            db.session.add(file)
+            files.append(file)
 
+    db.session.add_all(files)
+    db.session.commit()
+
+    for file in files:
+        file.schedule(celery=celery)
+
+    db.session.add_all(files)
     db.session.commit()
 
 
