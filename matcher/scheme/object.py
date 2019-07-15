@@ -434,16 +434,13 @@ class ExternalObject(Base):
             except AmbiguousLinkError as err:
                 external_object = err.resolve(session)
 
-            if (
-                external_object_id is not None
-                and external_object_id != external_object.id
-            ):
+            if external_object_id is not None:
                 other = session.query(ExternalObject).get(external_object_id)
 
                 if other is not None:
                     if external_object is None:
                         external_object = other
-                    else:
+                    elif external_object.id != external_object_id:
                         external_object = external_object.merge_and_delete(
                             other, session
                         )
