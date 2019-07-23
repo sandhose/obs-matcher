@@ -230,7 +230,7 @@ def match(
 @click.command()
 @with_appcontext
 @click.option("--threshold", "-t", prompt=True, type=float)
-@click.option("--invert", "-i", is_flag=True)
+@click.option("--invert", "-v", is_flag=True)
 @click.option("--interactive/--non-interactive", "-i/-I", default=True)
 @click.argument("input", type=click.File("r"))
 def merge(threshold, invert, interactive, input):
