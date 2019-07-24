@@ -259,6 +259,85 @@ def merge(threshold, invert, interactive, input):
         ExternalObject.merge_candidates(candidates)
 
 
+@click.command("merge-multiple")
+@with_appcontext
+@click.argument("input", type=click.File("r"))
+def merge_multiple(input):
+    """Merge several objects into a single one
+
+    This will first merge all the comma separated id on a line in the
+    second column of an input file, then look up a unique result for
+    an object with an IMDb link and the name in the first column and
+    try to merge with it.
+    """
+    from matcher.app import db
+    from matcher.exceptions import LinksOverlap
+    from .scheme.object import ExternalObject
+    from .scheme.value import Value, ValueSource
+    from sqlalchemy import func
+
+    def get_movies_with_exact_title_match_from_platform(
+        title, platform_id, exclude_object_ids=[]
+    ):
+        return (
+            db.session.query(ExternalObject)
+            .filter(ExternalObject.id.notin_(exclude_object_ids))
+            .filter(ExternalObject.type == ExternalObjectType.MOVIE)
+            .join(ExternalObject.values)
+            .filter(Value.type == ValueType.TITLE)
+            .filter(func.lower(Value.text) == title)
+            .join(ValueSource)
+            .filter(ValueSource.value_id == Value.id)
+            .filter(ValueSource.platform_id == platform_id)
+            .all()
+        )
+
+    lines = input.readlines()
+
+    for line in lines:
+        line = line.rstrip("\n")
+        row = line.split("\t")
+        common_title, object_ids = row[0], row[1]
+        print(f"Movie {common_title}: {object_ids}")
+        object_ids = object_ids.split(",")
+
+        # Merge the objects
+        remaining_movies = ExternalObject.merge_multiple(object_ids, db.session)
+
+        # Look for a unique object with the same exact title on IMDb and merge with it
+        imdb_objects = get_movies_with_exact_title_match_from_platform(
+            common_title, 19, object_ids
+        )
+        number_of_imdb_objects = len(imdb_objects)
+        print(
+            "Number of objects with that exact title on IMDB: "
+            f"{number_of_imdb_objects}"
+        )
+        if number_of_imdb_objects > 0:
+            list_of_imdb_object_id = [obj.id for obj in imdb_objects]
+            print(f"Id of those objects: {list_of_imdb_object_id}")
+            if number_of_imdb_objects == 1:
+                imdb_object = imdb_objects[0]
+                for movie in remaining_movies:
+                    src = db.session.query(ExternalObject).get(movie)
+                    try:
+                        src.merge_and_delete(imdb_object, db.session)
+                        db.session.commit()
+                        print(
+                            f"{movie} was merged into "
+                            f"{list_of_imdb_object_id[0]}"
+                        )
+                        break
+                    except LinksOverlap:
+                        print(
+                            f"Couldn’t merge {movie} into IMDB movie "
+                            "because they have overlapping links. "
+                            "Moving on."
+                        )
+            else:
+                print("Too many candidates, skipping.")
+
+
 @click.command("import")
 @with_appcontext
 @click.option(
@@ -654,6 +733,7 @@ def setup_cli(app):
     app.cli.add_command(import_csv)
     app.cli.add_command(match)
     app.cli.add_command(merge)
+    app.cli.add_command(merge_multiple)
     app.cli.add_command(merge_episodes)
     app.cli.add_command(nuke)
     app.cli.add_command(worker)

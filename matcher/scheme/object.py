@@ -643,6 +643,32 @@ class ExternalObject(Base):
             except Exception as e:
                 it.write(repr(e))
 
+    @classmethod
+    def merge_multiple(cls, objects, session):
+        targets = objects[:-1]
+        merged = set()
+        current = 1
+        for target in targets:
+            if target not in merged:
+                for obj in objects[current:]:
+                    if obj not in merged:
+                        print(f"Going for {obj} into {target}")
+                        src = db.session.query(cls).get(obj)
+                        dest = db.session.query(cls).get(target)
+                        try:
+                            src.merge_and_delete(dest, session)
+                            session.commit()
+                            merged.add(obj)
+                            print(f"Merged {obj} into {target}.")
+                        except LinksOverlap:
+                            print(
+                                f"Couldn’t merge {obj} into {target} "
+                                "because they have overlapping links. "
+                                "Moving on."
+                            )
+            current = current + 1
+        return set(objects).difference(merged)
+
     def similar(self):
         """Find similar objects.
 
