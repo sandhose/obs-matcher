@@ -45,7 +45,7 @@ python-slugify==3.0.2
 pytz==2018.9              # via celery, flask-restful, flask-restplus
 pytzdata==2018.9          # via pendulum
 raven[flask]==6.10.0
-redis==3.2.1
+redis==3.3.0
 six==1.12.0               # via flask-restful, flask-restplus, python-dateutil, sqlalchemy-utils, validators, wtforms-alchemy, wtforms-components
 sqlalchemy-utils==0.33.11  # via wtforms-alchemy
 sqlalchemy==1.2.18
