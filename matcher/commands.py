@@ -320,20 +320,21 @@ def merge_multiple(input):
                 imdb_object = imdb_objects[0]
                 for movie in remaining_movies:
                     src = db.session.query(ExternalObject).get(movie)
-                    try:
-                        src.merge_and_delete(imdb_object, db.session)
-                        db.session.commit()
-                        print(
-                            f"{movie} was merged into "
-                            f"{list_of_imdb_object_id[0]}"
-                        )
-                        break
-                    except LinksOverlap:
-                        print(
-                            f"Couldn’t merge {movie} into IMDB movie "
-                            "because they have overlapping links. "
-                            "Moving on."
-                        )
+                    if src is not None:
+                        try:
+                            src.merge_and_delete(imdb_object, db.session)
+                            db.session.commit()
+                            print(
+                                f"{movie} was merged into "
+                                f"{list_of_imdb_object_id[0]}"
+                            )
+                            break
+                        except LinksOverlap:
+                            print(
+                                f"Couldn’t merge {movie} into IMDB movie "
+                                "because they have overlapping links. "
+                                "Moving on."
+                            )
             else:
                 print("Too many candidates, skipping.")
 

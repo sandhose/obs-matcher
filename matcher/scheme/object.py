@@ -655,17 +655,18 @@ class ExternalObject(Base):
                         print(f"Going for {obj} into {target}")
                         src = db.session.query(cls).get(obj)
                         dest = db.session.query(cls).get(target)
-                        try:
-                            src.merge_and_delete(dest, session)
-                            session.commit()
-                            merged.add(obj)
-                            print(f"Merged {obj} into {target}.")
-                        except LinksOverlap:
-                            print(
-                                f"Couldn’t merge {obj} into {target} "
-                                "because they have overlapping links. "
-                                "Moving on."
-                            )
+                        if src is not None and dest is not None:
+                            try:
+                                src.merge_and_delete(dest, session)
+                                session.commit()
+                                merged.add(obj)
+                                print(f"Merged {obj} into {target}.")
+                            except LinksOverlap:
+                                print(
+                                    f"Couldn’t merge {obj} into {target} "
+                                    "because they have overlapping links. "
+                                    "Moving on."
+                                )
             current = current + 1
         return set(objects).difference(merged)
 
