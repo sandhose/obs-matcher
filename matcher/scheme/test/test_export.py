@@ -1,7 +1,7 @@
 from itertools import chain
 
 from jinja2.exceptions import UndefinedError
-from pytest import raises
+from pytest import fail, raises
 
 from matcher.scheme import (
     Episode,
@@ -120,13 +120,13 @@ class TestExportTemplate(object):
         }
 
         # EXTERNAL_OBJECT rows shall not ask for the platform
-        with raises(
-            Exception,
-            message="Platform can't be queried when the row_type is EXTERNAL_OBJECT",
-        ):
+        with raises(Exception):
             context = ExportTemplate(
                 row_type=ExportRowType.PLATFORM, fields=[{"value": "platform.name"}]
             ).to_context((object_link, external_object))
+            fail(
+                "Platform can't be queried when the row_type is EXTERNAL_OBJECT"
+            )
 
         # Requested links should be there
         context = ExportTemplate(
