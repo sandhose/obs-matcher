@@ -23,7 +23,7 @@ def env_var(key, default=None):
 
 postgres_url = str(
     URL(
-        drivername="postgres+psycopg2",
+        drivername="postgresql+psycopg2",
         host=env_var("POSTGRES_HOST", "localhost"),
         port=env_var("POSTGRES_PORT", "5432"),
         username=env_var("POSTGRES_USERNAME"),
@@ -34,7 +34,7 @@ postgres_url = str(
 
 postgres_test_url = str(
     URL(
-        drivername="postgres+psycopg2",
+        drivername="postgresql+psycopg2",
         host=env_var("POSTGRES_TEST_HOST", env_var("POSTGRES_HOST", "localhost")),
         port=env_var("POSTGRES_TEST_PORT", env_var("POSTGRES_PORT", "5432")),
         username=env_var("POSTGRES_TEST_USERNAME", env_var("POSTGRES_USERNAME")),
