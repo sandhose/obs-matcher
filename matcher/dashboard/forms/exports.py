@@ -58,7 +58,7 @@ class ExportFilter(Form):
 
 
 class NewExportFileForm(Form):
-    path = StringField("File name", [validators.required()])
+    path = StringField("File name", [validators.InputRequired()])
     session = QuerySelectField(
         "Session", get_label="name", render_kw={"class": "form-control select2"}
     )
