@@ -9,7 +9,7 @@ from wtforms import (
     SubmitField,
     validators,
 )
-from wtforms.ext.sqlalchemy.fields import QuerySelectField, QuerySelectMultipleField
+from wtforms_alchemy import QuerySelectField, QuerySelectMultipleField
 
 from matcher.filters import badge_display
 from matcher.scheme.enums import ExternalObjectType, ValueType
