@@ -1,5 +1,5 @@
 from wtforms import Form, SelectMultipleField
-from wtforms.ext.sqlalchemy.fields import QuerySelectMultipleField
+from wtforms_alchemy import QuerySelectMultipleField
 
 from matcher.filters import badge_display
 from matcher.scheme.enums import ScrapStatus
