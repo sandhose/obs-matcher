@@ -147,7 +147,6 @@ def create_app(info=None):
 
     setup_cli(app)
     with app.app_context():
-        db.engine.pool._use_threadlocal = True
         setup_routes(app)
 
     FlaskInjector(
