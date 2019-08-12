@@ -59,7 +59,7 @@ pytest-cov==2.7.1
 pytest==4.6.3
 python-dateutil==2.8.0
 python-editor==1.0.4
-python-slugify==3.0.2
+python-slugify==3.0.3
 pytz==2018.9
 pytzdata==2018.9
 raven[flask]==6.10.0
