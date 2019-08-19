@@ -56,7 +56,7 @@ pycodestyle==2.5.0        # via flake8
 pyflakes==2.1.0           # via flake8
 pyparsing==2.4.0          # via packaging
 pytest-cov==2.7.1
-pytest==4.6.3
+pytest==5.1.0
 python-dateutil==2.8.0
 python-editor==1.0.4
 python-slugify==3.0.3
