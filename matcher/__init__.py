@@ -5,7 +5,7 @@ from psycogreen.gevent import patch_psycopg  # noqa: E402
 
 patch_psycopg()
 
-from werkzeug.contrib.fixers import ProxyFix  # noqa: E402
+from werkzeug.middleware.proxy_fix import ProxyFix  # noqa: E402
 from celery import Celery  # noqa: E402
 
 from .app import create_app, injector  # noqa: E402
