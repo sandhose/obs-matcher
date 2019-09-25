@@ -32,7 +32,7 @@ flask-injector==0.12.0
 flask-migrate==2.5.2
 flask-restful==0.3.7
 flask-restplus==0.13.0
-flask-sqlalchemy==2.4.0
+flask-sqlalchemy==2.4.1
 flask-wtf==0.14.2
 flask==1.1.1
 ftfy==5.6
