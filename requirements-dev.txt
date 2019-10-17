@@ -26,7 +26,7 @@ docutils==0.14            # via sphinx
 entrypoints==0.3          # via flake8
 flake8-isort==2.7.0
 flake8==3.7.8
-flask-admin==1.5.3
+flask-admin==1.5.4
 flask-debugtoolbar==0.10.1
 flask-injector==0.12.0
 flask-migrate==2.5.2
