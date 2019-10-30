@@ -20,7 +20,7 @@ coverage==4.5.2           # via pytest-cov
 decorator==4.3.2
 entrypoints==0.3          # via flake8
 flake8-isort==2.7.0
-flake8==3.7.8
+flake8==3.7.9
 flask-admin==1.5.4
 flask-injector==0.12.0
 flask-migrate==2.5.2
