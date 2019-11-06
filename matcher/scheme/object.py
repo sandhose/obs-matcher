@@ -748,6 +748,7 @@ class ExternalObject(Base):
                 self, their, ValueType.DURATION, into_float
             ),
             lambda self, their: text_attr(self, their, ValueType.COUNTRY),
+            lambda self, their: text_attr(self, their, ValueType.NAME),
             lambda self, their: 2 * text_attr(self, their, ValueType.TITLE),
         ]
 
