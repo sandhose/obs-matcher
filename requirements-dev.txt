@@ -41,7 +41,7 @@ greenlet==0.4.15
 gunicorn==19.9.0
 idna==2.8                 # via requests
 imagesize==1.1.0          # via sphinx
-importlib-metadata==0.18  # via pluggy, pytest
+importlib-metadata==0.18  # via pluggy
 infinity==1.4
 injector==0.15.0
 intervals==0.8.1
@@ -81,7 +81,7 @@ redis==3.3.11
 requests==2.21.0          # via sphinx
 six==1.12.0
 snowballstemmer==1.2.1    # via sphinx
-sphinx==2.2.1
+sphinx==2.3.0
 sphinxcontrib-applehelp==1.0.1  # via sphinx
 sphinxcontrib-devhelp==1.0.1  # via sphinx
 sphinxcontrib-htmlhelp==1.0.2  # via sphinx
