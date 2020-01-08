@@ -41,7 +41,7 @@ psycogreen==1.0.1
 psycopg2-binary==2.8.4
 python-dateutil==2.8.0    # via alembic, pendulum
 python-editor==1.0.4      # via alembic
-python-slugify==3.0.6
+python-slugify==4.0.0
 pytz==2018.9              # via celery, flask-restful, flask-restplus
 pytzdata==2018.9          # via pendulum
 raven[flask]==6.10.0
