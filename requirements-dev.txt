@@ -23,7 +23,7 @@ coverage==4.5.2           # via pytest-cov
 decorator==4.3.2
 docutils==0.14            # via sphinx
 entrypoints==0.3          # via flake8
-flake8-isort==2.7.0
+flake8-isort==2.8.0
 flake8==3.7.9
 flask-admin==1.5.4
 flask-debugtoolbar==0.10.1
@@ -44,7 +44,7 @@ importlib-metadata==0.18  # via pluggy
 infinity==1.4
 injector==0.15.0
 intervals==0.8.1
-isort==4.3.4              # via flake8-isort
+isort[pyproject]==4.3.4   # via flake8-isort
 itsdangerous==1.1.0
 jinja2==2.10.1
 jsonschema==2.6.0
