@@ -95,7 +95,7 @@ text-unidecode==1.3
 tqdm==4.41.1
 unidecode==1.1.1
 urllib3==1.24.2           # via requests
-validators==0.12.4
+validators==0.12.6
 vine==1.3.0
 watchdog==0.9.0
 wcwidth==0.1.7
