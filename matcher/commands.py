@@ -1,6 +1,7 @@
 from datetime import datetime
 from operator import attrgetter
 from pathlib import Path
+from tqdm import tqdm
 
 import click
 from flask.cli import with_appcontext
@@ -270,7 +271,6 @@ def merge(threshold, invert, interactive, input):
 def import_csv(external_ids, attributes, attr_platform, input):
     """Import data from a CSV file"""
     import csv
-    from tqdm import tqdm
     from .app import db
     from .scheme.object import ExternalObject, ObjectLink
     from .scheme.value import ValueSource, Value
@@ -406,6 +406,46 @@ def merge_episodes():
         print("{}\t{}\t5.0".format(i, j))
 
 
+@click.command("fix-links")
+@with_appcontext
+def fix_links():
+    """Fix duplicate object links"""
+    from sqlalchemy.orm import aliased
+    from .scheme.object import ObjectLink
+    from .app import db
+
+    l1 = aliased(ObjectLink)
+    l2 = aliased(ObjectLink)
+
+    links = list(
+        db.session.query(l1, l2)
+        .filter(l1.external_object_id == l2.external_object_id)
+        .filter(l1.platform_id == l2.platform_id)
+        .filter(l1.external_id == l2.external_id)
+        .filter(l1.id != l2.id)
+        .order_by(l1.id.asc())
+    )
+
+    done = set()
+
+    for (l1, l2) in tqdm(links):
+        if l1.id in done or l2.id in done:
+            continue
+
+        diff = set(l2.scraps) - set(l1.scraps)
+        for scrap in diff:
+            l1.scraps.append(scrap)
+
+        diff = set(l2.imports) - set(l1.imports)
+        for import_file in diff:
+            l1.imports.append(import_file)
+
+        done.add(l2.id)
+
+        db.session.delete(l2)
+        db.session.commit()
+
+
 @click.command("fix-attributes")
 @with_appcontext
 def fix_attributes():
@@ -413,7 +453,6 @@ def fix_attributes():
     from sqlalchemy.orm import aliased
     from .scheme.value import Value, ValueSource
     from .app import db
-    from tqdm import tqdm
 
     v1 = aliased(Value)
     v2 = aliased(Value)
@@ -554,7 +593,6 @@ def fix_titles():
     import re
     from .scheme.value import Value, ValueSource
     from .app import db
-    from tqdm import tqdm
 
     values = list(
         db.session.query(Value)
@@ -605,7 +643,6 @@ def fix_countries():
     from .scheme.value import Value, ValueSource
     from .app import db
     from .countries import lookup
-    from tqdm import tqdm
 
     values = list(
         db.session.query(Value)
@@ -651,6 +688,7 @@ def setup_cli(app):
     app.cli.add_command(fix_attributes)
     app.cli.add_command(fix_countries)
     app.cli.add_command(fix_titles)
+    app.cli.add_command(fix_links)
     app.cli.add_command(import_csv)
     app.cli.add_command(match)
     app.cli.add_command(merge)

@@ -2,7 +2,7 @@ FROM python:3.6-alpine
 
 WORKDIR /app
 
-RUN apk add --no-cache postgresql-dev gcc python3-dev musl-dev
+RUN apk add --no-cache postgresql-dev gcc python3-dev musl-dev libffi-dev
 
 RUN apk add --no-cache tzdata
 RUN cp /usr/share/zoneinfo/Europe/Paris /etc/localtime
