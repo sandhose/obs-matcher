@@ -1,10 +1,10 @@
 from datetime import datetime
 from operator import attrgetter
 from pathlib import Path
-from tqdm import tqdm
 
 import click
 from flask.cli import with_appcontext
+from tqdm import tqdm
 
 from matcher.scheme.enums import (
     ExternalObjectType,
