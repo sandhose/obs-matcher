@@ -1,4 +1,4 @@
-from . import groups, platforms, scraps, queue
+from . import groups, platforms, queue, scraps
 
 
 def register_all(api):

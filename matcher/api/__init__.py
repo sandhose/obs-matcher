@@ -1,5 +1,4 @@
 from flask import Blueprint
-
 from flask_restplus import Api
 
 from .errors import install_error_handlers
