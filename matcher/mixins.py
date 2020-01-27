@@ -7,8 +7,7 @@ class DbMixin(object):
     """A class that has the db injected"""
 
     @inject
-    def __init__(self, *args, db: SQLAlchemy, **kwargs):
-        super(DbMixin, self).__init__(*args, **kwargs)
+    def __init__(self, db: SQLAlchemy):
         self.db = db
 
     @property
@@ -24,6 +23,5 @@ class CeleryMixin(object):
     """A class that has celery injected"""
 
     @inject
-    def __init__(self, *args, celery: Celery, **kwargs):
-        super(CeleryMixin, self).__init__(*args, **kwargs)
+    def __init__(self, celery: Celery):
         self.celery = celery
