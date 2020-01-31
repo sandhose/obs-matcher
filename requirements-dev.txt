@@ -40,7 +40,6 @@ greenlet==0.4.15
 gunicorn==20.0.4
 idna==2.8                 # via requests
 imagesize==1.2.0          # via sphinx
-importlib-metadata==1.4.0
 infinity==1.4
 injector==0.18.2
 intervals==0.8.1
@@ -52,7 +51,7 @@ kombu==4.6.7
 mako==1.1.1
 markupsafe==1.1.1
 mccabe==0.6.1             # via flake8
-more-itertools==8.1.0
+more-itertools==8.1.0     # via pytest
 packaging==20.1           # via pytest, sphinx
 pathtools==0.1.2          # via watchdog
 pendulum==2.0.5
@@ -77,7 +76,7 @@ pytz==2019.3
 pytzdata==2019.3
 pyyaml==5.3               # via watchdog
 raven[flask]==6.10.0
-redis==3.3.11
+redis==3.4.0
 requests==2.22.0          # via sphinx
 six==1.14.0
 snowballstemmer==2.0.0    # via sphinx
@@ -106,7 +105,6 @@ werkzeug==0.16.0
 wtforms-alchemy==0.16.9
 wtforms-components==0.10.4
 wtforms==2.2.1
-zipp==2.0.1
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
