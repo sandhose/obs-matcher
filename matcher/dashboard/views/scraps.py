@@ -1,8 +1,7 @@
 from flask import render_template, request
-from flask.views import View
 from sqlalchemy.orm import joinedload, undefer
 
-from matcher.mixins import DbMixin
+from matcher.mixins import InjectedView
 from matcher.scheme.enums import ExternalObjectType
 from matcher.scheme.object import ExternalObject, ObjectLink
 from matcher.scheme.platform import Platform, Scrap, Session, session_scrap
@@ -13,7 +12,7 @@ from ..forms.scraps import EditScrapForm, ScrapListFilter
 __all__ = ["ScrapListView", "ShowScrapView"]
 
 
-class ScrapListView(View, DbMixin):
+class ScrapListView(InjectedView):
     def dispatch_request(self):
         form = ScrapListFilter(request.args)
         form.platforms.query = self.query(Platform)
@@ -56,7 +55,7 @@ class ScrapListView(View, DbMixin):
         return render_template("scraps/list.html", **ctx)
 
 
-class ShowScrapView(View, DbMixin):
+class ShowScrapView(InjectedView):
     def dispatch_request(self, id):
         scrap = (
             self.query(Scrap)

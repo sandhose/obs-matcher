@@ -1,8 +1,7 @@
 from flask import abort, redirect, render_template, request, url_for
-from flask.views import View
 from sqlalchemy.orm import undefer
 
-from matcher.mixins import DbMixin
+from matcher.mixins import InjectedView
 from matcher.scheme.platform import Platform
 from matcher.scheme.provider import Provider, ProviderPlatform
 from matcher.utils import apply_ordering, parse_ordering
@@ -17,7 +16,7 @@ __all__ = [
 ]
 
 
-class ProviderListView(View, DbMixin):
+class ProviderListView(InjectedView):
     def dispatch_request(self):
         form = ProviderListFilter(request.args)
 
@@ -55,7 +54,7 @@ class ProviderListView(View, DbMixin):
         return render_template("providers/list.html", **ctx)
 
 
-class ShowProviderView(View, DbMixin):
+class ShowProviderView(InjectedView):
     def dispatch_request(self, slug):
         provider = self.query(Provider).filter(Provider.slug == slug).first()
 
@@ -69,7 +68,7 @@ class ShowProviderView(View, DbMixin):
         return render_template("providers/show.html", **ctx)
 
 
-class EditProviderView(View, DbMixin):
+class EditProviderView(InjectedView):
     def dispatch_request(self, slug):
         provider = self.query(Provider).filter(Provider.slug == slug).first()
 
@@ -115,7 +114,7 @@ class EditProviderView(View, DbMixin):
         return render_template("providers/edit.html", **ctx)
 
 
-class NewProviderView(View, DbMixin):
+class NewProviderView(InjectedView):
     def dispatch_request(self):
         provider = Provider()
         form = NewProviderForm(request.form)

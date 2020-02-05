@@ -1,14 +1,16 @@
 from celery import Celery
+from flask.views import View
 from flask_sqlalchemy import SQLAlchemy
 from injector import inject
 
 
-class DbMixin(object):
-    """A class that has the db injected"""
+class InjectedView(View):
+    """A view that has the db and celery injected"""
 
     @inject
-    def __init__(self, db: SQLAlchemy):
+    def __init__(self, db: SQLAlchemy, celery: Celery):
         self.db = db
+        self.celery = celery
 
     @property
     def session(self):
@@ -17,11 +19,3 @@ class DbMixin(object):
     @property
     def query(self):
         return self.session.query
-
-
-class CeleryMixin(object):
-    """A class that has celery injected"""
-
-    @inject
-    def __init__(self, celery: Celery):
-        self.celery = celery

@@ -1,11 +1,10 @@
 import datetime
 
 from flask import abort, render_template, request
-from flask.views import View
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload, undefer
 
-from matcher.mixins import DbMixin
+from matcher.mixins import InjectedView
 from matcher.scheme.object import ExternalObject, ObjectLink
 from matcher.scheme.platform import Platform, PlatformGroup, Scrap
 from matcher.scheme.provider import Provider
@@ -16,7 +15,7 @@ from ..forms.platforms import PlatformListFilter
 __all__ = ["PlatformListView", "ShowPlatformView"]
 
 
-class PlatformListView(View, DbMixin):
+class PlatformListView(InjectedView):
     def dispatch_request(self):
         form = PlatformListFilter(request.args)
         form.country.query = (
@@ -75,7 +74,7 @@ class PlatformListView(View, DbMixin):
         return render_template("platforms/list.html", **ctx)
 
 
-class ShowPlatformView(View, DbMixin):
+class ShowPlatformView(InjectedView):
     def dispatch_request(self, slug):
         platform = self.query(Platform).filter(Platform.slug == slug).first()
 

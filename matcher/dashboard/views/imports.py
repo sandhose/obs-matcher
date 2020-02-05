@@ -2,11 +2,10 @@ import os
 from collections import OrderedDict
 
 from flask import flash, redirect, render_template, request, send_file, url_for
-from flask.views import View
 from sqlalchemy.orm import undefer
 from sqlalchemy.orm.attributes import flag_modified
 
-from matcher.mixins import CeleryMixin, DbMixin
+from matcher.mixins import InjectedView
 from matcher.scheme.enums import ImportFileStatus
 from matcher.scheme.import_ import ImportFile
 from matcher.scheme.platform import Platform, Session
@@ -18,7 +17,7 @@ from ..forms.imports import EditImport, UploadImport
 __all__ = ["DownloadImportFileView", "ImportFileListView", "ShowImportFileView"]
 
 
-class ImportFileListView(View, DbMixin):
+class ImportFileListView(InjectedView):
     def dispatch_request(self):
         form = UploadImport()
 
@@ -71,7 +70,7 @@ class ImportFileListView(View, DbMixin):
         return render_template("imports/list.html", **ctx)
 
 
-class ShowImportFileView(View, DbMixin, CeleryMixin):
+class ShowImportFileView(InjectedView):
     def dispatch_request(self, id):
         file = self.query(ImportFile).get_or_404(id)
         header = file.header()
@@ -109,7 +108,7 @@ class ShowImportFileView(View, DbMixin, CeleryMixin):
         return render_template("imports/show.html", **ctx)
 
 
-class DownloadImportFileView(View, DbMixin):
+class DownloadImportFileView(InjectedView):
     def dispatch_request(self, id):
         import_file = self.query(ImportFile).get_or_404(id)
 

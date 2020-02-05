@@ -5,7 +5,7 @@ from flask.views import View
 from sqlalchemy import func, or_
 from sqlalchemy.orm import joinedload, undefer
 
-from matcher.mixins import CeleryMixin, DbMixin
+from matcher.mixins import InjectedView
 from matcher.scheme.enums import PlatformType
 from matcher.scheme.export import ExportFactory, ExportFile, ExportTemplate
 from matcher.scheme.platform import Platform, PlatformGroup, Session
@@ -66,7 +66,7 @@ class ExportIndexView(View):
         return render_template("exports/index.html")
 
 
-class ExportFileListView(View, DbMixin):
+class ExportFileListView(InjectedView):
     def dispatch_request(self):
         form = ExportFileFilter(request.args)
         form.factory.query = self.query(ExportFactory)
@@ -134,7 +134,7 @@ class ExportFileListView(View, DbMixin):
         return render_template("exports/files/list.html", **ctx)
 
 
-class DownloadExportFileView(View, DbMixin):
+class DownloadExportFileView(InjectedView):
     def dispatch_request(self, id):
         export_file = self.query(ExportFile).get_or_404(id)
 
@@ -149,7 +149,7 @@ class DownloadExportFileView(View, DbMixin):
         return response
 
 
-class DeleteExportFileView(View, DbMixin):
+class DeleteExportFileView(InjectedView):
     def dispatch_request(self, id):
         export_file = self.query(ExportFile).get_or_404(id)
         export_file.delete()
@@ -158,7 +158,7 @@ class DeleteExportFileView(View, DbMixin):
         return redirect(url_for(".show_export_file", id=export_file.id))
 
 
-class ProcessExportFileView(View, DbMixin, CeleryMixin):
+class ProcessExportFileView(InjectedView):
     def dispatch_request(self, id):
         export_file = self.query(ExportFile).get_or_404(id)
 
@@ -171,7 +171,7 @@ class ProcessExportFileView(View, DbMixin, CeleryMixin):
         return redirect(url_for(".show_export_file", id=export_file.id))
 
 
-class NewExportFileView(View, DbMixin, CeleryMixin):
+class NewExportFileView(InjectedView):
     def dispatch_request(self):
         form = NewExportFileForm(request.form)
         form.template.query = self.query(ExportTemplate)
@@ -211,7 +211,7 @@ class NewExportFileView(View, DbMixin, CeleryMixin):
         return render_template("exports/files/new.html", **ctx)
 
 
-class ShowExportFileView(View, DbMixin):
+class ShowExportFileView(InjectedView):
     def dispatch_request(self, id):
         export_file = (
             self.query(ExportFile)
@@ -233,7 +233,7 @@ class ShowExportFileView(View, DbMixin):
         return render_template("exports/files/show.html", **ctx)
 
 
-class ExportFactoryListView(View, DbMixin, CeleryMixin):
+class ExportFactoryListView(InjectedView):
     def dispatch_request(self):
         query = (
             self.query(ExportFactory)
@@ -282,7 +282,7 @@ class ExportFactoryListView(View, DbMixin, CeleryMixin):
         return render_template("exports/factories/list.html", **ctx)
 
 
-class ShowExportFactoryView(View, DbMixin):
+class ShowExportFactoryView(InjectedView):
     def dispatch_request(self, id):
         export_factory = (
             self.query(ExportFactory)

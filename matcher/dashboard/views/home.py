@@ -3,11 +3,10 @@ import logging
 from collections import defaultdict
 
 from flask import flash, render_template, request
-from flask.views import View
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload, undefer
 
-from matcher.mixins import CeleryMixin, DbMixin
+from matcher.mixins import InjectedView
 from matcher.scheme.enums import ScrapStatus
 from matcher.scheme.object import ExternalObject, ObjectLink
 from matcher.scheme.platform import Platform, Scrap
@@ -17,7 +16,7 @@ __all__ = ["HomeView"]
 logger = logging.getLogger(__name__)
 
 
-class HomeView(View, DbMixin, CeleryMixin):
+class HomeView(InjectedView):
     def dispatch_request(self):
         logging.warn("Dispatching request")
         if request.method == "POST":

@@ -1,9 +1,8 @@
 from flask import render_template, request
-from flask.views import View
 from sqlalchemy import func, or_
 from sqlalchemy.orm import aliased, contains_eager, joinedload, lazyload, undefer
 
-from matcher.mixins import DbMixin
+from matcher.mixins import InjectedView
 from matcher.scheme.enums import ExternalObjectType
 from matcher.scheme.export import AttributesWrapper
 from matcher.scheme.import_ import ImportFile
@@ -17,7 +16,7 @@ from ..forms.objects import ObjectListFilter
 __all__ = ["ObjectListView", "ShowObjectView"]
 
 
-class ObjectListView(View, DbMixin):
+class ObjectListView(InjectedView):
     def dispatch_request(self):
         form = ObjectListFilter(request.args)
         form.platform.query = self.query(Platform)
@@ -117,7 +116,7 @@ class ObjectListView(View, DbMixin):
         return render_template("objects/list.html", **ctx)
 
 
-class ShowObjectView(View, DbMixin):
+class ShowObjectView(InjectedView):
     def dispatch_request(self, id):
         external_object = (
             self.query(ExternalObject)
