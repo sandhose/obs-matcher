@@ -4,6 +4,7 @@ from pathlib import Path
 
 import click
 from flask.cli import with_appcontext
+from sqlalchemy.orm import lazyload
 from tqdm import tqdm
 
 from matcher.scheme.enums import (
@@ -182,6 +183,7 @@ def match(
     """Try to match ExternalObjects with each other"""
     from .scheme.platform import Scrap
     from .scheme.object import ExternalObject, ObjectLink, scrap_link
+    from .scheme.value import Value
     from .app import db
 
     db.session.add_all((x for x in [scrap, platform] if x))
@@ -204,7 +206,7 @@ def match(
         )
     elif not all:
         if scrap is None:
-            scrap = db.session.query(Scrap).order_by(Scrap.id.desc()).one()
+            scrap = db.session.query(Scrap).order_by(Scrap.id.desc()).first()
 
         q = q.filter(
             ExternalObject.id.in_(
@@ -223,6 +225,7 @@ def match(
                 )
             )
         )
+    q = q.options(lazyload(ExternalObject.values).undefer(Value.cached_score))
 
     objs = q[offset:limit]
     ExternalObject.match_objects(objs)

@@ -50,7 +50,7 @@ from matcher.exceptions import (
     UnknownAttribute,
     UnknownRelation,
 )
-from matcher.utils import Lock
+from matcher.utils import Lock, trace
 
 from .base import Base
 from .enums import ExternalObjectType, Gender, PlatformType, RoleType, ValueType
@@ -480,7 +480,7 @@ class ExternalObject(Base):
         """
         from .value import ValueSource
 
-        logger.debug("Merging %d into %d", self.id, their.id)
+        logger.info("Merging %d into %d", self.id, their.id)
 
         # FIXME: A lot of other references needs merging (!)
         # First check if the merge is possible
@@ -593,20 +593,11 @@ class ExternalObject(Base):
 
     @classmethod
     def match_objects(cls, objects):
-        from concurrent.futures import ThreadPoolExecutor
-        from .. import app
-
-        def execute(obj):
-            with app.app_context():
-                return obj.similar()
-
-        # FIXME: max workers
-        with ThreadPoolExecutor(max_workers=8) as executor:
-            it = tqdm(executor.map(execute, objects), total=len(objects))
-            for similar in it:
-                s = list(similar)
-                for (obj, into, score) in s:
-                    it.write("{}\t{}\t{}".format(obj, into, score))
+        it = tqdm(map(lambda o: o.similar(), objects))
+        for similar in it:
+            s = list(similar)
+            for (obj, into, score) in s:
+                it.write("{}\t{}\t{}".format(obj, into, score))
 
         # candidates = sorted(candidates, key=attrgetter('score'), reverse=True)
 
@@ -678,6 +669,7 @@ class ExternalObject(Base):
             .group_by(other_value.external_object_id)
         )
 
+        @trace(logger)
         def links_overlap(a, b):
             platforms = set([l.platform for l in a]) & set([l.platform for l in b])
             return [
@@ -690,7 +682,7 @@ class ExternalObject(Base):
             MergeCandidate(obj=self.id, into=v[0], score=v[1])
             for v in matches
             if not links_overlap(
-                session.query(ObjectLink).filter(ObjectLink.external_object_id == v[0]),
+                list(session.query(ObjectLink).filter(ObjectLink.external_object_id == v[0])),
                 self.links,
             )
         ]
@@ -705,51 +697,97 @@ class ExternalObject(Base):
             except ValueError:
                 return None
 
-        def numeric_attr(mine, their, type, process=into_float):
-            my_attrs = set(
-                [process(attr.text) for attr in mine.values if attr.type == type]
-            )
-            their_attrs = set(
-                [process(attr.text) for attr in their.values if attr.type == type]
+        def curve(target, max_factor=5, min_factor=0.2):
+            ratio = (max_factor - min_factor) / max_factor
+            return lambda x: math.pow(2, -x) * max_factor * ratio + min_factor
+
+        def filter_and_pick(iterable, filter_, count, process=lambda x: x):
+            return map(
+                lambda x: process(x.text),
+                itertools.islice(
+                    sorted(
+                        filter(filter_, iterable),
+                        key=attrgetter('cached_score'),
+                        reverse=True
+                    ),
+                    count
+                )
             )
 
-            return len(
-                [
-                    True
-                    for x in my_attrs
-                    for y in their_attrs
-                    if x is not None and y is not None and abs(x - y) < 1
-                ]
-            )
-
-        def text_attr(mine, their, type, process=lambda n: n.lower()):
+        @trace(logger)
+        def numeric_attr(mine, their, type, curve, process=into_float, count=3):
             my_attrs = set(
-                [process(attr.text) for attr in mine.values if attr.type == type]
+                filter_and_pick(
+                    mine.values,
+                    filter_=lambda attr: attr.type == type,
+                    count=count,
+                    process=process,
+                )
             )
             their_attrs = set(
-                [process(attr.text) for attr in their.values if attr.type == type]
+                filter_and_pick(
+                    their.values,
+                    filter_=lambda attr: attr.type == type,
+                    count=count,
+                    process=process,
+                )
             )
+
+            if not my_attrs or not their_attrs:
+                # One of the object does not have the attribute, this should
+                # not influence anything
+                return 1
+
+            min_diff = min(
+                abs(x - y)
+                for x in my_attrs
+                for y in their_attrs
+            )
+
+            return curve(min_diff)
+
+        @trace(logger)
+        def text_attr(mine, their, type, process=lambda n: n.lower(), filter_=lambda n: True, count=3):
+            my_attrs = set(
+                filter_and_pick(
+                    mine.values,
+                    filter_=lambda attr: attr.type == type and filter_(attr.text),
+                    count=count,
+                    process=process,
+                )
+            )
+            their_attrs = set(
+                filter_and_pick(
+                    their.values,
+                    filter_=lambda attr: attr.type == type and filter_(attr.text),
+                    count=count,
+                    process=process,
+                )
+            )
+
+            if not my_attrs or not their_attrs:
+                # One of the object does not have the attribute, this should
+                # not influence anything
+                return 1
 
             def sanitize(s):
                 return "".join(filter(str.isalnum, unidecode(s).lower()))
 
-            return len(
+            return math.log2(len(
                 [
                     True
                     for x in my_attrs
                     for y in their_attrs
                     if x is not None and y is not None and sanitize(x) == sanitize(y)
                 ]
-            )
+            ) / 2 + 1) + 1
 
         criterias = [
-            lambda self, their: numeric_attr(self, their, ValueType.DATE, into_year),
-            lambda self, their: numeric_attr(
-                self, their, ValueType.DURATION, into_float
-            ),
-            lambda self, their: text_attr(self, their, ValueType.COUNTRY),
-            lambda self, their: text_attr(self, their, ValueType.NAME),
-            lambda self, their: 2 * text_attr(self, their, ValueType.TITLE),
+            lambda self, their: numeric_attr(self, their, ValueType.DATE, curve(2), into_year, count=3),
+            lambda self, their: numeric_attr(self, their, ValueType.DURATION, curve(5), into_float, count=2),
+            lambda self, their: text_attr(self, their, ValueType.COUNTRY, filter_=lambda x: len(x) == 2, count=3),
+            lambda self, their: text_attr(self, their, ValueType.NAME, count=3),
+            lambda self, their: text_attr(self, their, ValueType.TITLE, count=5),
         ]
 
         for candidate in objects:
@@ -757,11 +795,14 @@ class ExternalObject(Base):
                 continue
 
             factor = 1
-            their = session.query(ExternalObject).get(candidate.into)
+            their = session.query(ExternalObject).options(
+                joinedload(ExternalObject.values).
+                undefer(Value.cached_score),
+            ).get(candidate.into)
             for criteria in criterias:
-                factor *= math.pow(2, math.log2(1 + criteria(self, their)))
+                factor *= criteria(self, their)
             yield MergeCandidate(
-                obj=candidate.obj, into=candidate.into, score=candidate.score * factor
+                obj=candidate.obj, into=candidate.into, score=factor
             )
 
     @staticmethod

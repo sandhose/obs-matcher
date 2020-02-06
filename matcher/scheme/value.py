@@ -1,6 +1,17 @@
-from sqlalchemy import Column, Enum, ForeignKey, Integer, Sequence, Text, func, select
+from sqlalchemy import (
+    Column,
+    Enum,
+    ForeignKey,
+    Integer,
+    Sequence,
+    Text,
+    column,
+    func,
+    select,
+    table,
+)
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import column_property, relationship
 
 from . import Base
 from .enums import ValueType
@@ -43,6 +54,12 @@ class Value(Base):
             .where(ValueSource.value_id == cls.id)
             .label("total_score")
         )
+
+    cached_score = column_property(
+        select([column("score")]).
+        select_from(table("vw_value_score")).
+        where(column("value_id") == id),
+        deferred=True)
 
     def __str__(self):
         return "{}({}): {}".format(self.type, self.score, self.text)

@@ -1,4 +1,6 @@
 import fcntl
+import functools
+import itertools
 import logging
 from contextlib import contextmanager
 from pathlib import Path
@@ -29,6 +31,28 @@ class TaskFormatter(logging.Formatter):
             record.__dict__.setdefault("task_id", "")
 
         return super().format(record)
+
+
+def trace(logger):
+    logger = logger.getChild('trace')
+
+    def wrapper(func):
+        @functools.wraps(func)
+        def wrapped(*args, **kwargs):
+            result = func(*args, **kwargs)
+            parameters = ', '.join(
+                itertools.chain(
+                    (repr(arg) for arg in args),
+                    ('%s=%r' % (key, value) for (key, value) in kwargs.items())
+                )
+            )
+
+            logger.debug("%s(%s) = %r", func.__name__, parameters, result)
+            return result
+
+        return wrapped
+
+    return wrapper
 
 
 @contextmanager
