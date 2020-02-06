@@ -3,7 +3,7 @@ from flask_restplus import Namespace, reqparse
 from matcher.scheme.platform import PlatformGroup
 
 from .. import models, pagination
-from ..resources import DbResource
+from ..resources import InjectedResource
 
 api = Namespace("groups", description="Platform group operations")
 
@@ -16,7 +16,7 @@ for key in ["platform_base", "platform", "platform_group"]:
 
 
 @api.route("/")
-class PlatformGroupList(DbResource):
+class PlatformGroupList(InjectedResource):
     """List and create platform groups"""
 
     @api.doc("list_platform_groups")
@@ -41,7 +41,7 @@ class PlatformGroupList(DbResource):
 
 @api.route("/<int:id>")
 @api.response(404, "Platform group not found")
-class PlatformGroupItem(DbResource):
+class PlatformGroupItem(InjectedResource):
     """Show a single platform group and lets you edit and delete them"""
 
     def dispatch_request(self, id, *args, **kwargs):

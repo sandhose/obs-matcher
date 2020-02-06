@@ -4,13 +4,14 @@ from flask_sqlalchemy import SQLAlchemy
 from injector import inject
 
 
-class DbResource(Resource):
-    """A resource that has the db injected"""
+class InjectedResource(Resource):
+    """A resource that has the db and celery injected"""
 
     @inject
-    def __init__(self, *args, db: SQLAlchemy, **kwargs):
-        super(DbResource, self).__init__(*args, **kwargs)
+    def __init__(self, *args, db: SQLAlchemy, celery: Celery, **kwargs):
+        super(InjectedResource, self).__init__(*args, **kwargs)
         self.db = db
+        self.celery = celery
 
     @property
     def session(self):
@@ -19,12 +20,3 @@ class DbResource(Resource):
     @property
     def query(self):
         return self.session.query
-
-
-class CeleryResource(Resource):
-    """A resource that has celery injected"""
-
-    @inject
-    def __init__(self, *args, celery: Celery, **kwargs):
-        super(CeleryResource, self).__init__(*args, **kwargs)
-        self.celery = celery

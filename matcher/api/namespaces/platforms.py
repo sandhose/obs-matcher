@@ -5,7 +5,7 @@ from matcher.scheme.platform import Platform
 
 from .. import models, pagination
 from ..inputs import custom_enum
-from ..resources import DbResource
+from ..resources import InjectedResource
 
 api = Namespace("platforms", description="Platform operations")
 
@@ -28,7 +28,7 @@ for key in ["platform_base", "platform", "platform_group"]:
 
 
 @api.route("/")
-class PlatformList(DbResource):
+class PlatformList(InjectedResource):
     """List all platforms"""
 
     @api.doc("list_platforms")
@@ -62,7 +62,7 @@ class PlatformList(DbResource):
 
 @api.route("/<int:id>")
 @api.response(404, "Platform not found")
-class PlatformItem(DbResource):
+class PlatformItem(InjectedResource):
     """Show a single platform and lets you edit and delete them"""
 
     def dispatch_request(self, id, *args, **kwargs):

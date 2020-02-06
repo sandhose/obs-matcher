@@ -4,7 +4,7 @@ from flask_restplus import Namespace, abort
 from matcher.scheme.platform import Scrap
 
 from .. import models
-from ..resources import CeleryResource, DbResource
+from ..resources import InjectedResource
 
 api = Namespace(
     "queue", description="Queue new objects and inspect the current state of it"
@@ -15,7 +15,7 @@ api.models[models.queue.name] = models.queue
 
 
 @api.route("/")
-class Queue(DbResource, CeleryResource):
+class Queue(InjectedResource):
     """Queue new object and inspect the queue"""
 
     @api.doc("inspect_queue")

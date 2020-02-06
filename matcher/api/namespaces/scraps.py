@@ -6,7 +6,7 @@ from matcher.scheme.enums import ScrapStatus
 from matcher.scheme.platform import Platform, Scrap
 
 from .. import inputs, models, pagination
-from ..resources import DbResource
+from ..resources import InjectedResource
 
 api = Namespace("scraps", description="Scrap operations")
 
@@ -28,7 +28,7 @@ for key in ["platform", "scrap"]:
 
 
 @api.route("/")
-class ScrapList(DbResource):
+class ScrapList(InjectedResource):
     """List and create scraps"""
 
     @api.doc("list_scraps")
@@ -65,7 +65,7 @@ class ScrapList(DbResource):
 
 @api.route("/<int:id>")
 @api.response(404, "Scrap not found")
-class ScrapItem(DbResource):
+class ScrapItem(InjectedResource):
     """Show a single scrap and lets you edit and delete them"""
 
     def dispatch_request(self, id, *args, **kwargs):
@@ -102,7 +102,7 @@ class ScrapItem(DbResource):
 
 
 @api.route("/stats")
-class ScrapStats(DbResource):
+class ScrapStats(InjectedResource):
     """Show statistics about last scraps"""
 
     def get(self):
