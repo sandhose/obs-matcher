@@ -22,7 +22,7 @@ flask-migrate==2.5.2
 flask-restful==0.3.7
 flask-restplus==0.13.0
 flask-sqlalchemy==2.4.1
-flask-wtf==0.14.2
+flask-wtf==0.14.3
 flask==1.1.1
 ftfy==5.6
 gevent==1.4.0
@@ -31,7 +31,7 @@ gunicorn==20.0.4
 infinity==1.4             # via intervals
 injector==0.18.2          # via flask-injector
 intervals==0.8.1          # via wtforms-components
-itsdangerous==1.1.0       # via flask
+itsdangerous==1.1.0       # via flask, flask-wtf
 jinja2==2.10.3            # via flask
 jsonschema==3.2.0         # via flask-restplus
 kombu==4.6.7              # via celery
