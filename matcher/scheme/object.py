@@ -697,21 +697,23 @@ class ExternalObject(Base):
             except ValueError:
                 return None
 
-        def curve(target, max_factor=5, min_factor=0.2):
-            ratio = (max_factor - min_factor) / max_factor
-            return lambda x: math.pow(2, -x) * max_factor * ratio + min_factor
+        def curve(target, max_factor=3, min_factor=0.2):
+            return lambda x: math.pow(2, -(x / target)) * (max_factor - min_factor) + min_factor
 
         def filter_and_pick(iterable, filter_, count, process=lambda x: x):
-            return map(
-                lambda x: process(x.text),
-                itertools.islice(
-                    sorted(
-                        filter(filter_, iterable),
-                        key=attrgetter('cached_score'),
-                        reverse=True
+            return itertools.islice(
+                filter(
+                    None.__ne__, # Filter out None values
+                    map(
+                        lambda x: process(x.text),
+                        sorted(
+                            filter(filter_, iterable),
+                            key=attrgetter('cached_score'),
+                            reverse=True
+                        ),
                     ),
-                    count
-                )
+                ),
+                count
             )
 
         @trace(logger)
@@ -748,7 +750,7 @@ class ExternalObject(Base):
 
         @trace(logger)
         def text_attr(mine, their, type, process=lambda n: n.lower(), filter_=lambda n: True, count=3):
-            my_attrs = set(
+            my_attrs = list(
                 filter_and_pick(
                     mine.values,
                     filter_=lambda attr: attr.type == type and filter_(attr.text),
@@ -756,7 +758,7 @@ class ExternalObject(Base):
                     process=process,
                 )
             )
-            their_attrs = set(
+            their_attrs = list(
                 filter_and_pick(
                     their.values,
                     filter_=lambda attr: attr.type == type and filter_(attr.text),
@@ -773,17 +775,19 @@ class ExternalObject(Base):
             def sanitize(s):
                 return "".join(filter(str.isalnum, unidecode(s).lower()))
 
-            return math.log2(len(
+            matching = len(
                 [
                     True
                     for x in my_attrs
                     for y in their_attrs
                     if x is not None and y is not None and sanitize(x) == sanitize(y)
                 ]
-            ) / 2 + 1) + 1
+            )
+
+            return math.log2((matching + 1) / 3) + 2
 
         criterias = [
-            lambda self, their: numeric_attr(self, their, ValueType.DATE, curve(2), into_year, count=3),
+            lambda self, their: numeric_attr(self, their, ValueType.DATE, curve(2), into_year, count=2),
             lambda self, their: numeric_attr(self, their, ValueType.DURATION, curve(5), into_float, count=2),
             lambda self, their: text_attr(self, their, ValueType.COUNTRY, filter_=lambda x: len(x) == 2, count=3),
             lambda self, their: text_attr(self, their, ValueType.NAME, count=3),
