@@ -21,7 +21,7 @@ entrypoints==0.3          # via flake8
 flake8-isort==2.8.0       # via -r requirements-test.in (line 4)
 flake8==3.7.9             # via -r requirements-test.in (line 3), flake8-isort
 flask-admin==1.5.5        # via -r requirements.txt (line 19)
-flask-injector==0.12.2    # via -r requirements.txt (line 20)
+flask-injector==0.12.3    # via -r requirements.txt (line 20)
 flask-migrate==2.5.2      # via -r requirements.txt (line 21)
 flask-restful==0.3.8      # via -r requirements.txt (line 22)
 flask-restplus==0.13.0    # via -r requirements.txt (line 23)
