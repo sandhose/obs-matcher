@@ -69,7 +69,7 @@ sqlalchemy==1.3.13        # via -r requirements.txt (line 53), alembic, flask-sq
 testfixtures==6.10.3      # via flake8-isort
 text-unidecode==1.3       # via -r requirements.txt (line 54), python-slugify
 toml==0.10.0              # via isort
-tqdm==4.42.1              # via -r requirements.txt (line 55)
+tqdm==4.43.0              # via -r requirements.txt (line 55)
 typing-extensions==3.7.4.1  # via -r requirements.txt (line 56), injector
 unidecode==1.1.1          # via -r requirements.txt (line 57)
 validators==0.14.2        # via -r requirements.txt (line 58), wtforms-components
