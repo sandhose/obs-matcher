@@ -55,7 +55,7 @@ more-itertools==8.1.0     # via pytest
 packaging==20.1           # via pytest, sphinx
 pathtools==0.1.2          # via watchdog
 pendulum==2.0.5           # via -r requirements.txt (line 40)
-pip-tools==4.4.1          # via -r requirements-dev.in (line 4)
+pip-tools==4.5.1          # via -r requirements-dev.in (line 4)
 pluggy==0.13.1            # via pytest
 pockets==0.9.1            # via sphinxcontrib-napoleon
 psycogreen==1.0.2         # via -r requirements.txt (line 41)
