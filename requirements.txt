@@ -24,7 +24,7 @@ flask-restplus==0.13.0    # via -r requirements.in (line 10)
 flask-sqlalchemy==2.4.1   # via -r requirements.in (line 11), flask-migrate
 flask-wtf==0.14.3         # via -r requirements.in (line 12)
 flask==1.1.1              # via -r requirements.in (line 5), flask-admin, flask-injector, flask-migrate, flask-restful, flask-restplus, flask-sqlalchemy, flask-wtf, raven
-ftfy==5.6                 # via -r requirements.in (line 13)
+ftfy==5.7                 # via -r requirements.in (line 13)
 gevent==1.4.0             # via -r requirements.in (line 14)
 greenlet==0.4.15          # via gevent
 gunicorn==20.0.4          # via -r requirements.in (line 15)
