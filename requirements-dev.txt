@@ -34,7 +34,7 @@ flask-restplus==0.13.0    # via -r requirements.txt (line 23)
 flask-sqlalchemy==2.4.1   # via -r requirements.txt (line 24), flask-migrate
 flask-wtf==0.14.3         # via -r requirements.txt (line 25)
 flask==1.1.1              # via -r requirements.txt (line 26), flask-admin, flask-debugtoolbar, flask-injector, flask-migrate, flask-restful, flask-restplus, flask-sqlalchemy, flask-wtf, raven
-ftfy==5.6                 # via -r requirements.txt (line 27)
+ftfy==5.7                 # via -r requirements.txt (line 27)
 gevent==1.4.0             # via -r requirements.txt (line 28)
 greenlet==0.4.15          # via -r requirements.txt (line 29), gevent
 gunicorn==20.0.4          # via -r requirements.txt (line 30)
