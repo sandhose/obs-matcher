@@ -703,7 +703,7 @@ class ExternalObject(Base):
         def filter_and_pick(iterable, filter_, count, process=lambda x: x):
             return itertools.islice(
                 filter(
-                    None.__ne__, # Filter out None values
+                    None.__ne__,  # Filter out None values
                     map(
                         lambda x: process(x.text),
                         sorted(
