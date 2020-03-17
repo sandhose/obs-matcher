@@ -22,7 +22,7 @@ flake8-isort==2.8.0       # via -r requirements-test.in
 flake8==3.7.9             # via -r requirements-test.in, flake8-isort
 flask-admin==1.5.5        # via -r requirements.txt
 flask-injector==0.12.3    # via -r requirements.txt
-flask-migrate==2.5.2      # via -r requirements.txt
+flask-migrate==2.5.3      # via -r requirements.txt
 flask-restful==0.3.8      # via -r requirements.txt
 flask-restplus==0.13.0    # via -r requirements.txt
 flask-sqlalchemy==2.4.1   # via -r requirements.txt, flask-migrate
