@@ -94,6 +94,7 @@ def badge_color(type_: CustomEnum) -> str:
         PlatformType.INFO: "info",
         PlatformType.SVOD: "danger",
         PlatformType.TVOD: "primary",
+        PlatformType.AVOD: "success",
         ScrapStatus.SCHEDULED: "secondary",
         ScrapStatus.RUNNING: "primary",
         ScrapStatus.SUCCESS: "success",

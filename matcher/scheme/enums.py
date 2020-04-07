@@ -10,6 +10,7 @@ class PlatformType(CustomEnum):
     GLOBAL = 2  # Platforms for global IDs
     TVOD = 3  # Renting VOD
     SVOD = 4  # Subscription based VOD
+    AVOD = 5  # VOD relying on advertisement
 
 
 class ScrapStatus(CustomEnum):

@@ -28,14 +28,15 @@
           </div>
           <p class="card-category">Platforms</p>
           <h3 class="card-title">
-            {{ platforms_stats['SVOD'] + platforms_stats['TVOD'] + platforms_stats['INFO'] }}
+            {{ platforms_stats['SVOD'] + platforms_stats['TVOD'] + platforms_stats['AVOD'] + platforms_stats['INFO'] }}
           </h3>
         </div>
         <div class="card-footer">
           <div class="stats">
             <i class="material-icons">notes</i>
             {{ platforms_stats['SVOD'] }} SVOD,
-            {{ platforms_stats['TVOD'] }} TVOD and
+            {{ platforms_stats['TVOD'] }} TVOD,
+            {{ platforms_stats['AVOD'] }} AVOD and
             {{ platforms_stats['INFO'] }} INFO
           </div>
         </div>
