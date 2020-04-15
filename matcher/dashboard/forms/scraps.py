@@ -1,7 +1,8 @@
-from matcher.filters import badge_display
-from matcher.scheme.enums import ScrapStatus
 from wtforms import Form, SelectMultipleField
 from wtforms_alchemy import QuerySelectMultipleField
+
+from matcher.filters import badge_display
+from matcher.scheme.enums import ScrapStatus
 
 
 class ScrapListFilter(Form):

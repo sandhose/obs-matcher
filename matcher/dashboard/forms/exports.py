@@ -1,3 +1,6 @@
+from wtforms import Form, FormField, SelectMultipleField, StringField, validators
+from wtforms_alchemy import QuerySelectField, QuerySelectMultipleField
+
 from matcher.filters import badge_display
 from matcher.scheme.enums import (
     ExportFactoryIterator,
@@ -6,8 +9,6 @@ from matcher.scheme.enums import (
     ExternalObjectType,
     PlatformType,
 )
-from wtforms import Form, FormField, SelectMultipleField, StringField, validators
-from wtforms_alchemy import QuerySelectField, QuerySelectMultipleField
 
 
 class ExportFactoryListFilter(Form):

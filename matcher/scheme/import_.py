@@ -10,8 +10,6 @@ from typing import Dict, List, Tuple, Union
 import ftfy.bad_codecs  # noqa
 from celery import chord
 from chardet.universaldetector import UniversalDetector
-from matcher.exceptions import LinksOverlap, ObjectTypeMismatchError
-from matcher.utils import import_path
 from sqlalchemy import (
     TIMESTAMP,
     Column,
@@ -31,6 +29,9 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import HSTORE
 from sqlalchemy.orm import column_property, relationship
+
+from matcher.exceptions import LinksOverlap, ObjectTypeMismatchError
+from matcher.utils import import_path
 
 from .base import Base
 from .enums import ExternalObjectType, ImportFileStatus, ValueType

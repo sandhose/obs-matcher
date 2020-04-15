@@ -1,13 +1,14 @@
 import logging
 from typing import List, Tuple
 
+from sqlalchemy.exc import IntegrityError, OperationalError, ResourceClosedError
+from sqlalchemy.orm.exc import StaleDataError
+
 from matcher import celery
 from matcher.app import db
 from matcher.scheme.enums import ValueType
 from matcher.scheme.import_ import ImportFile
 from matcher.scheme.platform import Platform
-from sqlalchemy.exc import IntegrityError, OperationalError, ResourceClosedError
-from sqlalchemy.orm.exc import StaleDataError
 
 logger = logging.getLogger(__name__)
 

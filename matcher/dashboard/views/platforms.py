@@ -1,13 +1,14 @@
 import datetime
 
 from flask import abort, render_template, request
+from sqlalchemy import func
+from sqlalchemy.orm import joinedload, undefer
+
 from matcher.mixins import InjectedView
 from matcher.scheme.object import ExternalObject, ObjectLink
 from matcher.scheme.platform import Platform, PlatformGroup, Scrap
 from matcher.scheme.provider import Provider
 from matcher.utils import apply_ordering, parse_ordering
-from sqlalchemy import func
-from sqlalchemy.orm import joinedload, undefer
 
 from ..forms.platforms import PlatformListFilter
 

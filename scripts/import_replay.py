@@ -1,14 +1,11 @@
-import io
-import json
-import shutil
 from pathlib import Path
-
-from matcher import app
-from matcher.app import db
-from matcher.scheme.enums import *
+import json, io, shutil
 from matcher.scheme.import_ import ImportFile
 from matcher.scheme.platform import Platform, Session
 from matcher.scheme.provider import Provider
+from matcher.scheme.enums import *
+from matcher.app import db
+from matcher import app
 from matcher.tasks.import_ import process_file
 
 with io.open("/tmp/files.json", "r", encoding="utf-8") as f:

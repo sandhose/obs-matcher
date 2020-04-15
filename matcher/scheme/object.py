@@ -16,19 +16,6 @@ import math
 import re
 from operator import attrgetter, itemgetter
 
-from matcher.exceptions import (
-    AmbiguousLinkError,
-    ExternalIDMismatchError,
-    InvalidMetadata,
-    InvalidMetadataValue,
-    InvalidRelation,
-    LinkNotFound,
-    LinksOverlap,
-    ObjectTypeMismatchError,
-    UnknownAttribute,
-    UnknownRelation,
-)
-from matcher.utils import Lock, trace
 from sqlalchemy import (
     Column,
     Enum,
@@ -50,6 +37,20 @@ from sqlalchemy.orm import aliased, column_property, foreign, joinedload, relati
 from sqlalchemy.orm.session import object_session
 from tqdm import tqdm
 from unidecode import unidecode
+
+from matcher.exceptions import (
+    AmbiguousLinkError,
+    ExternalIDMismatchError,
+    InvalidMetadata,
+    InvalidMetadataValue,
+    InvalidRelation,
+    LinkNotFound,
+    LinksOverlap,
+    ObjectTypeMismatchError,
+    UnknownAttribute,
+    UnknownRelation,
+)
+from matcher.utils import Lock, trace
 
 from .base import Base
 from .enums import ExternalObjectType, Gender, PlatformType, RoleType, ValueType
@@ -681,11 +682,7 @@ class ExternalObject(Base):
             MergeCandidate(obj=self.id, into=v[0], score=v[1])
             for v in matches
             if not links_overlap(
-                list(
-                    session.query(ObjectLink).filter(
-                        ObjectLink.external_object_id == v[0]
-                    )
-                ),
+                list(session.query(ObjectLink).filter(ObjectLink.external_object_id == v[0])),
                 self.links,
             )
         ]
@@ -701,10 +698,7 @@ class ExternalObject(Base):
                 return None
 
         def curve(target, max_factor=3, min_factor=0.2):
-            return (
-                lambda x: math.pow(2, -(x / target)) * (max_factor - min_factor)
-                + min_factor
-            )
+            return lambda x: math.pow(2, -(x / target)) * (max_factor - min_factor) + min_factor
 
         def filter_and_pick(iterable, filter_, count, process=lambda x: x):
             return itertools.islice(
@@ -714,12 +708,12 @@ class ExternalObject(Base):
                         lambda x: process(x.text),
                         sorted(
                             filter(filter_, iterable),
-                            key=attrgetter("cached_score"),
-                            reverse=True,
+                            key=attrgetter('cached_score'),
+                            reverse=True
                         ),
                     ),
                 ),
-                count,
+                count
             )
 
         @trace(logger)
@@ -746,19 +740,16 @@ class ExternalObject(Base):
                 # not influence anything
                 return 1
 
-            min_diff = min(abs(x - y) for x in my_attrs for y in their_attrs)
+            min_diff = min(
+                abs(x - y)
+                for x in my_attrs
+                for y in their_attrs
+            )
 
             return curve(min_diff)
 
         @trace(logger)
-        def text_attr(
-            mine,
-            their,
-            type,
-            process=lambda n: n.lower(),
-            filter_=lambda n: True,
-            count=3,
-        ):
+        def text_attr(mine, their, type, process=lambda n: n.lower(), filter_=lambda n: True, count=3):
             my_attrs = list(
                 filter_and_pick(
                     mine.values,
@@ -796,15 +787,9 @@ class ExternalObject(Base):
             return math.log2((matching + 1) / 3) + 2
 
         criterias = [
-            lambda self, their: numeric_attr(
-                self, their, ValueType.DATE, curve(2), into_year, count=2
-            ),
-            lambda self, their: numeric_attr(
-                self, their, ValueType.DURATION, curve(5), into_float, count=2
-            ),
-            lambda self, their: text_attr(
-                self, their, ValueType.COUNTRY, filter_=lambda x: len(x) == 2, count=3
-            ),
+            lambda self, their: numeric_attr(self, their, ValueType.DATE, curve(2), into_year, count=2),
+            lambda self, their: numeric_attr(self, their, ValueType.DURATION, curve(5), into_float, count=2),
+            lambda self, their: text_attr(self, their, ValueType.COUNTRY, filter_=lambda x: len(x) == 2, count=3),
             lambda self, their: text_attr(self, their, ValueType.NAME, count=3),
             lambda self, their: text_attr(self, their, ValueType.TITLE, count=5),
         ]
@@ -814,14 +799,15 @@ class ExternalObject(Base):
                 continue
 
             factor = 1
-            their = (
-                session.query(ExternalObject)
-                .options(joinedload(ExternalObject.values).undefer(Value.cached_score))
-                .get(candidate.into)
-            )
+            their = session.query(ExternalObject).options(
+                joinedload(ExternalObject.values).
+                undefer(Value.cached_score),
+            ).get(candidate.into)
             for criteria in criterias:
                 factor *= criteria(self, their)
-            yield MergeCandidate(obj=candidate.obj, into=candidate.into, score=factor)
+            yield MergeCandidate(
+                obj=candidate.obj, into=candidate.into, score=factor
+            )
 
     @staticmethod
     def insert_dict(data, scrap):

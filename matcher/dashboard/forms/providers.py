@@ -1,6 +1,7 @@
-from matcher.scheme.provider import Provider, ProviderPlatform
 from wtforms import Form, FormField, HiddenField, StringField, SubmitField, validators
 from wtforms_alchemy import ModelFieldList, ModelForm, QuerySelectField
+
+from matcher.scheme.provider import Provider, ProviderPlatform
 
 
 class ProviderListFilter(Form):

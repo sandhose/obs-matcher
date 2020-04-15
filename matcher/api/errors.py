@@ -1,6 +1,7 @@
 from flask_restplus import fields
-from matcher.exceptions import InvalidTransition
 from sqlalchemy.exc import IntegrityError
+
+from matcher.exceptions import InvalidTransition
 
 
 def install_error_handlers(app, api):

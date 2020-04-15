@@ -4,12 +4,13 @@ import inspect
 import itertools
 from typing import Callable, List, Optional, Type
 
-from matcher.exceptions import InvalidTransition
 from sqlalchemy import column, event
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import Query, object_session
 from sqlalchemy.schema import DDLElement
 from sqlalchemy.sql import FromClause
+
+from matcher.exceptions import InvalidTransition
 
 
 class Transition(object):

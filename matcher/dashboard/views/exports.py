@@ -2,13 +2,14 @@ from typing import Any, Dict, Set  # noqa
 
 from flask import flash, redirect, render_template, request, send_file, url_for
 from flask.views import View
+from sqlalchemy import func, or_
+from sqlalchemy.orm import joinedload, undefer
+
 from matcher.mixins import InjectedView
 from matcher.scheme.enums import PlatformType
 from matcher.scheme.export import ExportFactory, ExportFile, ExportTemplate
 from matcher.scheme.platform import Platform, PlatformGroup, Session
 from matcher.utils import apply_ordering, parse_ordering
-from sqlalchemy import func, or_
-from sqlalchemy.orm import joinedload, undefer
 
 from ..forms.exports import ExportFactoryListFilter, ExportFileFilter, NewExportFileForm
 

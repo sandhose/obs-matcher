@@ -56,7 +56,7 @@ _attribute_filter = or_(
 
 
 class PlatformSourceOrderByValueType(Base, ViewMixin):
-    __tablename__ = "vw_000_platform_source_order_by_value_type"
+    __tablename__ = "vw_platform_source_order_by_value_type"
 
     __materialized__ = True
     __table_args__ = {

@@ -1,13 +1,13 @@
 import pytest
-
 from flask import Flask, request
 from flask_injector import FlaskInjector
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import text
+
 from matcher.app import db as _db
 from matcher.app import setup_routes
 from matcher.filters import register as register_filters
 from matcher.scheme import Base
-from sqlalchemy import text
 
 
 @pytest.fixture(scope="session")

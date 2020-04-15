@@ -1,9 +1,5 @@
-from gevent.monkey import patch_all
-
-patch_all()  # noqa: E702
-from psycogreen.gevent import patch_psycopg
-
-patch_psycopg()  # noqa: E702
+from gevent.monkey import patch_all; patch_all()  # noqa: E702
+from psycogreen.gevent import patch_psycopg; patch_psycopg()  # noqa: E702
 
 from celery import Celery
 from werkzeug.middleware.proxy_fix import ProxyFix

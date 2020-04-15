@@ -1,9 +1,10 @@
 import json
 
+from sqlalchemy import or_
+
 from matcher import app
 from matcher.app import db
 from matcher.scheme.import_ import ImportFile, ImportFileStatus
-from sqlalchemy import or_
 
 app.app_context().push()
 

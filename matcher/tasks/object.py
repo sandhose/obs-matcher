@@ -1,3 +1,5 @@
+from sqlalchemy.exc import ResourceClosedError
+
 from matcher import celery
 from matcher.app import db
 from matcher.scheme.object import ExternalObject
@@ -7,7 +9,6 @@ from matcher.scheme.views import (
     PlatformSourceOrderByValueType,
     ValueScoreView,
 )
-from sqlalchemy.exc import ResourceClosedError
 
 
 @celery.task(autoretry_for=(ResourceClosedError,), max_retries=5)

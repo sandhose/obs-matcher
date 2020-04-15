@@ -4,14 +4,15 @@ from pathlib import Path
 
 import click
 from flask.cli import with_appcontext
+from sqlalchemy.orm import lazyload
+from tqdm import tqdm
+
 from matcher.scheme.enums import (
     ExternalObjectType,
     PlatformType,
     ScrapStatus,
     ValueType,
 )
-from sqlalchemy.orm import lazyload
-from tqdm import tqdm
 
 
 class ValueTypeParamType(click.ParamType):

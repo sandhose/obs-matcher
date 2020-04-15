@@ -1,4 +1,5 @@
 from flask_restplus import Mask, Model, fields
+
 from matcher.scheme.enums import PlatformType
 from matcher.scheme.platform import ScrapStatus
 

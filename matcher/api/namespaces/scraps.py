@@ -1,8 +1,9 @@
 import pendulum
 from flask_restplus import Namespace, abort, reqparse
+from sqlalchemy import DATE, Interval, cast, func
+
 from matcher.scheme.enums import ScrapStatus
 from matcher.scheme.platform import Platform, Scrap
-from sqlalchemy import DATE, Interval, cast, func
 
 from .. import inputs, models, pagination
 from ..resources import InjectedResource
