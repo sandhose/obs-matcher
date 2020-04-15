@@ -1,8 +1,7 @@
-from wtforms import Form, FormField, IntegerField, SelectMultipleField, StringField
-from wtforms_alchemy import QuerySelectField, QuerySelectMultipleField
-
 from matcher.filters import badge_display
 from matcher.scheme.enums import ExternalObjectType
+from wtforms import Form, FormField, IntegerField, SelectMultipleField, StringField
+from wtforms_alchemy import QuerySelectField, QuerySelectMultipleField
 
 
 class ExternalIDForm(Form):

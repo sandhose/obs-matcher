@@ -34,16 +34,16 @@ class TaskFormatter(logging.Formatter):
 
 
 def trace(logger):
-    logger = logger.getChild('trace')
+    logger = logger.getChild("trace")
 
     def wrapper(func):
         @functools.wraps(func)
         def wrapped(*args, **kwargs):
             result = func(*args, **kwargs)
-            parameters = ', '.join(
+            parameters = ", ".join(
                 itertools.chain(
                     (repr(arg) for arg in args),
-                    ('%s=%r' % (key, value) for (key, value) in kwargs.items())
+                    ("%s=%r" % (key, value) for (key, value) in kwargs.items()),
                 )
             )
 

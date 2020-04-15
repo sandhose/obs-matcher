@@ -3,13 +3,12 @@ import logging
 from collections import defaultdict
 
 from flask import flash, render_template, request
-from sqlalchemy import func
-from sqlalchemy.orm import joinedload, undefer
-
 from matcher.mixins import InjectedView
 from matcher.scheme.enums import ScrapStatus
 from matcher.scheme.object import ExternalObject, ObjectLink
 from matcher.scheme.platform import Platform, Scrap
+from sqlalchemy import func
+from sqlalchemy.orm import joinedload, undefer
 
 __all__ = ["HomeView"]
 

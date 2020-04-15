@@ -1,11 +1,10 @@
 from flask import render_template, request
-from sqlalchemy.orm import joinedload, undefer
-
 from matcher.mixins import InjectedView
 from matcher.scheme.enums import ExternalObjectType
 from matcher.scheme.object import ExternalObject, ObjectLink
 from matcher.scheme.platform import Platform, Scrap, Session, session_scrap
 from matcher.utils import apply_ordering, parse_ordering
+from sqlalchemy.orm import joinedload, undefer
 
 from ..forms.scraps import EditScrapForm, ScrapListFilter
 

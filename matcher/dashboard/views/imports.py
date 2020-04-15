@@ -2,15 +2,14 @@ import os
 from collections import OrderedDict
 
 from flask import flash, redirect, render_template, request, send_file, url_for
-from sqlalchemy.orm import undefer
-from sqlalchemy.orm.attributes import flag_modified
-
 from matcher.mixins import InjectedView
 from matcher.scheme.enums import ImportFileStatus
 from matcher.scheme.import_ import ImportFile
 from matcher.scheme.platform import Platform, Session
 from matcher.scheme.provider import Provider
 from matcher.utils import apply_ordering, parse_ordering
+from sqlalchemy.orm import undefer
+from sqlalchemy.orm.attributes import flag_modified
 
 from ..forms.imports import EditImport, UploadImport
 

@@ -1,5 +1,4 @@
 from flask_restplus import Namespace, inputs, reqparse
-
 from matcher.scheme.enums import PlatformType
 from matcher.scheme.platform import Platform
 

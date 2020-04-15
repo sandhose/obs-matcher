@@ -56,10 +56,11 @@ class Value(Base):
         )
 
     cached_score = column_property(
-        select([column("score")]).
-        select_from(table("vw_value_score")).
-        where(column("value_id") == id),
-        deferred=True)
+        select([column("score")])
+        .select_from(table("vw_value_score"))
+        .where(column("value_id") == id),
+        deferred=True,
+    )
 
     def __str__(self):
         return "{}({}): {}".format(self.type, self.score, self.text)

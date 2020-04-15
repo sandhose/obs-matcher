@@ -1,5 +1,4 @@
 from flask_restplus import Namespace, reqparse
-
 from matcher.scheme.platform import PlatformGroup
 
 from .. import models, pagination

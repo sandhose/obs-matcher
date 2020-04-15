@@ -3,13 +3,14 @@ import logging
 import logging.config
 import os
 
+from flask_debugtoolbar import DebugToolbarExtension
+
 from alembic.migration import MigrationContext
 from celery import Celery, Task
 from celery.signals import task_postrun
 from celery_once import QueueOnce
 from flask import Flask
 from flask.cli import FlaskGroup
-from flask_debugtoolbar import DebugToolbarExtension
 from flask_injector import FlaskInjector
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy

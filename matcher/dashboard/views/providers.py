@@ -1,10 +1,9 @@
 from flask import abort, redirect, render_template, request, url_for
-from sqlalchemy.orm import undefer
-
 from matcher.mixins import InjectedView
 from matcher.scheme.platform import Platform
 from matcher.scheme.provider import Provider, ProviderPlatform
 from matcher.utils import apply_ordering, parse_ordering
+from sqlalchemy.orm import undefer
 
 from ..forms.providers import EditProviderForm, NewProviderForm, ProviderListFilter
 

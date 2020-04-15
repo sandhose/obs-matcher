@@ -10,6 +10,7 @@ from typing import Any, Callable, Dict, Iterator, List, Set
 
 from celery import Celery
 from jinja2 import Environment, StrictUndefined, meta, nodes
+from matcher.utils import export_path
 from slugify import slugify
 from sqlalchemy import (
     TIMESTAMP,
@@ -28,8 +29,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import HSTORE, JSONB
 from sqlalchemy.orm import column_property, contains_eager, relationship, subqueryload
-
-from matcher.utils import export_path
 
 from .base import Base
 from .enums import (

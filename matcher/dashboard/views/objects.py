@@ -1,7 +1,4 @@
 from flask import render_template, request
-from sqlalchemy import func, or_
-from sqlalchemy.orm import aliased, contains_eager, joinedload, lazyload, undefer
-
 from matcher.mixins import InjectedView
 from matcher.scheme.enums import ExternalObjectType
 from matcher.scheme.export import AttributesWrapper
@@ -10,6 +7,8 @@ from matcher.scheme.object import Episode, ExternalObject, ObjectLink
 from matcher.scheme.platform import Platform, Scrap, Session
 from matcher.scheme.value import Value, ValueSource
 from matcher.scheme.views import AttributesView
+from sqlalchemy import func, or_
+from sqlalchemy.orm import aliased, contains_eager, joinedload, lazyload, undefer
 
 from ..forms.objects import ObjectListFilter
 

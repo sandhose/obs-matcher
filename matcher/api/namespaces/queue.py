@@ -1,6 +1,5 @@
 from flask import request
 from flask_restplus import Namespace, abort
-
 from matcher.scheme.platform import Scrap
 
 from .. import models

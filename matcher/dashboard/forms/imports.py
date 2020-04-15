@@ -1,5 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired
+from matcher.filters import badge_display
+from matcher.scheme.enums import ExternalObjectType, ValueType
 from wtforms import (
     FieldList,
     Form,
@@ -10,9 +12,6 @@ from wtforms import (
     validators,
 )
 from wtforms_alchemy import QuerySelectField, QuerySelectMultipleField
-
-from matcher.filters import badge_display
-from matcher.scheme.enums import ExternalObjectType, ValueType
 
 
 class UploadImport(FlaskForm):

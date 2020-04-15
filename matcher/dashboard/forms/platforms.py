@@ -1,8 +1,7 @@
-from wtforms import Form, SelectMultipleField, StringField
-from wtforms_alchemy import QuerySelectMultipleField
-
 from matcher.filters import badge_display
 from matcher.scheme.enums import PlatformType
+from wtforms import Form, SelectMultipleField, StringField
+from wtforms_alchemy import QuerySelectMultipleField
 
 
 class PlatformListFilter(Form):

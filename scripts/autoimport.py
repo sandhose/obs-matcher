@@ -59,7 +59,7 @@ for provider_slug in import_directories:
         fields["duration"] = "attribute.duration"
         fields["platform_id"] = ""
         fields["presence_date"] = ""
-        #fields["eidr_object_id"] = "link.eidr"
+        # fields["eidr_object_id"] = "link.eidr"
         fields["eidr_object_id"] = ""
         fields["imdb_object_id"] = "link.imdb"
         fields["isan_object_id"] = "link.isan"
