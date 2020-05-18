@@ -76,7 +76,7 @@ pytz==2019.3              # via -r requirements.txt, babel, celery, flask-restfu
 pytzdata==2019.3          # via -r requirements.txt, pendulum
 pyyaml==5.3               # via watchdog
 raven[flask]==6.10.0      # via -r requirements.txt
-redis==3.3.11             # via -r requirements.txt, celery-once
+redis==3.5.2              # via -r requirements.txt, celery-once
 requests==2.22.0          # via sphinx
 six==1.14.0               # via -r requirements.txt, flask-restful, flask-restplus, jsonschema, packaging, pip-tools, pockets, pyrsistent, python-dateutil, sphinxcontrib-napoleon, sqlalchemy-utils, validators, wtforms-alchemy, wtforms-components
 snowballstemmer==2.0.0    # via sphinx
