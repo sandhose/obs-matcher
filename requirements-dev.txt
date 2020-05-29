@@ -35,7 +35,7 @@ flask-sqlalchemy==2.4.1   # via -r requirements.txt, flask-migrate
 flask-wtf==0.14.3         # via -r requirements.txt
 flask==1.1.1              # via -r requirements.txt, flask-admin, flask-debugtoolbar, flask-injector, flask-migrate, flask-restful, flask-restplus, flask-sqlalchemy, flask-wtf, raven
 ftfy==5.7                 # via -r requirements.txt
-gevent==1.4.0             # via -r requirements.txt
+gevent==20.5.2            # via -r requirements.txt
 greenlet==0.4.15          # via -r requirements.txt, gevent
 gunicorn==20.0.4          # via -r requirements.txt
 idna==2.8                 # via requests
@@ -105,6 +105,8 @@ werkzeug==0.16.0          # via -r requirements.txt, flask, flask-debugtoolbar
 wtforms-alchemy==0.16.9   # via -r requirements.txt
 wtforms-components==0.10.4  # via -r requirements.txt, wtforms-alchemy
 wtforms==2.2.1            # via -r requirements.txt, flask-admin, flask-wtf, wtforms-alchemy, wtforms-components
+zope.event==4.4           # via -r requirements.txt, gevent
+zope.interface==5.1.0     # via -r requirements.txt, gevent
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
