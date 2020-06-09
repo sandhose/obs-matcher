@@ -5,4 +5,4 @@ pip-tools
 pytest-runner
 Sphinx
 sphinxcontrib-napoleon
-watchdog
+watchdog[watchmedo]
