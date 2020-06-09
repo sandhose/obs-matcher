@@ -17,17 +17,17 @@ depends_on = None
 
 def upgrade():
     op.execute(
-        "ALTER MATERIALIZED VIEW " \
-        "vw_platform_source_order_by_value_type " \
-        "RENAME TO " \
+        "ALTER MATERIALIZED VIEW "
+        "vw_platform_source_order_by_value_type "
+        "RENAME TO "
         "vw_000_platform_source_order_by_value_type"
     )
 
 
 def downgrade():
     op.execute(
-        "ALTER MATERIALIZED VIEW " \
-        "vw_000_platform_source_order_by_value_type " \
-        "RENAME TO " \
+        "ALTER MATERIALIZED VIEW "
+        "vw_000_platform_source_order_by_value_type "
+        "RENAME TO "
         "vw_platform_source_order_by_value_type"
     )
