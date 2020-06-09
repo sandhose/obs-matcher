@@ -62,7 +62,7 @@ python-slugify==4.0.0     # via -r requirements.txt
 pytz==2019.3              # via -r requirements.txt, celery, flask-restful, flask-restplus
 pytzdata==2019.3          # via -r requirements.txt, pendulum
 raven[flask]==6.10.0      # via -r requirements.txt
-redis==3.3.11             # via -r requirements.txt, celery-once
+redis==3.5.3              # via -r requirements.txt, celery-once
 six==1.14.0               # via -r requirements.txt, flask-restful, flask-restplus, jsonschema, packaging, pyrsistent, python-dateutil, sqlalchemy-utils, validators, wtforms-alchemy, wtforms-components
 sqlalchemy-utils==0.36.1  # via -r requirements.txt, wtforms-alchemy
 sqlalchemy==1.3.16        # via -r requirements.txt, alembic, flask-sqlalchemy, sqlalchemy-utils, wtforms-alchemy
