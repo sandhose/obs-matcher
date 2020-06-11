@@ -17,9 +17,8 @@ chardet==3.0.4            # via -r requirements.txt
 click==7.0                # via -r requirements.txt, flask
 coverage==5.0.3           # via pytest-cov
 decorator==4.4.1          # via -r requirements.txt, validators
-entrypoints==0.3          # via flake8
 flake8-isort==3.0.0       # via -r requirements-test.in
-flake8==3.7.9             # via -r requirements-test.in, flake8-isort
+flake8==3.8.3             # via -r requirements-test.in, flake8-isort
 flask-admin==1.5.6        # via -r requirements.txt
 flask-injector==0.12.3    # via -r requirements.txt
 flask-migrate==2.5.3      # via -r requirements.txt
@@ -51,8 +50,8 @@ pluggy==0.13.1            # via pytest
 psycogreen==1.0.2         # via -r requirements.txt
 psycopg2-binary==2.8.5    # via -r requirements.txt
 py==1.8.1                 # via pytest
-pycodestyle==2.5.0        # via flake8
-pyflakes==2.1.1           # via flake8
+pycodestyle==2.6.0        # via flake8
+pyflakes==2.2.0           # via flake8
 pyparsing==2.4.6          # via packaging
 pyrsistent==0.15.7        # via -r requirements.txt, jsonschema
 pytest-cov==2.9.0         # via -r requirements-test.in
