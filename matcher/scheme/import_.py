@@ -238,10 +238,10 @@ class ImportFile(Base):
                 if line[i]
             ]
             attr_list += [
-                l.strip()
+                li.strip()
                 for i in fields["attribute_list"].get(str(attribute), [])
-                for l in line[i].split(",")
-                if l
+                for li in line[i].split(",")
+                if li
             ]
             if attr_list:
                 attributes.append((attribute, attr_list))

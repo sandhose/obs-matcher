@@ -671,7 +671,7 @@ class ExternalObject(Base):
 
         @trace(logger)
         def links_overlap(a, b):
-            platforms = set([l.platform for l in a]) & set([l.platform for l in b])
+            platforms = set([li.platform for li in a]) & set([li.platform for li in b])
             return [
                 p
                 for p in platforms

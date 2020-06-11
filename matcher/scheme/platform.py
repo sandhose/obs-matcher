@@ -160,7 +160,7 @@ class Platform(Base):
         """Try to match objects that where found in this platform"""
         from ..scheme.object import ExternalObject
 
-        objs = [l.external_object for l in self.links]
+        objs = [li.external_object for li in self.links]
         ExternalObject.match_objects(objs)
 
 
@@ -238,7 +238,7 @@ class Scrap(Base):
         """Try to match objects that where found in this scrap"""
         from ..scheme.object import ExternalObject
 
-        objs = [l.external_object for l in self.links]
+        objs = [li.external_object for li in self.links]
         ExternalObject.match_objects(objs)
 
 

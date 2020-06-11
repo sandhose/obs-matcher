@@ -8,7 +8,7 @@ class SelectAJAXMultipleField(SelectFieldBase):
         self,
         label=None,
         validators=None,
-        text_map=lambda l: ((v, v) for v in l),
+        text_map=lambda li: ((v, v) for v in li),
         **kwargs,
     ):
         super(SelectAJAXMultipleField, self).__init__(label, validators, **kwargs)
