@@ -7,7 +7,7 @@
 alabaster==0.7.12         # via sphinx
 alembic-autogenerate-enums==0.0.2  # via -r requirements.txt
 alembic==1.3.3            # via -r requirements.txt, flask-migrate
-amqp==2.5.2               # via -r requirements.txt, kombu
+amqp==2.6.0               # via -r requirements.txt, kombu
 aniso8601==8.0.0          # via -r requirements.txt, flask-restful, flask-restplus
 argh==0.26.2              # via watchdog
 attrs==19.3.0             # via -r requirements.txt, jsonschema, pytest
@@ -15,7 +15,7 @@ babel==2.8.0              # via sphinx
 billiard==3.6.3.0         # via -r requirements.txt, celery
 blinker==1.4              # via -r requirements.txt, flask-debugtoolbar, raven
 celery-once==3.0.1        # via -r requirements.txt
-celery==4.4.2             # via -r requirements.txt, celery-once
+celery==4.4.5             # via -r requirements.txt, celery-once
 certifi==2019.11.28       # via requests
 chardet==3.0.4            # via -r requirements.txt, requests
 click==7.0                # via -r requirements.txt, flask, pip-tools
@@ -35,6 +35,7 @@ flask-sqlalchemy==2.4.1   # via -r requirements.txt, flask-migrate
 flask-wtf==0.14.3         # via -r requirements.txt
 flask==1.1.2              # via -r requirements.txt, flask-admin, flask-debugtoolbar, flask-injector, flask-migrate, flask-restful, flask-restplus, flask-sqlalchemy, flask-wtf, raven
 ftfy==5.7                 # via -r requirements.txt
+future==0.18.2            # via -r requirements.txt, celery
 gevent==20.6.0            # via -r requirements.txt
 greenlet==0.4.16          # via -r requirements.txt, gevent
 gunicorn==20.0.4          # via -r requirements.txt
@@ -47,7 +48,7 @@ isort[pyproject]==4.3.21  # via flake8-isort
 itsdangerous==1.1.0       # via -r requirements.txt, flask, flask-debugtoolbar, flask-wtf
 jinja2==2.10.3            # via -r requirements.txt, flask, sphinx
 jsonschema==3.2.0         # via -r requirements.txt, flask-restplus
-kombu==4.6.8              # via -r requirements.txt, celery
+kombu==4.6.10             # via -r requirements.txt, celery
 mako==1.1.1               # via -r requirements.txt, alembic
 markupsafe==1.1.1         # via -r requirements.txt, jinja2, mako
 mccabe==0.6.1             # via flake8
