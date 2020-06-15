@@ -80,7 +80,7 @@ redis==3.5.3              # via -r requirements.txt, celery-once
 requests==2.22.0          # via sphinx
 six==1.14.0               # via -r requirements.txt, flask-restful, flask-restplus, jsonschema, packaging, pip-tools, pockets, pyrsistent, python-dateutil, sphinxcontrib-napoleon, sqlalchemy-utils, validators, wtforms-alchemy, wtforms-components
 snowballstemmer==2.0.0    # via sphinx
-sphinx==3.1.0             # via -r requirements-dev.in
+sphinx==3.1.1             # via -r requirements-dev.in
 sphinxcontrib-applehelp==1.0.1  # via sphinx
 sphinxcontrib-devhelp==1.0.1  # via sphinx
 sphinxcontrib-htmlhelp==1.0.2  # via sphinx
