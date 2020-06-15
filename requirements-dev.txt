@@ -49,7 +49,7 @@ jinja2==2.10.3            # via -r requirements.txt, flask, sphinx
 jsonschema==3.2.0         # via -r requirements.txt, flask-restplus
 kombu==4.6.10             # via -r requirements.txt, celery
 mako==1.1.1               # via -r requirements.txt, alembic
-markupsafe==1.1.1         # via -r requirements.txt, jinja2, mako
+markupsafe==1.1.1         # via -r requirements.txt, jinja2, mako, wtforms
 mccabe==0.6.1             # via flake8
 more-itertools==8.1.0     # via pytest
 packaging==20.1           # via pytest, sphinx
@@ -104,7 +104,7 @@ wcwidth==0.1.8            # via -r requirements.txt, ftfy, pytest
 werkzeug==0.16.0          # via -r requirements.txt, flask, flask-debugtoolbar
 wtforms-alchemy==0.17.0   # via -r requirements.txt
 wtforms-components==0.10.4  # via -r requirements.txt, wtforms-alchemy
-wtforms==2.2.1            # via -r requirements.txt, flask-admin, flask-wtf, wtforms-alchemy, wtforms-components
+wtforms==2.3.1            # via -r requirements.txt, flask-admin, flask-wtf, wtforms-alchemy, wtforms-components
 zope.event==4.4           # via -r requirements.txt, gevent
 zope.interface==5.1.0     # via -r requirements.txt, gevent
 
