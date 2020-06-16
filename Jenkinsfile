@@ -18,7 +18,7 @@ node {
 
 	stage('Lint') {
 		app1.inside {
-			sh 'python setup.py flake8'
+			sh 'flake8 matcher'
 		}
 	}
 

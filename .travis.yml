@@ -28,7 +28,7 @@ before_script:
 
 script:
   - matcher db upgrade
-  - python setup.py flake8
+  - flake8 matcher
   - pytest --cov=./
 
 after_success:
