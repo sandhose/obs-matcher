@@ -29,7 +29,7 @@ flask-wtf==0.14.3         # via -r requirements.txt
 flask==1.1.2              # via -r requirements.txt, flask-admin, flask-injector, flask-migrate, flask-restful, flask-restplus, flask-sqlalchemy, flask-wtf, raven
 ftfy==5.7                 # via -r requirements.txt
 future==0.18.2            # via -r requirements.txt, celery
-gevent==20.6.1            # via -r requirements.txt
+gevent==20.6.2            # via -r requirements.txt
 greenlet==0.4.16          # via -r requirements.txt, gevent
 gunicorn==20.0.4          # via -r requirements.txt
 infinity==1.4             # via -r requirements.txt, intervals
