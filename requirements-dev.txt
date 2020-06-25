@@ -15,7 +15,7 @@ babel==2.8.0              # via sphinx
 billiard==3.6.3.0         # via -r requirements.txt, celery
 blinker==1.4              # via -r requirements.txt, flask-debugtoolbar, raven
 celery-once==3.0.1        # via -r requirements.txt
-celery==4.4.5             # via -r requirements.txt, celery-once
+celery==4.4.6             # via -r requirements.txt, celery-once
 certifi==2019.11.28       # via requests
 chardet==3.0.4            # via -r requirements.txt, requests
 click==7.0                # via -r requirements.txt, flask, pip-tools
