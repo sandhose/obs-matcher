@@ -58,7 +58,7 @@ pytest-cov==2.10.0        # via -r requirements-test.in
 pytest==5.4.3             # via -r requirements-test.in, pytest-cov
 python-dateutil==2.8.1    # via -r requirements.txt, alembic, pendulum
 python-editor==1.0.4      # via -r requirements.txt, alembic
-python-slugify==4.0.0     # via -r requirements.txt
+python-slugify==4.0.1     # via -r requirements.txt
 pytz==2019.3              # via -r requirements.txt, celery, flask-restful, flask-restplus
 pytzdata==2019.3          # via -r requirements.txt, pendulum
 raven[flask]==6.10.0      # via -r requirements.txt
