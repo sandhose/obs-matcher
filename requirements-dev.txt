@@ -54,7 +54,7 @@ mccabe==0.6.1             # via flake8
 more-itertools==8.1.0     # via pytest
 packaging==20.1           # via pytest, sphinx
 pathtools==0.1.2          # via watchdog
-pendulum==2.1.0           # via -r requirements.txt
+pendulum==2.1.1           # via -r requirements.txt
 pip-tools==5.2.1          # via -r requirements-dev.in
 pluggy==0.13.1            # via pytest
 pockets==0.9.1            # via sphinxcontrib-napoleon
@@ -73,7 +73,7 @@ python-dateutil==2.8.1    # via -r requirements.txt, alembic, pendulum
 python-editor==1.0.4      # via -r requirements.txt, alembic
 python-slugify==4.0.1     # via -r requirements.txt
 pytz==2019.3              # via -r requirements.txt, babel, celery, flask-restful, flask-restplus
-pytzdata==2019.3          # via -r requirements.txt, pendulum
+pytzdata==2020.1          # via -r requirements.txt, pendulum
 pyyaml==5.3.1             # via watchdog
 raven[flask]==6.10.0      # via -r requirements.txt
 redis==3.5.3              # via -r requirements.txt, celery-once

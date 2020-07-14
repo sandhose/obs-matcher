@@ -38,7 +38,7 @@ jsonschema==3.2.0         # via flask-restplus
 kombu==4.6.10             # via celery
 mako==1.1.1               # via alembic
 markupsafe==1.1.1         # via jinja2, mako, wtforms
-pendulum==2.1.0           # via -r requirements.in
+pendulum==2.1.1           # via -r requirements.in
 psycogreen==1.0.2         # via -r requirements.in
 psycopg2-binary==2.8.5    # via -r requirements.in
 pyrsistent==0.15.7        # via jsonschema
@@ -46,7 +46,7 @@ python-dateutil==2.8.1    # via alembic, pendulum
 python-editor==1.0.4      # via alembic
 python-slugify==4.0.1     # via -r requirements.in
 pytz==2019.3              # via celery, flask-restful, flask-restplus
-pytzdata==2019.3          # via pendulum
+pytzdata==2020.1          # via pendulum
 raven[flask]==6.10.0      # via -r requirements.in
 redis==3.5.3              # via -r requirements.in, celery-once
 six==1.14.0               # via flask-restful, flask-restplus, jsonschema, pyrsistent, python-dateutil, sqlalchemy-utils, validators, wtforms-alchemy, wtforms-components
