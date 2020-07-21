@@ -27,7 +27,7 @@ flask-restplus==0.13.0    # via -r requirements.txt
 flask-sqlalchemy==2.4.3   # via -r requirements.txt, flask-migrate
 flask-wtf==0.14.3         # via -r requirements.txt
 flask==1.1.2              # via -r requirements.txt, flask-admin, flask-injector, flask-migrate, flask-restful, flask-restplus, flask-sqlalchemy, flask-wtf, raven
-ftfy==5.7                 # via -r requirements.txt
+ftfy==5.8                 # via -r requirements.txt
 future==0.18.2            # via -r requirements.txt, celery
 gevent==20.6.2            # via -r requirements.txt
 greenlet==0.4.16          # via -r requirements.txt, gevent
