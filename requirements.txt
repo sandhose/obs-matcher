@@ -38,7 +38,7 @@ jsonschema==3.2.0         # via flask-restplus
 kombu==4.6.10             # via celery
 mako==1.1.1               # via alembic
 markupsafe==1.1.1         # via jinja2, mako, wtforms
-pendulum==2.1.1           # via -r requirements.in
+pendulum==2.1.2           # via -r requirements.in
 psycogreen==1.0.2         # via -r requirements.in
 psycopg2-binary==2.8.5    # via -r requirements.in
 pyrsistent==0.15.7        # via jsonschema
