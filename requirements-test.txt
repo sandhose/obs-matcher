@@ -78,7 +78,7 @@ wcwidth==0.1.8            # via -r requirements.txt, ftfy, pytest
 werkzeug==0.16.0          # via -r requirements.txt, flask
 wtforms-alchemy==0.17.0   # via -r requirements.txt
 wtforms-components==0.10.4  # via -r requirements.txt, wtforms-alchemy
-wtforms==2.3.1            # via -r requirements.txt, flask-admin, flask-wtf, wtforms-alchemy, wtforms-components
+wtforms==2.3.2            # via -r requirements.txt, flask-admin, flask-wtf, wtforms-alchemy, wtforms-components
 zope.event==4.4           # via -r requirements.txt, gevent
 zope.interface==5.1.0     # via -r requirements.txt, gevent
 
