@@ -62,7 +62,7 @@ wcwidth==0.1.8            # via ftfy
 werkzeug==0.16.0          # via flask
 wtforms-alchemy==0.17.0   # via -r requirements.in
 wtforms-components==0.10.4  # via wtforms-alchemy
-wtforms==2.3.2            # via -r requirements.in, flask-admin, flask-wtf, wtforms-alchemy, wtforms-components
+wtforms==2.3.3            # via -r requirements.in, flask-admin, flask-wtf, wtforms-alchemy, wtforms-components
 zope.event==4.4           # via gevent
 zope.interface==5.1.0     # via gevent
 
