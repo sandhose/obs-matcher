@@ -12,7 +12,7 @@ attrs==19.3.0             # via jsonschema
 billiard==3.6.3.0         # via celery
 blinker==1.4              # via raven
 celery-once==3.0.1        # via -r requirements.in
-celery==4.4.6             # via -r requirements.in, celery-once
+celery==4.4.7             # via -r requirements.in, celery-once
 chardet==3.0.4            # via -r requirements.in
 click==7.0                # via flask
 decorator==4.4.1          # via validators
@@ -25,7 +25,6 @@ flask-sqlalchemy==2.4.3   # via -r requirements.in, flask-migrate
 flask-wtf==0.14.3         # via -r requirements.in
 flask==1.1.2              # via -r requirements.in, flask-admin, flask-injector, flask-migrate, flask-restful, flask-restplus, flask-sqlalchemy, flask-wtf, raven
 ftfy==5.8                 # via -r requirements.in
-future==0.18.2            # via celery
 gevent==20.6.2            # via -r requirements.in
 greenlet==0.4.16          # via gevent
 gunicorn==20.0.4          # via -r requirements.in
