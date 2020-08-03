@@ -15,7 +15,7 @@ babel==2.8.0              # via sphinx
 billiard==3.6.3.0         # via -r requirements.txt, celery
 blinker==1.4              # via -r requirements.txt, flask-debugtoolbar, raven
 celery-once==3.0.1        # via -r requirements.txt
-celery==4.4.6             # via -r requirements.txt, celery-once
+celery==4.4.7             # via -r requirements.txt, celery-once
 certifi==2019.11.28       # via requests
 chardet==3.0.4            # via -r requirements.txt, requests
 click==7.0                # via -r requirements.txt, flask, pip-tools
@@ -34,7 +34,6 @@ flask-sqlalchemy==2.4.3   # via -r requirements.txt, flask-migrate
 flask-wtf==0.14.3         # via -r requirements.txt
 flask==1.1.2              # via -r requirements.txt, flask-admin, flask-debugtoolbar, flask-injector, flask-migrate, flask-restful, flask-restplus, flask-sqlalchemy, flask-wtf, raven
 ftfy==5.8                 # via -r requirements.txt
-future==0.18.2            # via -r requirements.txt, celery
 gevent==20.6.2            # via -r requirements.txt
 greenlet==0.4.16          # via -r requirements.txt, gevent
 gunicorn==20.0.4          # via -r requirements.txt
