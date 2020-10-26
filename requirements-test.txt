@@ -19,7 +19,7 @@ coverage==5.0.3           # via pytest-cov
 decorator==4.4.1          # via -r requirements.txt, validators
 flake8-isort==3.0.1       # via -r requirements-test.in
 flake8==3.8.4             # via -r requirements-test.in, flake8-isort
-flask-admin==1.5.6        # via -r requirements.txt
+flask-admin==1.5.7        # via -r requirements.txt
 flask-injector==0.12.3    # via -r requirements.txt
 flask-migrate==2.5.3      # via -r requirements.txt
 flask-restful==0.3.8      # via -r requirements.txt
