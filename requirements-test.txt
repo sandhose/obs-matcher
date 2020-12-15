@@ -32,6 +32,7 @@ gevent==20.9.0            # via -r requirements.txt
 greenlet==0.4.17          # via -r requirements.txt, gevent
 gunicorn==20.0.4          # via -r requirements.txt
 infinity==1.4             # via -r requirements.txt, intervals
+iniconfig==1.1.1          # via pytest
 injector==0.18.2          # via -r requirements.txt, flask-injector
 intervals==0.8.1          # via -r requirements.txt, wtforms-components
 isort[pyproject]==4.3.21  # via flake8-isort
@@ -42,19 +43,18 @@ kombu==4.6.10             # via -r requirements.txt, celery
 mako==1.1.1               # via -r requirements.txt, alembic
 markupsafe==1.1.1         # via -r requirements.txt, jinja2, mako, wtforms
 mccabe==0.6.1             # via flake8
-more-itertools==8.1.0     # via pytest
 packaging==20.1           # via pytest
 pendulum==2.1.2           # via -r requirements.txt
 pluggy==0.13.1            # via pytest
 psycogreen==1.0.2         # via -r requirements.txt
 psycopg2-binary==2.8.6    # via -r requirements.txt
-py==1.8.1                 # via pytest
+py==1.10.0                # via pytest
 pycodestyle==2.6.0        # via flake8
 pyflakes==2.2.0           # via flake8
 pyparsing==2.4.6          # via packaging
 pyrsistent==0.15.7        # via -r requirements.txt, jsonschema
 pytest-cov==2.10.1        # via -r requirements-test.in
-pytest==5.4.3             # via -r requirements-test.in, pytest-cov
+pytest==6.2.0             # via -r requirements-test.in, pytest-cov
 python-dateutil==2.8.1    # via -r requirements.txt, alembic, pendulum
 python-editor==1.0.4      # via -r requirements.txt, alembic
 python-slugify==4.0.1     # via -r requirements.txt
@@ -67,13 +67,13 @@ sqlalchemy-utils==0.36.1  # via -r requirements.txt, wtforms-alchemy
 sqlalchemy==1.3.20        # via -r requirements.txt, alembic, flask-sqlalchemy, sqlalchemy-utils, wtforms-alchemy
 testfixtures==6.10.3      # via flake8-isort
 text-unidecode==1.3       # via -r requirements.txt, python-slugify
-toml==0.10.0              # via isort
+toml==0.10.0              # via isort, pytest
 tqdm==4.49.0              # via -r requirements.txt
 typing-extensions==3.7.4.1  # via -r requirements.txt, injector
 unidecode==1.1.1          # via -r requirements.txt
 validators==0.14.2        # via -r requirements.txt, wtforms-components
 vine==1.3.0               # via -r requirements.txt, amqp, celery
-wcwidth==0.1.8            # via -r requirements.txt, ftfy, pytest
+wcwidth==0.1.8            # via -r requirements.txt, ftfy
 werkzeug==0.16.0          # via -r requirements.txt, flask
 wtforms-alchemy==0.17.0   # via -r requirements.txt
 wtforms-components==0.10.4  # via -r requirements.txt, wtforms-alchemy
