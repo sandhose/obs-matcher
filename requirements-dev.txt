@@ -7,7 +7,7 @@
 alabaster==0.7.12         # via sphinx
 alembic-autogenerate-enums==0.0.2  # via -r requirements.txt
 alembic==1.3.3            # via -r requirements.txt, flask-migrate
-amqp==2.6.0               # via -r requirements.txt, kombu
+amqp==5.0.2               # via -r requirements.txt, kombu
 aniso8601==8.0.0          # via -r requirements.txt, flask-restful, flask-restplus
 argh==0.26.2              # via watchdog
 attrs==19.3.0             # via -r requirements.txt, jsonschema, pytest
@@ -15,10 +15,13 @@ babel==2.8.0              # via sphinx
 billiard==3.6.3.0         # via -r requirements.txt, celery
 blinker==1.4              # via -r requirements.txt, flask-debugtoolbar, raven
 celery-once==3.0.1        # via -r requirements.txt
-celery==4.4.7             # via -r requirements.txt, celery-once
+celery==5.0.5             # via -r requirements.txt, celery-once
 certifi==2019.11.28       # via requests
 chardet==3.0.4            # via -r requirements.txt, requests
-click==7.0                # via -r requirements.txt, flask, pip-tools
+click-didyoumean==0.0.3   # via -r requirements.txt, celery
+click-plugins==1.1.1      # via -r requirements.txt, celery
+click-repl==0.1.6         # via -r requirements.txt, celery
+click==7.0                # via -r requirements.txt, celery, click-didyoumean, click-plugins, click-repl, flask, pip-tools
 coverage==5.0.3           # via pytest-cov
 decorator==4.4.1          # via -r requirements.txt, validators
 docutils==0.16            # via sphinx
@@ -46,7 +49,7 @@ isort[pyproject]==4.3.21  # via flake8-isort
 itsdangerous==1.1.0       # via -r requirements.txt, flask, flask-debugtoolbar, flask-wtf
 jinja2==2.10.3            # via -r requirements.txt, flask, sphinx
 jsonschema==3.2.0         # via -r requirements.txt, flask-restplus
-kombu==4.6.10             # via -r requirements.txt, celery
+kombu==5.0.2              # via -r requirements.txt, celery
 mako==1.1.1               # via -r requirements.txt, alembic
 markupsafe==1.1.1         # via -r requirements.txt, jinja2, mako, wtforms
 mccabe==0.6.1             # via flake8
@@ -56,6 +59,7 @@ pendulum==2.1.2           # via -r requirements.txt
 pip-tools==5.3.1          # via -r requirements-dev.in
 pluggy==0.13.1            # via pytest
 pockets==0.9.1            # via sphinxcontrib-napoleon
+prompt-toolkit==3.0.8     # via -r requirements.txt, click-repl
 psycogreen==1.0.2         # via -r requirements.txt
 psycopg2-binary==2.8.6    # via -r requirements.txt
 py==1.8.1                 # via pytest
@@ -76,7 +80,7 @@ pyyaml==5.3.1             # via watchdog
 raven[flask]==6.10.0      # via -r requirements.txt
 redis==3.5.3              # via -r requirements.txt, celery-once
 requests==2.22.0          # via sphinx
-six==1.14.0               # via -r requirements.txt, flask-restful, flask-restplus, jsonschema, packaging, pip-tools, pockets, pyrsistent, python-dateutil, sphinxcontrib-napoleon, sqlalchemy-utils, validators, wtforms-alchemy, wtforms-components
+six==1.14.0               # via -r requirements.txt, click-repl, flask-restful, flask-restplus, jsonschema, packaging, pip-tools, pockets, pyrsistent, python-dateutil, sphinxcontrib-napoleon, sqlalchemy-utils, validators, wtforms-alchemy, wtforms-components
 snowballstemmer==2.0.0    # via sphinx
 sphinx==3.3.1             # via -r requirements-dev.in
 sphinxcontrib-applehelp==1.0.1  # via sphinx
@@ -96,9 +100,9 @@ typing-extensions==3.7.4.1  # via -r requirements.txt, injector
 unidecode==1.1.2          # via -r requirements.txt
 urllib3==1.25.8           # via requests
 validators==0.14.2        # via -r requirements.txt, wtforms-components
-vine==1.3.0               # via -r requirements.txt, amqp, celery
+vine==5.0.0               # via -r requirements.txt, amqp, celery
 watchdog[watchmedo]==1.0.2  # via -r requirements-dev.in
-wcwidth==0.1.8            # via -r requirements.txt, ftfy, pytest
+wcwidth==0.1.8            # via -r requirements.txt, ftfy, prompt-toolkit, pytest
 werkzeug==0.16.0          # via -r requirements.txt, flask, flask-debugtoolbar
 wtforms-alchemy==0.17.0   # via -r requirements.txt
 wtforms-components==0.10.4  # via -r requirements.txt, wtforms-alchemy
