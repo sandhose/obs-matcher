@@ -53,7 +53,7 @@ mccabe==0.6.1             # via flake8
 more-itertools==8.1.0     # via pytest
 packaging==20.1           # via pytest, sphinx
 pendulum==2.1.2           # via -r requirements.txt
-pip-tools==5.3.1          # via -r requirements-dev.in
+pip-tools==5.5.0          # via -r requirements-dev.in
 pluggy==0.13.1            # via pytest
 pockets==0.9.1            # via sphinxcontrib-napoleon
 psycogreen==1.0.2         # via -r requirements.txt
@@ -76,7 +76,7 @@ pyyaml==5.3.1             # via watchdog
 raven[flask]==6.10.0      # via -r requirements.txt
 redis==3.5.3              # via -r requirements.txt, celery-once
 requests==2.22.0          # via sphinx
-six==1.14.0               # via -r requirements.txt, flask-restful, flask-restplus, jsonschema, packaging, pip-tools, pockets, pyrsistent, python-dateutil, sphinxcontrib-napoleon, sqlalchemy-utils, validators, wtforms-alchemy, wtforms-components
+six==1.14.0               # via -r requirements.txt, flask-restful, flask-restplus, jsonschema, packaging, pockets, pyrsistent, python-dateutil, sphinxcontrib-napoleon, sqlalchemy-utils, validators, wtforms-alchemy, wtforms-components
 snowballstemmer==2.0.0    # via sphinx
 sphinx==3.3.1             # via -r requirements-dev.in
 sphinxcontrib-applehelp==1.0.1  # via sphinx
