@@ -19,7 +19,7 @@ celery==4.4.7             # via -r requirements.txt, celery-once
 certifi==2019.11.28       # via requests
 chardet==3.0.4            # via -r requirements.txt, requests
 click==7.0                # via -r requirements.txt, flask, pip-tools
-coverage==5.0.3           # via pytest-cov
+coverage==5.3.1           # via pytest-cov
 decorator==4.4.1          # via -r requirements.txt, validators
 docutils==0.16            # via sphinx
 flake8-isort==3.0.1       # via -r requirements-test.in
@@ -64,7 +64,7 @@ pyflakes==2.2.0           # via flake8
 pygments==2.5.2           # via sphinx
 pyparsing==2.4.6          # via packaging
 pyrsistent==0.15.7        # via -r requirements.txt, jsonschema
-pytest-cov==2.10.1        # via -r requirements-test.in
+pytest-cov==2.11.0        # via -r requirements-test.in
 pytest-runner==5.2        # via -r requirements-dev.in
 pytest==5.4.3             # via -r requirements-test.in, pytest-cov
 python-dateutil==2.8.1    # via -r requirements.txt, alembic, pendulum

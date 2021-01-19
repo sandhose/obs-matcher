@@ -15,7 +15,7 @@ celery-once==3.0.1        # via -r requirements.txt
 celery==4.4.7             # via -r requirements.txt, celery-once
 chardet==3.0.4            # via -r requirements.txt
 click==7.0                # via -r requirements.txt, flask
-coverage==5.0.3           # via pytest-cov
+coverage==5.3.1           # via pytest-cov
 decorator==4.4.1          # via -r requirements.txt, validators
 flake8-isort==3.0.1       # via -r requirements-test.in
 flake8==3.8.4             # via -r requirements-test.in, flake8-isort
@@ -53,7 +53,7 @@ pycodestyle==2.6.0        # via flake8
 pyflakes==2.2.0           # via flake8
 pyparsing==2.4.6          # via packaging
 pyrsistent==0.15.7        # via -r requirements.txt, jsonschema
-pytest-cov==2.10.1        # via -r requirements-test.in
+pytest-cov==2.11.0        # via -r requirements-test.in
 pytest==5.4.3             # via -r requirements-test.in, pytest-cov
 python-dateutil==2.8.1    # via -r requirements.txt, alembic, pendulum
 python-editor==1.0.4      # via -r requirements.txt, alembic
