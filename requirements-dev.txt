@@ -4,107 +4,338 @@
 #
 #    pip-compile requirements-dev.in
 #
-alabaster==0.7.12         # via sphinx
-alembic-autogenerate-enums==0.0.2  # via -r requirements.txt
-alembic==1.3.3            # via -r requirements.txt, flask-migrate
-amqp==2.6.0               # via -r requirements.txt, kombu
-aniso8601==8.0.0          # via -r requirements.txt, flask-restful, flask-restplus
-argh==0.26.2              # via watchdog
-attrs==19.3.0             # via -r requirements.txt, jsonschema, pytest
-babel==2.8.0              # via sphinx
-billiard==3.6.3.0         # via -r requirements.txt, celery
-blinker==1.4              # via -r requirements.txt, flask-debugtoolbar, raven
-celery-once==3.0.1        # via -r requirements.txt
-celery==4.4.7             # via -r requirements.txt, celery-once
-certifi==2019.11.28       # via requests
-chardet==3.0.4            # via -r requirements.txt, requests
-click==7.0                # via -r requirements.txt, flask, pip-tools
-coverage==5.0.3           # via pytest-cov
-decorator==4.4.1          # via -r requirements.txt, validators
-docutils==0.16            # via sphinx
-flake8-isort==3.0.1       # via -r requirements-test.in
-flake8==3.8.4             # via -r requirements-test.in, flake8-isort
-flask-admin==1.5.7        # via -r requirements.txt
-flask-debugtoolbar==0.11.0  # via -r requirements-dev.in
-flask-injector==0.12.3    # via -r requirements.txt
-flask-migrate==2.5.3      # via -r requirements.txt
-flask-restful==0.3.8      # via -r requirements.txt
-flask-restplus==0.13.0    # via -r requirements.txt
-flask-sqlalchemy==2.4.4   # via -r requirements.txt, flask-migrate
-flask-wtf==0.14.3         # via -r requirements.txt
-flask==1.1.2              # via -r requirements.txt, flask-admin, flask-debugtoolbar, flask-injector, flask-migrate, flask-restful, flask-restplus, flask-sqlalchemy, flask-wtf, raven
-ftfy==5.8                 # via -r requirements.txt
-gevent==20.9.0            # via -r requirements.txt
-greenlet==0.4.17          # via -r requirements.txt, gevent
-gunicorn==20.0.4          # via -r requirements.txt
-idna==2.8                 # via requests
-imagesize==1.2.0          # via sphinx
-infinity==1.4             # via -r requirements.txt, intervals
-injector==0.18.2          # via -r requirements.txt, flask-injector
-intervals==0.8.1          # via -r requirements.txt, wtforms-components
-isort[pyproject]==4.3.21  # via flake8-isort
-itsdangerous==1.1.0       # via -r requirements.txt, flask, flask-debugtoolbar, flask-wtf
-jinja2==2.10.3            # via -r requirements.txt, flask, sphinx
-jsonschema==3.2.0         # via -r requirements.txt, flask-restplus
-kombu==4.6.10             # via -r requirements.txt, celery
-mako==1.1.1               # via -r requirements.txt, alembic
-markupsafe==1.1.1         # via -r requirements.txt, jinja2, mako, wtforms
-mccabe==0.6.1             # via flake8
-more-itertools==8.1.0     # via pytest
-packaging==20.1           # via pytest, sphinx
-pendulum==2.1.2           # via -r requirements.txt
-pip-tools==5.3.1          # via -r requirements-dev.in
-pluggy==0.13.1            # via pytest
-pockets==0.9.1            # via sphinxcontrib-napoleon
-psycogreen==1.0.2         # via -r requirements.txt
-psycopg2-binary==2.8.6    # via -r requirements.txt
-py==1.8.1                 # via pytest
-pycodestyle==2.6.0        # via flake8
-pyflakes==2.2.0           # via flake8
-pygments==2.5.2           # via sphinx
-pyparsing==2.4.6          # via packaging
-pyrsistent==0.15.7        # via -r requirements.txt, jsonschema
-pytest-cov==2.10.1        # via -r requirements-test.in
-pytest-runner==5.2        # via -r requirements-dev.in
-pytest==5.4.3             # via -r requirements-test.in, pytest-cov
-python-dateutil==2.8.1    # via -r requirements.txt, alembic, pendulum
-python-editor==1.0.4      # via -r requirements.txt, alembic
-python-slugify==4.0.1     # via -r requirements.txt
-pytz==2019.3              # via -r requirements.txt, babel, celery, flask-restful, flask-restplus
-pytzdata==2020.1          # via -r requirements.txt, pendulum
-pyyaml==5.3.1             # via watchdog
-raven[flask]==6.10.0      # via -r requirements.txt
-redis==3.5.3              # via -r requirements.txt, celery-once
-requests==2.22.0          # via sphinx
-six==1.14.0               # via -r requirements.txt, flask-restful, flask-restplus, jsonschema, packaging, pip-tools, pockets, pyrsistent, python-dateutil, sphinxcontrib-napoleon, sqlalchemy-utils, validators, wtforms-alchemy, wtforms-components
-snowballstemmer==2.0.0    # via sphinx
-sphinx==3.3.1             # via -r requirements-dev.in
-sphinxcontrib-applehelp==1.0.1  # via sphinx
-sphinxcontrib-devhelp==1.0.1  # via sphinx
-sphinxcontrib-htmlhelp==1.0.2  # via sphinx
-sphinxcontrib-jsmath==1.0.1  # via sphinx
-sphinxcontrib-napoleon==0.7  # via -r requirements-dev.in
-sphinxcontrib-qthelp==1.0.2  # via sphinx
-sphinxcontrib-serializinghtml==1.1.3  # via sphinx
-sqlalchemy-utils==0.36.1  # via -r requirements.txt, wtforms-alchemy
-sqlalchemy==1.3.22        # via -r requirements.txt, alembic, flask-sqlalchemy, sqlalchemy-utils, wtforms-alchemy
-testfixtures==6.10.3      # via flake8-isort
-text-unidecode==1.3       # via -r requirements.txt, python-slugify
-toml==0.10.0              # via isort
-tqdm==4.49.0              # via -r requirements.txt
-typing-extensions==3.7.4.1  # via -r requirements.txt, injector
-unidecode==1.1.2          # via -r requirements.txt
-urllib3==1.25.8           # via requests
-validators==0.14.2        # via -r requirements.txt, wtforms-components
-vine==1.3.0               # via -r requirements.txt, amqp, celery
-watchdog[watchmedo]==1.0.2  # via -r requirements-dev.in
-wcwidth==0.1.8            # via -r requirements.txt, ftfy, pytest
-werkzeug==0.16.0          # via -r requirements.txt, flask, flask-debugtoolbar
-wtforms-alchemy==0.17.0   # via -r requirements.txt
-wtforms-components==0.10.4  # via -r requirements.txt, wtforms-alchemy
-wtforms==2.3.3            # via -r requirements.txt, flask-admin, flask-wtf, wtforms-alchemy, wtforms-components
-zope.event==4.4           # via -r requirements.txt, gevent
-zope.interface==5.1.0     # via -r requirements.txt, gevent
+alabaster==0.7.12
+    # via sphinx
+alembic-autogenerate-enums==0.0.2
+    # via -r requirements.txt
+alembic==1.3.3
+    # via
+    #   -r requirements.txt
+    #   flask-migrate
+amqp==2.6.0
+    # via
+    #   -r requirements.txt
+    #   kombu
+aniso8601==8.0.0
+    # via
+    #   -r requirements.txt
+    #   flask-restful
+    #   flask-restplus
+argh==0.26.2
+    # via watchdog
+attrs==19.3.0
+    # via
+    #   -r requirements.txt
+    #   jsonschema
+    #   pytest
+babel==2.8.0
+    # via sphinx
+billiard==3.6.3.0
+    # via
+    #   -r requirements.txt
+    #   celery
+blinker==1.4
+    # via
+    #   -r requirements.txt
+    #   flask-debugtoolbar
+    #   raven
+celery-once==3.0.1
+    # via -r requirements.txt
+celery==4.4.7
+    # via
+    #   -r requirements.txt
+    #   celery-once
+certifi==2019.11.28
+    # via requests
+chardet==3.0.4
+    # via
+    #   -r requirements.txt
+    #   requests
+click==7.0
+    # via
+    #   -r requirements.txt
+    #   flask
+    #   pip-tools
+coverage==5.0.3
+    # via pytest-cov
+decorator==4.4.1
+    # via
+    #   -r requirements.txt
+    #   validators
+docutils==0.16
+    # via sphinx
+flake8-isort==3.0.1
+    # via -r requirements-test.in
+flake8==3.8.4
+    # via
+    #   -r requirements-test.in
+    #   flake8-isort
+flask-admin==1.5.7
+    # via -r requirements.txt
+flask-debugtoolbar==0.11.0
+    # via -r requirements-dev.in
+flask-injector==0.12.3
+    # via -r requirements.txt
+flask-migrate==3.1.0
+    # via -r requirements.txt
+flask-restful==0.3.8
+    # via -r requirements.txt
+flask-restplus==0.13.0
+    # via -r requirements.txt
+flask-sqlalchemy==2.4.4
+    # via
+    #   -r requirements.txt
+    #   flask-migrate
+flask-wtf==0.14.3
+    # via -r requirements.txt
+flask==1.1.2
+    # via
+    #   -r requirements.txt
+    #   flask-admin
+    #   flask-debugtoolbar
+    #   flask-injector
+    #   flask-migrate
+    #   flask-restful
+    #   flask-restplus
+    #   flask-sqlalchemy
+    #   flask-wtf
+    #   raven
+ftfy==5.8
+    # via -r requirements.txt
+gevent==20.9.0
+    # via -r requirements.txt
+greenlet==0.4.17
+    # via
+    #   -r requirements.txt
+    #   gevent
+gunicorn==20.0.4
+    # via -r requirements.txt
+idna==2.8
+    # via requests
+imagesize==1.2.0
+    # via sphinx
+infinity==1.4
+    # via
+    #   -r requirements.txt
+    #   intervals
+injector==0.18.2
+    # via
+    #   -r requirements.txt
+    #   flask-injector
+intervals==0.8.1
+    # via
+    #   -r requirements.txt
+    #   wtforms-components
+isort[pyproject]==4.3.21
+    # via flake8-isort
+itsdangerous==1.1.0
+    # via
+    #   -r requirements.txt
+    #   flask
+    #   flask-debugtoolbar
+    #   flask-wtf
+jinja2==2.10.3
+    # via
+    #   -r requirements.txt
+    #   flask
+    #   sphinx
+jsonschema==3.2.0
+    # via
+    #   -r requirements.txt
+    #   flask-restplus
+kombu==4.6.10
+    # via
+    #   -r requirements.txt
+    #   celery
+mako==1.1.1
+    # via
+    #   -r requirements.txt
+    #   alembic
+markupsafe==1.1.1
+    # via
+    #   -r requirements.txt
+    #   jinja2
+    #   mako
+    #   wtforms
+mccabe==0.6.1
+    # via flake8
+more-itertools==8.1.0
+    # via pytest
+packaging==20.1
+    # via
+    #   pytest
+    #   sphinx
+pendulum==2.1.2
+    # via -r requirements.txt
+pip-tools==5.3.1
+    # via -r requirements-dev.in
+pluggy==0.13.1
+    # via pytest
+pockets==0.9.1
+    # via sphinxcontrib-napoleon
+psycogreen==1.0.2
+    # via -r requirements.txt
+psycopg2-binary==2.8.6
+    # via -r requirements.txt
+py==1.8.1
+    # via pytest
+pycodestyle==2.6.0
+    # via flake8
+pyflakes==2.2.0
+    # via flake8
+pygments==2.5.2
+    # via sphinx
+pyparsing==2.4.6
+    # via packaging
+pyrsistent==0.15.7
+    # via
+    #   -r requirements.txt
+    #   jsonschema
+pytest-cov==2.10.1
+    # via -r requirements-test.in
+pytest-runner==5.2
+    # via -r requirements-dev.in
+pytest==5.4.3
+    # via
+    #   -r requirements-test.in
+    #   pytest-cov
+python-dateutil==2.8.1
+    # via
+    #   -r requirements.txt
+    #   alembic
+    #   pendulum
+python-editor==1.0.4
+    # via
+    #   -r requirements.txt
+    #   alembic
+python-slugify==4.0.1
+    # via -r requirements.txt
+pytz==2019.3
+    # via
+    #   -r requirements.txt
+    #   babel
+    #   celery
+    #   flask-restful
+    #   flask-restplus
+pytzdata==2020.1
+    # via
+    #   -r requirements.txt
+    #   pendulum
+pyyaml==5.3.1
+    # via watchdog
+raven[flask]==6.10.0
+    # via -r requirements.txt
+redis==3.5.3
+    # via
+    #   -r requirements.txt
+    #   celery-once
+requests==2.22.0
+    # via sphinx
+six==1.14.0
+    # via
+    #   -r requirements.txt
+    #   flask-restful
+    #   flask-restplus
+    #   jsonschema
+    #   packaging
+    #   pip-tools
+    #   pockets
+    #   pyrsistent
+    #   python-dateutil
+    #   sphinxcontrib-napoleon
+    #   sqlalchemy-utils
+    #   validators
+    #   wtforms-alchemy
+    #   wtforms-components
+snowballstemmer==2.0.0
+    # via sphinx
+sphinx==3.3.1
+    # via -r requirements-dev.in
+sphinxcontrib-applehelp==1.0.1
+    # via sphinx
+sphinxcontrib-devhelp==1.0.1
+    # via sphinx
+sphinxcontrib-htmlhelp==1.0.2
+    # via sphinx
+sphinxcontrib-jsmath==1.0.1
+    # via sphinx
+sphinxcontrib-napoleon==0.7
+    # via -r requirements-dev.in
+sphinxcontrib-qthelp==1.0.2
+    # via sphinx
+sphinxcontrib-serializinghtml==1.1.3
+    # via sphinx
+sqlalchemy-utils==0.36.1
+    # via
+    #   -r requirements.txt
+    #   wtforms-alchemy
+sqlalchemy==1.3.22
+    # via
+    #   -r requirements.txt
+    #   alembic
+    #   flask-sqlalchemy
+    #   sqlalchemy-utils
+    #   wtforms-alchemy
+testfixtures==6.10.3
+    # via flake8-isort
+text-unidecode==1.3
+    # via
+    #   -r requirements.txt
+    #   python-slugify
+toml==0.10.0
+    # via isort
+tqdm==4.49.0
+    # via -r requirements.txt
+typing-extensions==3.7.4.1
+    # via
+    #   -r requirements.txt
+    #   injector
+unidecode==1.1.2
+    # via -r requirements.txt
+urllib3==1.25.8
+    # via requests
+validators==0.14.2
+    # via
+    #   -r requirements.txt
+    #   wtforms-components
+vine==1.3.0
+    # via
+    #   -r requirements.txt
+    #   amqp
+    #   celery
+watchdog[watchmedo]==1.0.2
+    # via -r requirements-dev.in
+wcwidth==0.1.8
+    # via
+    #   -r requirements.txt
+    #   ftfy
+    #   pytest
+werkzeug==0.16.0
+    # via
+    #   -r requirements.txt
+    #   flask
+    #   flask-debugtoolbar
+wtforms-alchemy==0.17.0
+    # via -r requirements.txt
+wtforms-components==0.10.4
+    # via
+    #   -r requirements.txt
+    #   wtforms-alchemy
+wtforms==2.3.3
+    # via
+    #   -r requirements.txt
+    #   flask-admin
+    #   flask-wtf
+    #   wtforms-alchemy
+    #   wtforms-components
+zope.event==4.4
+    # via
+    #   -r requirements.txt
+    #   gevent
+zope.interface==5.1.0
+    # via
+    #   -r requirements.txt
+    #   gevent
 
 # The following packages are considered to be unsafe in a requirements file:
 # pip
