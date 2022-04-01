@@ -93,7 +93,7 @@ flask-restful==0.3.8
     # via -r requirements.txt
 flask-restplus==0.13.0
     # via -r requirements.txt
-flask-sqlalchemy==2.4.4
+flask-sqlalchemy==2.5.1
     # via
     #   -r requirements.txt
     #   flask-migrate
