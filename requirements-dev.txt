@@ -66,7 +66,7 @@ decorator==4.4.1
     #   validators
 docutils==0.16
     # via sphinx
-flake8==3.8.4
+flake8==3.9.2
     # via
     #   -r requirements-test.in
     #   flake8-isort
@@ -100,7 +100,7 @@ flask-sqlalchemy==2.5.1
     # via
     #   -r requirements.txt
     #   flask-migrate
-flask-wtf==0.14.3
+flask-wtf==1.0.1
     # via -r requirements.txt
 ftfy==5.8
     # via -r requirements.txt
@@ -181,13 +181,13 @@ prompt-toolkit==3.0.28
     #   click-repl
 psycogreen==1.0.2
     # via -r requirements.txt
-psycopg2-binary==2.8.6
+psycopg2-binary==2.9.3
     # via -r requirements.txt
 py==1.11.0
     # via pytest
-pycodestyle==2.6.0
+pycodestyle==2.7.0
     # via flake8
-pyflakes==2.2.0
+pyflakes==2.3.1
     # via flake8
 pygments==2.7.4
     # via sphinx
@@ -199,7 +199,7 @@ pyrsistent==0.15.7
     #   jsonschema
 pytest-cov==2.12.1
     # via -r requirements-test.in
-pytest-runner==5.2
+pytest-runner==6.0.0
     # via -r requirements-dev.in
 python-dateutil==2.8.1
     # via

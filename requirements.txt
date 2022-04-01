@@ -68,7 +68,7 @@ flask-sqlalchemy==2.5.1
     # via
     #   -r requirements.in
     #   flask-migrate
-flask-wtf==0.14.3
+flask-wtf==1.0.1
     # via -r requirements.in
 ftfy==5.8
     # via -r requirements.in
@@ -107,7 +107,7 @@ prompt-toolkit==3.0.28
     # via click-repl
 psycogreen==1.0.2
     # via -r requirements.in
-psycopg2-binary==2.8.6
+psycopg2-binary==2.9.3
     # via -r requirements.in
 pyrsistent==0.15.7
     # via jsonschema
