@@ -66,7 +66,7 @@ decorator==4.4.1
     # via
     #   -r requirements.txt
     #   validators
-flake8==3.8.4
+flake8==3.9.2
     # via
     #   -r requirements-test.in
     #   flake8-isort
@@ -170,9 +170,9 @@ psycopg2-binary==2.9.3
     # via -r requirements.txt
 py==1.11.0
     # via pytest
-pycodestyle==2.6.0
+pycodestyle==2.7.0
     # via flake8
-pyflakes==2.2.0
+pyflakes==2.3.1
     # via flake8
 pyparsing==2.4.6
     # via packaging
