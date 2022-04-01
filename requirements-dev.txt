@@ -112,7 +112,7 @@ flask-sqlalchemy==2.5.1
     # via
     #   -r requirements.txt
     #   flask-migrate
-flask-wtf==0.14.3
+flask-wtf==1.0.1
     # via -r requirements.txt
 ftfy==5.8
     # via -r requirements.txt
