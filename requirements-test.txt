@@ -101,9 +101,9 @@ flask-wtf==0.14.3
     # via -r requirements.txt
 ftfy==5.8
     # via -r requirements.txt
-gevent==21.12.0
+gevent==20.9.0
     # via -r requirements.txt
-greenlet==1.1.2
+greenlet==0.4.17
     # via
     #   -r requirements.txt
     #   gevent
