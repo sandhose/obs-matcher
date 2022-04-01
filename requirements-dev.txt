@@ -241,7 +241,7 @@ pytzdata==2020.1
     # via
     #   -r requirements.txt
     #   pendulum
-pyyaml==5.3.1
+pyyaml==5.4
     # via watchdog
 raven[flask]==6.10.0
     # via -r requirements.txt
