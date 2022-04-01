@@ -311,7 +311,7 @@ typing-extensions==3.7.4.1
     # via
     #   -r requirements.txt
     #   injector
-unidecode==1.1.2
+unidecode==1.3.4
     # via -r requirements.txt
 urllib3==1.25.9
     # via requests
