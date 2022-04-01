@@ -292,7 +292,7 @@ typing-extensions==3.7.4.1
     #   injector
 unidecode==1.1.2
     # via -r requirements.txt
-urllib3==1.25.8
+urllib3==1.25.9
     # via requests
 validators==0.14.2
     # via
