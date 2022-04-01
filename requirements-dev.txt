@@ -21,8 +21,6 @@ aniso8601==8.0.0
     #   -r requirements.txt
     #   flask-restful
     #   flask-restplus
-argh==0.26.2
-    # via watchdog
 attrs==19.3.0
     # via
     #   -r requirements.txt
@@ -325,7 +323,7 @@ vine==5.0.0
     #   amqp
     #   celery
     #   kombu
-watchdog[watchmedo]==1.0.2
+watchdog[watchmedo]==2.1.7
     # via -r requirements-dev.in
 wcwidth==0.1.8
     # via
