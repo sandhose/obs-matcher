@@ -225,7 +225,6 @@ six==1.14.0
     #   python-dateutil
     #   sqlalchemy-utils
     #   validators
-    #   wtforms-alchemy
     #   wtforms-components
 sqlalchemy==1.3.22
     # via
@@ -282,7 +281,7 @@ wtforms==2.3.3
     #   flask-wtf
     #   wtforms-alchemy
     #   wtforms-components
-wtforms-alchemy==0.17.0
+wtforms-alchemy==0.18.0
     # via -r requirements.txt
 wtforms-components==0.10.4
     # via
