@@ -99,7 +99,7 @@ flask-sqlalchemy==2.5.1
     #   flask-migrate
 flask-wtf==1.0.1
     # via -r requirements.txt
-ftfy==5.8
+ftfy==6.1.1
     # via -r requirements.txt
 gevent==20.9.0
     # via -r requirements.txt
@@ -266,7 +266,7 @@ vine==5.0.0
     #   amqp
     #   celery
     #   kombu
-wcwidth==0.1.8
+wcwidth==0.2.5
     # via
     #   -r requirements.txt
     #   ftfy
