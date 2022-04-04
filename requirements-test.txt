@@ -247,7 +247,7 @@ toml==0.10.0
     # via isort
 tomli==2.0.1
     # via pytest
-tqdm==4.49.0
+tqdm==4.64.0
     # via -r requirements.txt
 typing-extensions==3.7.4.1
     # via
