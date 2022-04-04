@@ -80,7 +80,7 @@ gevent==20.9.0
     # via -r requirements.in
 greenlet==0.4.17
     # via gevent
-gunicorn==20.0.4
+gunicorn==20.1.0
     # via -r requirements.in
 infinity==1.4
     # via intervals

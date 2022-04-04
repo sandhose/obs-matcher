@@ -130,7 +130,7 @@ greenlet==0.4.17
     # via
     #   -r requirements.txt
     #   gevent
-gunicorn==20.0.4
+gunicorn==20.1.0
     # via -r requirements.txt
 idna==2.8
     # via requests
