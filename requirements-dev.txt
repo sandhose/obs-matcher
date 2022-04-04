@@ -351,7 +351,7 @@ wrapt==1.14.0
     # via
     #   -r requirements.txt
     #   deprecated
-wtforms==2.3.3
+wtforms==3.0.1
     # via
     #   -r requirements.txt
     #   flask-admin
