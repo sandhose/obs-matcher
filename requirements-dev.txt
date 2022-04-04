@@ -21,6 +21,10 @@ aniso8601==8.0.0
     #   -r requirements.txt
     #   flask-restful
     #   flask-restplus
+async-timeout==4.0.2
+    # via
+    #   -r requirements.txt
+    #   redis
 attrs==19.3.0
     # via
     #   -r requirements.txt
@@ -76,6 +80,10 @@ decorator==4.4.1
     # via
     #   -r requirements.txt
     #   validators
+deprecated==1.2.13
+    # via
+    #   -r requirements.txt
+    #   redis
 docutils==0.16
     # via sphinx
 flake8==3.9.2
@@ -175,9 +183,11 @@ markupsafe==1.1.1
     #   wtforms
 mccabe==0.6.1
     # via flake8
-packaging==20.1
+packaging==21.3
     # via
+    #   -r requirements.txt
     #   pytest
+    #   redis
     #   sphinx
 pendulum==2.1.2
     # via -r requirements.txt
@@ -203,8 +213,10 @@ pyflakes==2.3.1
     # via flake8
 pygments==2.7.4
     # via sphinx
-pyparsing==2.4.6
-    # via packaging
+pyparsing==3.0.7
+    # via
+    #   -r requirements.txt
+    #   packaging
 pyrsistent==0.15.7
     # via
     #   -r requirements.txt
@@ -243,7 +255,7 @@ pyyaml==5.4
     # via watchdog
 raven[flask]==6.10.0
     # via -r requirements.txt
-redis==3.5.3
+redis==4.2.1
     # via
     #   -r requirements.txt
     #   celery-once
@@ -256,7 +268,6 @@ six==1.14.0
     #   flask-restful
     #   flask-restplus
     #   jsonschema
-    #   packaging
     #   pip-tools
     #   pockets
     #   pyrsistent
@@ -336,6 +347,10 @@ werkzeug==0.16.0
     #   -r requirements.txt
     #   flask
     #   flask-debugtoolbar
+wrapt==1.14.0
+    # via
+    #   -r requirements.txt
+    #   deprecated
 wtforms==2.3.3
     # via
     #   -r requirements.txt
