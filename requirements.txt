@@ -185,7 +185,7 @@ werkzeug==2.1.1
     # via flask
 wrapt==1.14.0
     # via deprecated
-wtforms==2.3.3
+wtforms==3.0.1
     # via
     #   -r requirements.in
     #   flask-admin
