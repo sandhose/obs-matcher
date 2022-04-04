@@ -14,6 +14,8 @@ aniso8601==8.0.0
     # via
     #   flask-restful
     #   flask-restplus
+async-timeout==4.0.2
+    # via redis
 attrs==19.3.0
     # via jsonschema
 billiard==3.6.4.0
@@ -43,6 +45,8 @@ click-repl==0.2.0
     # via celery
 decorator==4.4.1
     # via validators
+deprecated==1.2.13
+    # via redis
 flask==1.1.2
     # via
     #   -r requirements.in
@@ -101,6 +105,8 @@ markupsafe==1.1.1
     #   jinja2
     #   mako
     #   wtforms
+packaging==21.3
+    # via redis
 pendulum==2.1.2
     # via -r requirements.in
 prompt-toolkit==3.0.28
@@ -109,6 +115,8 @@ psycogreen==1.0.2
     # via -r requirements.in
 psycopg2-binary==2.9.3
     # via -r requirements.in
+pyparsing==3.0.7
+    # via packaging
 pyrsistent==0.15.7
     # via jsonschema
 python-dateutil==2.8.1
@@ -128,7 +136,7 @@ pytzdata==2020.1
     # via pendulum
 raven[flask]==6.10.0
     # via -r requirements.in
-redis==3.5.3
+redis==4.2.1
     # via
     #   -r requirements.in
     #   celery-once
@@ -174,6 +182,8 @@ wcwidth==0.1.8
     #   prompt-toolkit
 werkzeug==0.16.0
     # via flask
+wrapt==1.14.0
+    # via deprecated
 wtforms==2.3.3
     # via
     #   -r requirements.in
