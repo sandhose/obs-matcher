@@ -85,7 +85,7 @@ flask==1.1.2
     #   raven
 flask-admin==1.5.7
     # via -r requirements.txt
-flask-injector==0.12.3
+flask-injector==0.13.0
     # via -r requirements.txt
 flask-migrate==2.5.3
     # via -r requirements.txt
