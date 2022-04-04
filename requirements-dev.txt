@@ -104,7 +104,7 @@ flask==1.1.2
     #   flask-sqlalchemy
     #   flask-wtf
     #   raven
-flask-admin==1.5.7
+flask-admin==1.6.0
     # via -r requirements.txt
 flask-debugtoolbar==0.13.1
     # via -r requirements-dev.in
