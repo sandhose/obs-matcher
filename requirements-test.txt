@@ -36,7 +36,7 @@ blinker==1.4
     # via
     #   -r requirements.txt
     #   raven
-celery==5.2.3
+celery==5.2.5
     # via
     #   -r requirements.txt
     #   celery-once
