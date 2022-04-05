@@ -78,7 +78,7 @@ flake8==3.9.2
     # via
     #   -r requirements-test.in
     #   flake8-isort
-flake8-isort==3.0.1
+flake8-isort==4.1.1
     # via -r requirements-test.in
 flask==1.1.2
     # via
@@ -131,7 +131,7 @@ intervals==0.8.1
     # via
     #   -r requirements.txt
     #   wtforms-components
-isort[pyproject]==4.3.21
+isort==4.3.21
     # via flake8-isort
 itsdangerous==1.1.0
     # via
@@ -255,8 +255,6 @@ text-unidecode==1.3
     # via
     #   -r requirements.txt
     #   python-slugify
-toml==0.10.0
-    # via isort
 tomli==2.0.1
     # via pytest
 tqdm==4.64.0
