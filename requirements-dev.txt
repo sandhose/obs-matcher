@@ -112,7 +112,7 @@ flask-injector==0.13.0
     # via -r requirements.txt
 flask-migrate==2.5.3
     # via -r requirements.txt
-flask-restful==0.3.8
+flask-restful==0.3.9
     # via -r requirements.txt
 flask-restplus==0.13.0
     # via -r requirements.txt
