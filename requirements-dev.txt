@@ -92,7 +92,7 @@ flake8==3.9.2
     #   flake8-isort
 flake8-isort==3.0.1
     # via -r requirements-test.in
-flask==1.1.2
+flask==2.1.1
     # via
     #   -r requirements.txt
     #   flask-admin
@@ -152,13 +152,13 @@ intervals==0.8.1
     #   wtforms-components
 isort[pyproject]==4.3.21
     # via flake8-isort
-itsdangerous==1.1.0
+itsdangerous==2.1.2
     # via
     #   -r requirements.txt
     #   flask
     #   flask-debugtoolbar
     #   flask-wtf
-jinja2==2.10.3
+jinja2==3.1.1
     # via
     #   -r requirements.txt
     #   flask
@@ -175,7 +175,7 @@ mako==1.1.1
     # via
     #   -r requirements.txt
     #   alembic
-markupsafe==1.1.1
+markupsafe==2.1.1
     # via
     #   -r requirements.txt
     #   jinja2
@@ -342,7 +342,7 @@ wcwidth==0.2.5
     #   -r requirements.txt
     #   ftfy
     #   prompt-toolkit
-werkzeug==0.16.0
+werkzeug==2.1.1
     # via
     #   -r requirements.txt
     #   flask
