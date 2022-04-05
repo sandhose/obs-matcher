@@ -74,7 +74,7 @@ click-repl==0.2.0
     # via
     #   -r requirements.txt
     #   celery
-coverage==5.0.3
+coverage[toml]==6.3.2
     # via pytest-cov
 decorator==4.4.1
     # via
@@ -226,7 +226,7 @@ pytest==7.1.1
     # via
     #   -r requirements-test.in
     #   pytest-cov
-pytest-cov==2.10.1
+pytest-cov==3.0.0
     # via -r requirements-test.in
 pytest-runner==6.0.0
     # via -r requirements-dev.in
@@ -315,7 +315,9 @@ text-unidecode==1.3
 toml==0.10.0
     # via isort
 tomli==2.0.1
-    # via pytest
+    # via
+    #   coverage
+    #   pytest
 tqdm==4.64.0
     # via -r requirements.txt
 typing-extensions==3.7.4.1
