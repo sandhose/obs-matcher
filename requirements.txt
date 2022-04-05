@@ -47,7 +47,7 @@ decorator==4.4.1
     # via validators
 deprecated==1.2.13
     # via redis
-flask==1.1.2
+flask==2.1.1
     # via
     #   -r requirements.in
     #   flask-admin
@@ -88,11 +88,11 @@ injector==0.18.2
     # via flask-injector
 intervals==0.8.1
     # via wtforms-components
-itsdangerous==1.1.0
+itsdangerous==2.1.2
     # via
     #   flask
     #   flask-wtf
-jinja2==2.10.3
+jinja2==3.1.1
     # via flask
 jsonschema==3.2.0
     # via flask-restplus
@@ -100,7 +100,7 @@ kombu==5.2.4
     # via celery
 mako==1.1.1
     # via alembic
-markupsafe==1.1.1
+markupsafe==2.1.1
     # via
     #   jinja2
     #   mako
@@ -179,7 +179,7 @@ wcwidth==0.2.5
     # via
     #   ftfy
     #   prompt-toolkit
-werkzeug==0.16.0
+werkzeug==2.1.1
     # via flask
 wrapt==1.14.0
     # via deprecated
