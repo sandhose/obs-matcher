@@ -14,6 +14,8 @@ aniso8601==8.0.0
     # via
     #   flask-restful
     #   flask-restplus
+async-timeout==4.0.2
+    # via redis
 attrs==19.3.0
     # via jsonschema
 billiard==3.6.3.0
@@ -34,11 +36,11 @@ decorator==4.4.1
     # via validators
 flask-admin==1.5.7
     # via -r requirements.in
-flask-injector==0.12.3
+flask-injector==0.13.0
     # via -r requirements.in
 flask-migrate==2.5.3
     # via -r requirements.in
-flask-restful==0.3.8
+flask-restful==0.3.9
     # via -r requirements.in
 flask-restplus==0.13.0
     # via -r requirements.in
@@ -63,9 +65,11 @@ ftfy==5.8
     # via -r requirements.in
 gevent==20.9.0
     # via -r requirements.in
-greenlet==0.4.17
-    # via gevent
-gunicorn==20.0.4
+greenlet==1.1.2
+    # via
+    #   gevent
+    #   sqlalchemy
+gunicorn==20.1.0
     # via -r requirements.in
 infinity==1.4
     # via intervals
@@ -73,11 +77,11 @@ injector==0.18.2
     # via flask-injector
 intervals==0.8.1
     # via wtforms-components
-itsdangerous==1.1.0
+itsdangerous==2.1.2
     # via
     #   flask
     #   flask-wtf
-jinja2==2.10.3
+jinja2==3.1.1
     # via flask
 jsonschema==3.2.0
     # via flask-restplus
@@ -85,17 +89,21 @@ kombu==4.6.10
     # via celery
 mako==1.1.1
     # via alembic
-markupsafe==1.1.1
+markupsafe==2.1.1
     # via
     #   jinja2
     #   mako
     #   wtforms
+packaging==21.3
+    # via redis
 pendulum==2.1.2
     # via -r requirements.in
 psycogreen==1.0.2
     # via -r requirements.in
 psycopg2-binary==2.9.3
     # via -r requirements.in
+pyparsing==3.0.7
+    # via packaging
 pyrsistent==0.15.7
     # via jsonschema
 python-dateutil==2.8.1
@@ -104,7 +112,7 @@ python-dateutil==2.8.1
     #   pendulum
 python-editor==1.0.4
     # via alembic
-python-slugify==4.0.1
+python-slugify==6.1.1
     # via -r requirements.in
 pytz==2019.3
     # via
@@ -115,7 +123,7 @@ pytzdata==2020.1
     # via pendulum
 raven[flask]==6.10.0
     # via -r requirements.in
-redis==3.5.3
+redis==4.2.2
     # via
     #   -r requirements.in
     #   celery-once
@@ -128,7 +136,6 @@ six==1.14.0
     #   python-dateutil
     #   sqlalchemy-utils
     #   validators
-    #   wtforms-alchemy
     #   wtforms-components
 sqlalchemy-utils==0.36.1
     # via wtforms-alchemy
