@@ -255,7 +255,7 @@ pyyaml==5.4
     # via watchdog
 raven[flask]==6.10.0
     # via -r requirements.txt
-redis==4.2.1
+redis==4.2.2
     # via
     #   -r requirements.txt
     #   celery-once
