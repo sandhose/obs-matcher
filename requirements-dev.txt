@@ -41,7 +41,7 @@ blinker==1.4
     #   -r requirements.txt
     #   flask-debugtoolbar
     #   raven
-celery==5.2.5
+celery==5.2.6
     # via
     #   -r requirements.txt
     #   celery-once
@@ -74,7 +74,7 @@ deprecated==1.2.13
     #   redis
 docutils==0.16
     # via sphinx
-flake8==3.9.2
+flake8==4.0.1
     # via
     #   -r requirements-test.in
     #   flake8-isort
@@ -180,7 +180,9 @@ packaging==21.3
     #   sphinx
 pendulum==2.1.2
     # via -r requirements.txt
-pip-tools==5.3.1
+pep517==0.12.0
+    # via pip-tools
+pip-tools==6.5.1
     # via -r requirements-dev.in
 pluggy==0.13.1
     # via pytest
@@ -196,9 +198,9 @@ psycopg2-binary==2.9.3
     # via -r requirements.txt
 py==1.11.0
     # via pytest
-pycodestyle==2.7.0
+pycodestyle==2.8.0
     # via flake8
-pyflakes==2.3.1
+pyflakes==2.4.0
     # via flake8
 pygments==2.7.4
     # via sphinx
@@ -253,7 +255,6 @@ six==1.14.0
     #   flask-restful
     #   flask-restplus
     #   jsonschema
-    #   pip-tools
     #   pockets
     #   pyrsistent
     #   python-dateutil
@@ -332,6 +333,8 @@ werkzeug==2.1.1
     #   -r requirements.txt
     #   flask
     #   flask-debugtoolbar
+wheel==0.37.1
+    # via pip-tools
 wrapt==1.14.0
     # via
     #   -r requirements.txt
