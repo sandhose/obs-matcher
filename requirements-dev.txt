@@ -41,7 +41,7 @@ blinker==1.4
     #   -r requirements.txt
     #   flask-debugtoolbar
     #   raven
-celery==5.2.5
+celery==5.2.6
     # via
     #   -r requirements.txt
     #   celery-once
