@@ -168,9 +168,7 @@ pyrsistent==0.15.7
     # via
     #   -r requirements.txt
     #   jsonschema
-pytest-cov==2.10.1
-    # via -r requirements-test.in
-pytest==5.4.3
+pytest==7.1.2
     # via
     #   -r requirements-test.in
     #   pytest-cov
