@@ -209,7 +209,7 @@ six==1.14.0
     #   sqlalchemy-utils
     #   validators
     #   wtforms-components
-sqlalchemy-utils==0.36.1
+sqlalchemy==1.4.36
     # via
     #   -r requirements.txt
     #   wtforms-alchemy
