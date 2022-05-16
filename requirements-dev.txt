@@ -92,7 +92,7 @@ flake8==4.0.1
     #   flake8-isort
 flake8-isort==4.1.1
     # via -r requirements-test.in
-flask==2.1.1
+flask==2.1.2
     # via
     #   -r requirements.txt
     #   flask-admin
@@ -194,7 +194,7 @@ pendulum==2.1.2
     # via -r requirements.txt
 pep517==0.10.0
     # via pip-tools
-pip-tools==6.2.0
+pip-tools==6.6.1
     # via -r requirements-dev.in
 pluggy==0.13.1
     # via pytest
@@ -224,7 +224,7 @@ pyrsistent==0.15.7
     # via
     #   -r requirements.txt
     #   jsonschema
-pytest==7.1.1
+pytest==7.1.2
     # via
     #   -r requirements-test.in
     #   pytest-cov
@@ -241,7 +241,7 @@ python-editor==1.0.4
     # via
     #   -r requirements.txt
     #   alembic
-python-slugify==6.1.1
+python-slugify==6.1.2
     # via -r requirements.txt
 pytz==2022.1
     # via
@@ -258,7 +258,7 @@ pyyaml==5.4
     # via watchdog
 raven[flask]==6.10.0
     # via -r requirements.txt
-redis==4.2.2
+redis==4.3.1
     # via
     #   -r requirements.txt
     #   celery-once
@@ -297,7 +297,7 @@ sphinxcontrib-qthelp==1.0.2
     # via sphinx
 sphinxcontrib-serializinghtml==1.1.5
     # via sphinx
-sqlalchemy==1.4.35
+sqlalchemy==1.4.36
     # via
     #   -r requirements.txt
     #   alembic
@@ -338,7 +338,7 @@ vine==5.0.0
     #   amqp
     #   celery
     #   kombu
-watchdog[watchmedo]==2.1.7
+watchdog[watchmedo]==2.1.8
     # via -r requirements-dev.in
 wcwidth==0.2.5
     # via
