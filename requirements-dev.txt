@@ -206,7 +206,7 @@ pendulum==2.1.2
     # via -r requirements.txt
 pep517==0.12.0
     # via pip-tools
-pip-tools==6.6.0
+pip-tools==6.6.1
     # via -r requirements-dev.in
 pluggy==0.13.1
     # via pytest
@@ -270,7 +270,7 @@ pyyaml==5.4
     # via watchdog
 raven[flask]==6.10.0
     # via -r requirements.txt
-redis==4.2.2
+redis==4.3.1
     # via
     #   -r requirements.txt
     #   celery-once
@@ -350,7 +350,7 @@ vine==5.0.0
     #   amqp
     #   celery
     #   kombu
-watchdog[watchmedo]==1.0.2
+watchdog[watchmedo]==2.1.8
     # via -r requirements-dev.in
 wcwidth==0.2.5
     # via
