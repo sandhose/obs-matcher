@@ -136,7 +136,7 @@ pytzdata==2020.1
     # via pendulum
 raven[flask]==6.10.0
     # via -r requirements.in
-redis==4.2.2
+redis==4.3.1
     # via
     #   -r requirements.in
     #   celery-once
