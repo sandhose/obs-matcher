@@ -153,7 +153,7 @@ six==1.14.0
     #   sqlalchemy-utils
     #   validators
     #   wtforms-components
-sqlalchemy==1.4.36
+sqlalchemy==1.4.37
     # via
     #   -r requirements.in
     #   alembic
