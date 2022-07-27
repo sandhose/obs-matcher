@@ -283,7 +283,7 @@ six==1.14.0
     #   wtforms-components
 snowballstemmer==2.0.0
     # via sphinx
-sphinx==5.1.0
+sphinx==5.1.1
     # via -r requirements-dev.in
 sphinxcontrib-applehelp==1.0.1
     # via sphinx
